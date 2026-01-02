@@ -64,7 +64,10 @@ export default function CustomersPage() {
 
   const handleSaveCustomer = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!activeBook) return;
+    if (!activeBook) {
+      alert('Please create or select a ledger book first using the switcher in the header.');
+      return;
+    }
 
     const error = await validateForm();
     if (error) return alert(error);
@@ -155,12 +158,20 @@ export default function CustomersPage() {
       <div className={styles.list}>
         {!customers ? (
           <div className={styles.loading}>Loading...</div>
-        ) : customers.length === 0 ? (
+        ) : !customers?.length ? (
           <div className={styles.empty}>
-            <div className={styles.emptyIcon}><User size={48} /></div>
-            <h3>No Customers Found</h3>
-            <p>Add your first customer to start recording transactions.</p>
-            <button className={styles.primaryBtn} onClick={() => setIsModalOpen(true)}>Add Customer</button>
+            <User size={48} className={styles.emptyIcon} />
+            <h2>No Customers Found</h2>
+            <p>
+              {!activeBook
+                ? 'Create a ledger book in the header to start adding customers.'
+                : 'Add your first customer by clicking the button above.'}
+            </p>
+            {activeBook && (
+              <button className={styles.primaryBtn} onClick={() => setIsModalOpen(true)}>
+                Add Customer
+              </button>
+            )}
           </div>
         ) : (
           customers.map((customer, index) => (
