@@ -373,7 +373,7 @@
 
 .giveBtn,
 .receiveBtn {
-    padding: 1.15rem;
+    padding: 0.4rem;
     border-radius: var(--radius-md);
     font-weight: 800;
     font-size: 0.9rem;
