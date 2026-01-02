@@ -14,7 +14,8 @@
     max-width: 1200px;
     margin: 0 auto;
     padding: 1.5rem;
-    padding-bottom: calc(var(--nav-height) + 2rem);
+    padding-bottom: calc(var(--nav-height) + 140px);
+    /* Space for nav + floating action buttons */
     animation: fadeIn 0.4s var(--transition-smooth);
 }
 

@@ -344,54 +344,81 @@
 /* Bottom Action Dock */
 .bottomActions {
     position: fixed;
-    bottom: 0px;
-    /* Aligned with bottom of screen */
+    bottom: var(--nav-height);
+    /* Sits above standard bottom nav */
     left: 0;
     right: 0;
     background: var(--surface);
     border-top: 1px solid var(--border-thick);
-    padding: 1.25rem 1.5rem;
+    padding: 1.25rem 1.75rem;
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 1.25rem;
-    box-shadow: 0 -10px 15px -3px rgba(0, 0, 0, 0.1);
-    z-index: 110;
+    gap: 1rem;
+    box-shadow: 0 -10px 25px rgba(0, 0, 0, 0.1);
+    z-index: 1001;
+    /* Above bottom nav */
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    background: rgba(var(--surface-rgb, 255, 255, 255), 0.95);
+    padding-bottom: calc(1.25rem + env(safe-area-inset-bottom));
+}
+
+@media (min-width: 768px) {
+    .bottomActions {
+        bottom: 0;
+        z-index: 110;
+        padding-bottom: 1.25rem;
+    }
 }
 
 .giveBtn,
 .receiveBtn {
-    padding: 0.85rem;
-    border-radius: var(--radius-sm);
-    font-weight: 700;
-    font-size: 0.85rem;
+    padding: 1.15rem;
+    border-radius: var(--radius-md);
+    font-weight: 800;
+    font-size: 0.9rem;
     display: flex;
+    flex-direction: column;
+    /* Stack icon and text for better mobile thumb reach */
     align-items: center;
     justify-content: center;
-    gap: 8px;
+    gap: 6px;
     color: white;
+    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.giveBtn:active,
+.receiveBtn:active {
+    transform: scale(0.96);
+    filter: brightness(0.9);
 }
 
 .giveBtn {
-    background: var(--danger);
+    background: #e11d48;
+    /* Stronger Crimson */
 }
 
 .receiveBtn {
-    background: var(--success);
+    background: #10b981;
+    /* Stronger Emerald */
 }
 
 .bulkActions {
     position: fixed;
-    bottom: 0;
+    bottom: var(--nav-height);
     left: 0;
     right: 0;
     background: var(--surface);
     border-top: 1px solid var(--border-thick);
-    padding: 1.25rem 2rem;
+    padding: 1.25rem 1.75rem;
+    padding-bottom: calc(1.25rem + env(safe-area-inset-bottom));
     display: flex;
     justify-content: space-between;
     align-items: center;
-    z-index: 110;
-    box-shadow: 0 -10px 15px -3px rgba(0, 0, 0, 0.1);
+    z-index: 1002;
+    box-shadow: 0 -10px 25px rgba(0, 0, 0, 0.1);
     animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 

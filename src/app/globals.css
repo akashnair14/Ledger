@@ -1,6 +1,7 @@
 :root {
   /* Disciplined Ledger Palette - Deep Navy & Bone */
   --primary: #0a0f1d;
+  --primary-rgb: 10, 15, 29;
   --primary-light: #161e31;
   --primary-hover: #1c263d;
 
@@ -16,6 +17,7 @@
   --background: #fcfaf7;
   /* Parchment-tinted background */
   --surface: #ffffff;
+  --surface-rgb: 255, 255, 255;
   --surface-header: #f8f6f2;
 
   --text-main: #0a0f1d;
@@ -46,6 +48,7 @@
 [data-theme='dark'] {
   --background: #05080f;
   --surface: #0a0f1d;
+  --surface-rgb: 10, 15, 29;
   --surface-header: #111827;
 
   --text-main: #f1f5f9;
@@ -57,6 +60,7 @@
 
   /* Brighter primary for visibility in dark mode */
   --primary: #3b82f6;
+  --primary-rgb: 59, 130, 246;
   --primary-light: #1e3a8a;
   --primary-hover: #2563eb;
 

@@ -26,8 +26,10 @@ export const BottomNav = () => {
                         href={item.href}
                         className={`${styles.navItem} ${isActive ? styles.active : ''}`}
                     >
-                        <Icon size={24} />
-                        <span>{item.label}</span>
+                        <div className={styles.navItemContent}>
+                            <Icon size={24} />
+                            <span>{item.label}</span>
+                        </div>
                     </Link>
                 );
             })}
