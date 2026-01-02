@@ -1,0 +1,230 @@
+.navbar {
+    position: sticky;
+    top: 0;
+    height: var(--header-height);
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+}
+
+.container {
+    width: 100%;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.leftSection {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--font-fraunces), serif;
+    font-weight: 700;
+    font-size: 1.25rem;
+    color: var(--text-main);
+    text-decoration: none;
+    letter-spacing: -0.02em;
+}
+
+.logoIcon {
+    width: 28px;
+    height: 28px;
+    background: var(--primary);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    border-radius: var(--radius-sm);
+    font-size: 1rem;
+}
+
+.bookSwitcher {
+    position: relative;
+    padding-left: 1.5rem;
+    border-left: 1px solid var(--border);
+}
+
+.switcherBtn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: transparent;
+    border: 1px solid var(--border-thick);
+    border-radius: var(--radius-sm);
+    font-size: 0.8rem;
+    font-weight: 600;
+    font-family: var(--font-hanken), sans-serif;
+    color: var(--text-main);
+}
+
+.switcherBtn:hover {
+    background: var(--surface-header);
+    border-color: var(--text-muted);
+}
+
+.dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 1.5rem;
+    width: 240px;
+    background: var(--surface);
+    border: 1px solid var(--border-thick);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-card);
+    padding: 8px;
+    z-index: 1001;
+}
+
+.dropdownLabel {
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: var(--text-dim);
+    padding: 8px 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.bookList {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.bookItemContainer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-radius: var(--radius-sm);
+}
+
+.bookItemContainer:hover {
+    background: var(--surface-header);
+}
+
+.bookItem {
+    flex: 1;
+    padding: 8px 12px;
+    text-align: left;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    border-radius: var(--radius-sm);
+}
+
+.bookItem.active {
+    color: var(--primary);
+    font-weight: 700;
+}
+
+.bookActions {
+    display: flex;
+    gap: 8px;
+    padding-right: 8px;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.bookItemContainer:hover .bookActions {
+    opacity: 1;
+}
+
+.bookActions button {
+    color: var(--text-dim);
+    padding: 2px;
+}
+
+.bookActions button:hover {
+    color: var(--text-main);
+}
+
+.bookActions button:last-child:hover {
+    color: var(--danger);
+}
+
+.addBookBtn {
+    width: 100%;
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.8rem;
+    color: var(--text-main);
+    font-weight: 700;
+    border-top: 1px solid var(--border);
+    margin-top: 6px;
+}
+
+.actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.iconButton {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    border-radius: var(--radius-sm);
+}
+
+.iconButton:hover {
+    background: var(--surface-header);
+    color: var(--text-main);
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.inputGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.inputGroup label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text-muted);
+}
+
+.inputGroup input {
+    padding: 0.75rem;
+    border: 1px solid var(--border-thick);
+    border-radius: var(--radius-sm);
+    font-size: 1rem;
+}
+
+.submitBtn {
+    background: var(--primary);
+    color: white;
+    padding: 1rem;
+    border-radius: var(--radius-sm);
+    font-weight: 700;
+}
+
+@media (max-width: 600px) {
+    .appTitle {
+        display: none;
+    }
+
+    .bookSwitcher {
+        padding-left: 0.75rem;
+    }
+}

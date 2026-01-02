@@ -1,0 +1,113 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: 3rem;
+}
+
+.header h1 {
+    font-size: 2.25rem;
+    color: var(--text-main);
+}
+
+.section {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.section h2 {
+    font-size: 0.8rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.card {
+    background: var(--surface);
+    border: 1px solid var(--border-thick);
+    border-radius: var(--radius-sm);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.row {
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+}
+
+.row:last-child {
+    border-bottom: none;
+}
+
+.info {
+    display: flex;
+    flex-direction: column;
+}
+
+.title {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--text-main);
+}
+
+.desc {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.dangerBtn {
+    background: transparent;
+    color: var(--danger);
+    padding: 1rem 1.5rem;
+    border-radius: var(--radius-sm);
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid var(--border-thick);
+}
+
+.dangerBtn:hover {
+    background: var(--danger);
+    color: white;
+    border-color: var(--danger);
+}
+
+.toggleBtn {
+    width: 44px;
+    height: 22px;
+    border: 1px solid var(--border-thick);
+    border-radius: 11px;
+    position: relative;
+    background: var(--background);
+}
+
+.toggleBtn.active {
+    background: var(--primary);
+    border-color: var(--primary);
+}
+
+.toggleThumb {
+    width: 16px;
+    height: 16px;
+    background: white;
+    border-radius: 50%;
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    transition: var(--transition-smooth);
+}
+
+.toggleBtn.active .toggleThumb {
+    left: 24px;
+}

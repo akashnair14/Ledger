@@ -1,0 +1,49 @@
+.bottomNav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: var(--nav-height);
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    z-index: 1000;
+    padding-bottom: env(safe-area-inset-bottom);
+}
+
+.navItem {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    color: var(--text-dim);
+    font-size: 0.65rem;
+    font-family: var(--font-hanken), sans-serif;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    flex: 1;
+    transition: var(--transition-smooth);
+    text-decoration: none;
+}
+
+.navItem.active {
+    color: var(--primary);
+}
+
+.navItem span {
+    opacity: 0.6;
+}
+
+.navItem.active span {
+    opacity: 1;
+    font-weight: 800;
+}
+
+@media (min-width: 768px) {
+    .bottomNav {
+        display: none;
+    }
+}

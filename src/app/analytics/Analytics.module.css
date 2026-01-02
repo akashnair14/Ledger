@@ -1,0 +1,242 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding-bottom: 5rem;
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.header h1 {
+    font-size: 1.5rem;
+    font-weight: 800;
+}
+
+.backButton {
+    color: var(--text-dim);
+}
+
+.statsGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+}
+
+.statCard {
+    background: var(--surface);
+    border: 1px solid var(--border-thick);
+    padding: 1.5rem;
+    border-radius: var(--radius-sm);
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    box-shadow: var(--shadow-soft);
+}
+
+.statIcon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.primaryCard .statIcon {
+    background: rgba(59, 130, 246, 0.1);
+    color: var(--primary);
+}
+
+.dangerCard .statIcon {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--danger);
+}
+
+.statInfo span {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    letter-spacing: 0.05em;
+}
+
+.statInfo h2 {
+    font-family: var(--font-mono), monospace;
+    font-size: 1.75rem;
+    font-weight: 800;
+    margin: 4px 0;
+}
+
+.statInfo p {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+}
+
+.miniStats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.miniCard {
+    background: var(--surface-header);
+    padding: 1rem;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border: 1px solid var(--border);
+}
+
+.miniCard strong {
+    display: block;
+    font-size: 1.1rem;
+}
+
+.miniCard span {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+}
+
+.section {
+    margin-top: 1rem;
+}
+
+.section h3 {
+    font-size: 0.8rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin: 0;
+}
+
+.sectionTitleWithInfo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 1rem;
+}
+
+.infoBadge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--surface-header);
+    color: var(--text-dim);
+    cursor: help;
+}
+
+.debtorList {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--border-thick);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+}
+
+.debtorRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    transition: var(--transition-smooth);
+}
+
+.debtorRow:last-child {
+    border-bottom: none;
+}
+
+.debtorRow:hover {
+    background: var(--surface-header);
+}
+
+.debtorMain {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.rank {
+    font-size: 0.75rem;
+    font-weight: 800;
+    background: var(--surface-header);
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    color: var(--text-dim);
+}
+
+.debtorInfo {
+    display: flex;
+    flex-direction: column;
+}
+
+.debtorInfo strong {
+    font-size: 0.95rem;
+}
+
+.debtorInfo span {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.debtorBalance {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 700;
+    font-family: var(--font-mono), monospace;
+}
+
+.agedDays {
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--danger);
+    border-radius: 4px;
+    text-transform: uppercase;
+    font-weight: 900;
+}
+
+.warningIcon {
+    color: var(--danger);
+    opacity: 0.8;
+}
+
+.negative {
+    color: var(--danger);
+}
+
+.loading {
+    padding: 2rem;
+    text-align: center;
+    color: var(--text-dim);
+    font-weight: 700;
+}
+
+.empty {
+    padding: 2rem;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    background: var(--surface);
+}
+
+@media (max-width: 600px) {
+    .statsGrid {
+        grid-template-columns: 1fr;
+    }
+}
