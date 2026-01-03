@@ -84,7 +84,15 @@
 
 .searchBar {
   display: flex;
-  gap: 0.75rem;
+  gap: 8px;
+  margin-bottom: 1.25rem;
+}
+
+@media (min-width: 600px) {
+  .searchBar {
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
 }
 
 .searchContainer {
@@ -127,6 +135,19 @@
   gap: 0.5rem;
 }
 
+.main {
+  padding: 1rem;
+  max-width: 900px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+@media (min-width: 600px) {
+  .main {
+    padding: 2rem;
+  }
+}
+
 .cardContainer {
   position: relative;
   display: flex;
@@ -134,11 +155,28 @@
   gap: 0.5rem;
 }
 
-.customerCard {
-  flex: 1;
+.statCard {
   background: var(--surface);
   border: 1px solid var(--border);
-  padding: 1rem;
+  border-radius: var(--radius-sm);
+  padding: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  transition: var(--transition-smooth);
+}
+
+@media (min-width: 600px) {
+  .statCard {
+    padding: 1.5rem;
+  }
+}
+
+.customerCard {
+  flex: 1;
+  background: transparent;
+  border-bottom: 1px solid var(--border);
+  padding: 0.85rem 0.5rem;
   display: flex;
   align-items: center;
   gap: 1rem;
@@ -148,7 +186,10 @@
 
 .customerCard:hover {
   background: var(--surface-header);
-  border-color: var(--text-dim);
+}
+
+.cardContainer:last-child .customerCard {
+  border-bottom: none;
 }
 
 .cardActions {

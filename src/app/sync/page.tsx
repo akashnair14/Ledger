@@ -1,7 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { syncEngine } from '@/lib/sync/engine';
+import { autoSync } from '@/lib/sync/autoSync';
+import { db } from '@/lib/db';
 import { CloudSync, Lock, CheckCircle, AlertCircle, RefreshCw } from 'lucide-react';
 import styles from './SyncPage.module.css';
 
@@ -13,6 +15,23 @@ export default function SyncPage() {
 
     // In a real app, Client ID should be in .env
     const CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || 'YOUR_GOOGLE_CLIENT_ID';
+
+    const [frequency, setFrequency] = useState<any>('MANUAL');
+
+    useEffect(() => {
+        // Load initial frequency
+        autoSync.getFrequency().then(setFrequency);
+        // Load last sync
+        db.syncMetadata.get('last_auto_sync').then(meta => {
+            if (meta) setLastSync(new Date(Number(meta.value)).toLocaleString());
+        });
+    }, []);
+
+    const handleFrequencyChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const newFreq = e.target.value;
+        setFrequency(newFreq);
+        await autoSync.setFrequency(newFreq as any);
+    };
 
     const handleSync = async () => {
         if (!password) {
@@ -27,9 +46,17 @@ export default function SyncPage() {
         try {
             setStatus('syncing');
             setError('');
+            // Save password for auto-sync
+            localStorage.setItem('sync_password', password);
+
             await syncEngine.setPassword(password);
             const res = await syncEngine.sync(CLIENT_ID);
-            setLastSync(new Date(res.lastSync).toLocaleString());
+
+            const now = new Date();
+            setLastSync(now.toLocaleString());
+            // Update auto-sync timestamp too so we don't double sync immediately
+            await db.syncMetadata.put({ key: 'last_auto_sync', value: now.getTime().toString() });
+
             setStatus('success');
         } catch (err: any) {
             console.error(err);
@@ -69,11 +96,26 @@ export default function SyncPage() {
                     <label><Lock size={16} /> Encryption Password</label>
                     <input
                         type="password"
-                        placeholder="nEnter a strong password..."
+                        placeholder="Enter a strong password..."
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                     />
                     <p className={styles.note}>This password is used to encrypt your files. You MUST remember it to restore data on other devices.</p>
+                </div>
+
+                <div className={styles.inputGroup}>
+                    <label><RefreshCw size={16} /> Automatic Backup Frequency</label>
+                    <select
+                        value={frequency}
+                        onChange={handleFrequencyChange}
+                        className={styles.selectInput}
+                    >
+                        <option value="MANUAL">Manual Only (Off)</option>
+                        <option value="DAILY">Daily (Every 24 Hours)</option>
+                        <option value="WEEKLY">Weekly (Every 7 Days)</option>
+                        <option value="MONTHLY">Monthly (Every 30 Days)</option>
+                    </select>
+                    <p className={styles.note}>Backups happen in the background when the app is open.</p>
                 </div>
 
                 {status === 'error' && (
@@ -86,7 +128,7 @@ export default function SyncPage() {
                 {status === 'success' && (
                     <div className={styles.successBox}>
                         <CheckCircle size={20} />
-                        <span>Sync Successful! {lastSync && `Last sync: ${lastSync}`}</span>
+                        <span>Sync Successful! {lastSync && `Last backup: ${lastSync}`}</span>
                     </div>
                 )}
 

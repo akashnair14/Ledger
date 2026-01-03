@@ -32,6 +32,9 @@ import { useState, useRef, useEffect } from 'react';
 import { Modal } from '@/components/ui/Modal';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { TransactionFilters, FilterState } from '@/components/ui/Filters';
+import { SuccessAnimation } from '@/components/ui/SuccessAnimation';
+import { StatementDownloader } from '@/components/ui/StatementDownloader';
 import styles from './CustomerDetail.module.css';
 
 const PAYMENT_MODES: { value: PaymentMode; label: string }[] = [
@@ -71,7 +74,16 @@ export default function CustomerDetailPage() {
     const [isVibrating, setIsVibrating] = useState(false);
     const [isSelectMode, setIsSelectMode] = useState(false);
     const [selectedTxns, setSelectedTxns] = useState<string[]>([]);
-    const [swipedId, setSwipedId] = useState<string | null>(null);
+    const [showSuccess, setShowSuccess] = useState(false);
+    const [activeFilters, setActiveFilters] = useState<FilterState>({
+        minAmount: '',
+        maxAmount: '',
+        type: 'ALL',
+        paymentModes: [],
+        tags: [],
+        sortBy: 'DATE',
+        sortOrder: 'DESC'
+    });
     const touchStart = useRef<number | null>(null);
 
     // Keyboard Shortcuts
@@ -106,6 +118,31 @@ export default function CustomerDetailPage() {
     );
 
     if (!customer) return <div className={styles.loading}>Loading customer...</div>;
+
+    // Filter Logic
+    const availableTags = Array.from(new Set((transactions as Transaction[])?.flatMap(t => t.tags || []) || []));
+    const filteredTransactions = (transactions as Transaction[])?.filter(t => {
+        if (activeFilters.type !== 'ALL' && t.type !== activeFilters.type) return false;
+        if (activeFilters.minAmount && t.amount < Number(activeFilters.minAmount)) return false;
+        if (activeFilters.maxAmount && t.amount > Number(activeFilters.maxAmount)) return false;
+        if (activeFilters.paymentModes.length > 0 && !activeFilters.paymentModes.includes(t.paymentMode)) {
+            // Check custom payment mode too
+            if (t.paymentMode === 'OTHER' && t.customPaymentMode && activeFilters.paymentModes.includes(t.customPaymentMode)) {
+                // Keep it
+            } else {
+                return false;
+            }
+        }
+        if (activeFilters.tags.length > 0 && !activeFilters.tags.some(tag => t.tags?.includes(tag))) return false;
+        return true;
+    })?.sort((a, b) => {
+        const order = activeFilters.sortOrder === 'ASC' ? 1 : -1;
+        if (activeFilters.sortBy === 'DATE') {
+            return (new Date(a.date).getTime() - new Date(b.date).getTime()) * order;
+        } else {
+            return (a.amount - b.amount) * order;
+        }
+    }) || [];
 
     const totalCredit = (transactions as Transaction[])?.filter(t => t.type === 'CREDIT').reduce((sum, t) => sum + t.amount, 0) || 0;
     const totalPayment = (transactions as Transaction[])?.filter(t => t.type === 'PAYMENT').reduce((sum, t) => sum + t.amount, 0) || 0;
@@ -195,7 +232,18 @@ export default function CustomerDetailPage() {
             }
 
             resetForm();
+            setActiveFilters({
+                minAmount: '',
+                maxAmount: '',
+                type: 'ALL',
+                paymentModes: [],
+                tags: [],
+                sortBy: 'DATE',
+                sortOrder: 'DESC'
+            });
             setShowConfirm(false);
+            setShowSuccess(true);
+            setTimeout(() => setShowSuccess(false), 2000);
         } catch (err) {
             console.error(err);
             alert('Failed to save transaction. Please try again.');
@@ -221,21 +269,10 @@ export default function CustomerDetailPage() {
         }
     };
 
-    const handleTouchStart = (e: React.TouchEvent, id: string) => {
-        touchStart.current = e.touches[0].clientX;
-    };
-
-    const handleTouchMove = (e: React.TouchEvent, id: string) => {
-        if (touchStart.current === null) return;
-        const delta = touchStart.current - e.touches[0].clientX;
-        if (delta > 50) setSwipedId(id);
-        else if (delta < -50) setSwipedId(null);
-    };
 
     const handleDelete = async (txn: Transaction) => {
         if (confirm('Delete this transaction?')) {
             await db.transactions.update(txn.id, { isDeleted: 1, updatedAt: now() });
-            setSwipedId(null);
         }
     };
 
@@ -360,6 +397,10 @@ export default function CustomerDetailPage() {
                 </div>
                 {customer.phone && (
                     <div className={styles.headerActions}>
+                        <StatementDownloader
+                            customerName={customer.name}
+                            transactions={transactions || []}
+                        />
                         <button
                             className={styles.reminderBtn}
                             onClick={handleSendReminder}
@@ -408,26 +449,31 @@ export default function CustomerDetailPage() {
                         {isSelectMode ? 'Cancel Selection' : 'Select Multiple'}
                     </button>
                 </div>
+
+                <TransactionFilters
+                    filters={activeFilters}
+                    onFilterChange={setActiveFilters}
+                    availableTags={availableTags}
+                />
+
                 <div className={styles.ledgerHeader}>
                     {isSelectMode && <span style={{ width: 40 }}></span>}
                     <span>Date</span>
                     <span>Details</span>
                     <span style={{ textAlign: 'right' }}>Amount</span>
                 </div>
-                {!transactions || transactions.length === 0 ? (
-                    <p className={styles.emptyText}>No transactions found in this ledger.</p>
+                {!filteredTransactions || filteredTransactions.length === 0 ? (
+                    <p className={styles.emptyText}>No transactions match your filters.</p>
                 ) : (
-                    transactions.map((t, index) => (
+                    filteredTransactions.map((t, index) => (
                         <div
                             key={t.id}
-                            className={`${styles.txnCardContainer} ${swipedId === t.id ? styles.swiped : ''}`}
+                            className={styles.txnCardContainer}
                         >
                             <div
                                 className={`${styles.txnCard} ${isSelectMode ? styles.clickableCard : ''} staggered-reveal`}
                                 style={{ '--i': index } as React.CSSProperties}
                                 onClick={() => isSelectMode && toggleTxnSelection(t.id)}
-                                onTouchStart={(e) => handleTouchStart(e, t.id)}
-                                onTouchMove={(e) => handleTouchMove(e, t.id)}
                             >
                                 {isSelectMode && (
                                     <div className={styles.checkboxContainer}>
@@ -437,16 +483,16 @@ export default function CustomerDetailPage() {
                                     </div>
                                 )}
                                 <div className={styles.txnDate}>
-                                    {new Date(t.date).toLocaleDateString()}
+                                    {new Date(t.date).toLocaleDateString(undefined, { day: '2-digit', month: 'short' })}
                                 </div>
                                 <div className={styles.txnMain}>
                                     <div className={styles.txnNote}>
                                         {t.type === 'CREDIT' ? <ArrowUpRight size={14} className={styles.negative} /> : <ArrowDownLeft size={14} className={styles.positive} />}
-                                        {t.note || (t.type === 'CREDIT' ? 'Credit Given' : 'Payment Received')}
+                                        {t.note || (t.type === 'CREDIT' ? 'Given' : 'Received')}
                                     </div>
                                     <div className={styles.txnTags}>
                                         <span className={styles.tagLabel}>{t.paymentMode === 'OTHER' && t.customPaymentMode ? t.customPaymentMode : t.paymentMode}</span>
-                                        {t.invoiceNumber && <span className={styles.tagLabel}>INV: {t.invoiceNumber}</span>}
+                                        {t.invoiceNumber && <span className={styles.tagLabel}>#{t.invoiceNumber}</span>}
                                         {t.tags?.map(tag => (
                                             <span key={tag} className={styles.tagLabel}>#{tag}</span>
                                         ))}
@@ -455,19 +501,26 @@ export default function CustomerDetailPage() {
                                 <div className={`${styles.txnAmount} ${t.type === 'CREDIT' ? styles.negative : styles.positive}`}>
                                     ₹{t.amount.toLocaleString()}
                                     {t.hasAttachment && <Paperclip size={10} style={{ marginLeft: 4 }} />}
-                                    <button
-                                        className={styles.downloadBtn}
-                                        onClick={(e) => { e.stopPropagation(); handleGenerateVoucher(t); }}
-                                        title="Download PDF Voucher"
-                                    >
-                                        <Download size={14} />
-                                    </button>
                                 </div>
-                            </div>
-                            <div className={styles.swipeActions}>
-                                <button className={styles.deleteSwipeBtn} onClick={() => handleDelete(t)}>
-                                    <Trash2 size={20} />
-                                </button>
+                                {!isSelectMode && (
+                                    <div style={{ display: 'flex', gap: '8px', marginLeft: 'auto' }}>
+                                        <button
+                                            className={styles.downloadBtn}
+                                            onClick={(e) => { e.stopPropagation(); handleGenerateVoucher(t); }}
+                                            title="Download PDF"
+                                        >
+                                            <Download size={14} />
+                                        </button>
+                                        <button
+                                            className={styles.downloadBtn}
+                                            onClick={(e) => { e.stopPropagation(); handleDelete(t); }}
+                                            title="Delete"
+                                            style={{ color: 'var(--text-dim)' }}
+                                        >
+                                            <Trash2 size={14} />
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     ))
@@ -708,6 +761,11 @@ export default function CustomerDetailPage() {
                     </div>
                 )}
             </Modal>
+
+            <SuccessAnimation
+                isVisible={showSuccess}
+                onComplete={() => setShowSuccess(false)}
+            />
         </div>
     );
 }

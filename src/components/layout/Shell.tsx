@@ -2,11 +2,13 @@
 
 import { Navbar } from './Navbar';
 import { BottomNav } from './BottomNav';
+import { GlobalSearch } from '../ui/GlobalSearch';
 import styles from './Shell.module.css';
 
 export const Shell = ({ children }: { children: React.ReactNode }) => {
     return (
         <div className={styles.shell}>
+            <GlobalSearch />
             <Navbar />
             <main className={styles.main}>
                 <div className={styles.content}>

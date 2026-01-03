@@ -1,0 +1,200 @@
+.container {
+    width: 100%;
+}
+
+.mainBtn {
+    background: var(--surface);
+    border: 1px solid var(--border-thick);
+    padding: 0.65rem 1.25rem;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text-main);
+    transition: var(--transition-smooth);
+    box-shadow: var(--shadow-soft);
+    width: 100%;
+    min-height: 44px;
+}
+
+.mainBtn:hover {
+    border-color: var(--primary);
+    background: var(--surface-header);
+}
+
+.modalContent {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.sectionLabel {
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.pillGrid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.pillGrid button {
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1px solid var(--border-thick);
+    background: var(--surface);
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    font-weight: 600;
+    transition: var(--transition-smooth);
+}
+
+.pillGrid button:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.activePill {
+    background: var(--primary) !important;
+    color: white !important;
+    border-color: var(--primary) !important;
+}
+
+.dateInputs {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 0.5rem;
+    background: var(--surface-header);
+    padding: 10px;
+    border-radius: var(--radius-sm);
+}
+
+.dateInputs input {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid var(--border-thick);
+    border-radius: 4px;
+    font-size: 0.9rem;
+    background: var(--surface);
+    color: var(--text-main);
+}
+
+.optionList {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.reportOption {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px;
+    border: 1px solid var(--border-thick);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: var(--transition-smooth);
+    background: var(--surface);
+}
+
+.reportOption:hover {
+    border-color: var(--primary);
+    background: var(--surface-header);
+}
+
+.activeOption {
+    border-color: var(--primary);
+    background: rgba(var(--primary-rgb), 0.05);
+    box-shadow: 0 0 0 1px var(--primary);
+}
+
+.radioOuter {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--border-thick);
+    border-radius: 50%;
+    margin-top: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.activeOption .radioOuter {
+    border-color: var(--primary);
+}
+
+.radioInner {
+    width: 10px;
+    height: 10px;
+    background: var(--primary);
+    border-radius: 50%;
+}
+
+.optionContent {
+    display: flex;
+    flex-direction: column;
+}
+
+.optionTitle {
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--text-main);
+}
+
+.optionDesc {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    margin-top: 2px;
+}
+
+.footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+}
+
+.cancelBtn {
+    padding: 0.75rem 1.5rem;
+    border: 1px solid var(--border-thick);
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text-dim);
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.generateBtn {
+    padding: 0.75rem 2rem;
+    background: var(--primary);
+    color: white;
+    border-radius: var(--radius-sm);
+    font-weight: 700;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.3);
+}
+
+.generateBtn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}

@@ -77,62 +77,6 @@
     color: var(--text-muted);
 }
 
-.miniStats {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-}
-
-.miniCard {
-    background: var(--surface-header);
-    padding: 1rem;
-    border-radius: var(--radius-sm);
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    border: 1px solid var(--border);
-}
-
-.miniCard strong {
-    display: block;
-    font-size: 1.1rem;
-}
-
-.miniCard span {
-    font-size: 0.7rem;
-    color: var(--text-muted);
-}
-
-.section {
-    margin-top: 1rem;
-}
-
-.section h3 {
-    font-size: 0.8rem;
-    font-weight: 800;
-    text-transform: uppercase;
-    color: var(--text-dim);
-    margin: 0;
-}
-
-.sectionTitleWithInfo {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 1rem;
-}
-
-.infoBadge {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    background: var(--surface-header);
-    color: var(--text-dim);
-    cursor: help;
-}
 
 .debtorList {
     display: flex;

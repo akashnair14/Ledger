@@ -1,43 +1,77 @@
 'use client';
 
-import { db, Customer, Transaction } from '@/lib/db';
+import { db } from '@/lib/db';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { FileUp, Settings as SettingsIcon, Trash2, Database, Shield, Fingerprint, ToggleLeft, ToggleRight } from 'lucide-react';
+import { FileUp, Trash2, Database, Shield, Building2, Upload, ToggleLeft, ToggleRight, Download } from 'lucide-react';
 import { exportToCSV, exportToExcel, exportToJSON } from '@/lib/export/generate';
 import { importFromCSV } from '@/lib/import/csv';
 import { bioAuth } from '@/lib/auth/biometrics';
-import { useTheme } from '@/context/ThemeContext';
 import { useBook } from '@/context/BookContext';
 import { useState, useEffect } from 'react';
-import { Palette, Moon, Sun } from 'lucide-react';
 import styles from './SettingsPage.module.css';
 
+type Tab = 'PROFILE' | 'DATA' | 'SECURITY';
+
 export default function SettingsPage() {
-    const { theme, toggleTheme, primaryColor, setPrimaryColor } = useTheme();
     const { activeBook } = useBook();
     const customers = useLiveQuery(() => db.customers.toArray());
     const transactions = useLiveQuery(() => db.transactions.toArray());
+
+    // UI State
+    const [activeTab, setActiveTab] = useState<Tab>('PROFILE');
+
+    // Security State
     const [lockEnabled, setLockEnabled] = useState(false);
     const [isSupported, setIsSupported] = useState(false);
+
+    // Branding State
+    const [businessName, setBusinessName] = useState('');
+    const [businessAddress, setBusinessAddress] = useState('');
+    const [businessLogo, setBusinessLogo] = useState('');
 
     useEffect(() => {
         const initSecurity = async () => {
             setIsSupported(await bioAuth.isSupported());
             setLockEnabled(await bioAuth.isEnabled());
         };
+        const initBranding = async () => {
+            const name = await db.settings.get('business_name');
+            const addr = await db.settings.get('business_address');
+            const logo = await db.settings.get('business_logo');
+            if (name) setBusinessName(name.value);
+            if (addr) setBusinessAddress(addr.value);
+            if (logo) setBusinessLogo(logo.value);
+        };
         initSecurity();
+        initBranding();
     }, []);
+
+    const saveBranding = async (key: string, value: string) => {
+        await db.settings.put({ key, value });
+    };
+
+    const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onloadend = async () => {
+            const base64 = reader.result as string;
+            setBusinessLogo(base64);
+            await saveBranding('business_logo', base64);
+        };
+        reader.readAsDataURL(file);
+    };
 
     const toggleLock = async () => {
         if (!lockEnabled) {
-            // Register first
             const success = await bioAuth.register();
             if (success) {
                 await bioAuth.setEnabled(true);
                 setLockEnabled(true);
                 alert('Biometric lock enabled!');
             } else {
-                alert('Registration failed. Make sure your device supports biometrics.');
+                alert('Registration failed. Ensure device support.');
             }
         } else {
             await bioAuth.setEnabled(false);
@@ -63,6 +97,7 @@ export default function SettingsPage() {
             }
             await importFromCSV(file, activeBook.id);
             alert('Import successful!');
+            window.location.reload();
         } catch (err) {
             console.error(err);
             alert('Import failed.');
@@ -70,118 +105,158 @@ export default function SettingsPage() {
     };
 
     const clearData = async () => {
-        if (!confirm('This will delete all local data. Are you sure?')) return;
+        if (!confirm('This will delete ALL local data. This cannot be undone. Are you sure?')) return;
         await db.customers.clear();
         await db.transactions.clear();
         await db.syncMetadata.clear();
         alert('All data cleared.');
+        window.location.reload();
     };
 
     return (
         <div className={styles.container}>
             <header className={styles.header}>
-                <SettingsIcon size={32} />
-                <h1>App Settings</h1>
+                <h1>Settings</h1>
+                <div className={styles.tabs}>
+                    <button
+                        className={`${styles.tabBtn} ${activeTab === 'PROFILE' ? styles.active : ''}`}
+                        onClick={() => setActiveTab('PROFILE')}
+                    >
+                        Business Profile
+                    </button>
+                    <button
+                        className={`${styles.tabBtn} ${activeTab === 'DATA' ? styles.active : ''}`}
+                        onClick={() => setActiveTab('DATA')}
+                    >
+                        Data & Backup
+                    </button>
+                    <button
+                        className={`${styles.tabBtn} ${activeTab === 'SECURITY' ? styles.active : ''}`}
+                        onClick={() => setActiveTab('SECURITY')}
+                    >
+                        Security
+                    </button>
+                </div>
             </header>
 
-            <section className={styles.section}>
-                <h2><Palette size={20} /> Appearance</h2>
-                <div className={styles.card}>
-                    <div className={styles.row}>
-                        <div className={styles.info}>
-                            <h3>Application Theme</h3>
-                            <p>Switch between light and dark mode.</p>
+            <main className={styles.contentArea}>
+                {activeTab === 'PROFILE' && (
+                    <section className={styles.section}>
+                        <div className={styles.card}>
+                            <div className={styles.brandingGrid}>
+                                <div className={styles.logoSection}>
+                                    <div className={styles.logoPreview}>
+                                        {businessLogo ? (
+                                            <img src={businessLogo} alt="Business Logo" />
+                                        ) : (
+                                            <Building2 size={40} />
+                                        )}
+                                    </div>
+                                    <label className={styles.logoUploadBtn}>
+                                        <Upload size={16} /> Upload Logo
+                                        <input type="file" accept="image/*" onChange={handleLogoUpload} hidden />
+                                    </label>
+                                </div>
+                                <div className={styles.brandingInputs}>
+                                    <div className={styles.inputGroup}>
+                                        <label>Business Name</label>
+                                        <input
+                                            type="text"
+                                            value={businessName}
+                                            onChange={(e) => {
+                                                setBusinessName(e.target.value);
+                                                saveBranding('business_name', e.target.value);
+                                            }}
+                                            placeholder="e.g. Akash Enterprises"
+                                        />
+                                    </div>
+                                    <div className={styles.inputGroup}>
+                                        <label>Business Address</label>
+                                        <textarea
+                                            value={businessAddress}
+                                            onChange={(e) => {
+                                                setBusinessAddress(e.target.value);
+                                                saveBranding('business_address', e.target.value);
+                                            }}
+                                            placeholder="e.g. 123 Main St, City"
+                                            rows={3}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <button className={styles.themeToggle} onClick={toggleTheme}>
-                            {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
-                            <span>{theme === 'light' ? 'Dark' : 'Light'} Mode</span>
-                        </button>
-                    </div>
+                    </section>
+                )}
 
-                    <div className={styles.row}>
-                        <div className={styles.info}>
-                            <h3>Primary Brand Color</h3>
-                            <p>Customize the main accent color of the app.</p>
-                        </div>
-                        <div className={styles.colorPickerWrapper}>
-                            <input
-                                type="color"
-                                value={primaryColor}
-                                onChange={(e) => setPrimaryColor(e.target.value)}
-                                className={styles.colorPicker}
-                            />
-                            <span className={styles.colorHex}>{primaryColor.toUpperCase()}</span>
-                        </div>
-                    </div>
-                </div>
-            </section>
+                {activeTab === 'DATA' && (
+                    <section className={styles.section}>
+                        <div className={styles.card}>
+                            <div className={styles.row}>
+                                <div className={styles.info}>
+                                    <h3>Export Backup</h3>
+                                    <p>Download all your data securely.</p>
+                                </div>
+                                <div className={styles.btnGroup}>
+                                    <button className={styles.importBtn} onClick={() => handleExport('CSV')}>
+                                        <Download size={16} /> CSV
+                                    </button>
+                                    <button className={styles.importBtn} onClick={() => handleExport('EXCEL')}>
+                                        <Download size={16} /> Excel
+                                    </button>
+                                    <button className={styles.importBtn} onClick={() => handleExport('JSON')}>
+                                        <Database size={16} /> JSON
+                                    </button>
+                                </div>
+                            </div>
 
-            <section className={styles.section}>
-                <h2><Database size={20} /> Data Management</h2>
-                <div className={styles.card}>
-                    <div className={styles.row}>
-                        <div className={styles.info}>
-                            <h3>Export Backup</h3>
-                            <p>Download your data for offline storage.</p>
-                        </div>
-                        <div className={styles.btnGroup}>
-                            <button onClick={() => handleExport('CSV')}>CSV</button>
-                            <button onClick={() => handleExport('EXCEL')}>Excel</button>
-                            <button onClick={() => handleExport('JSON')}>JSON</button>
-                        </div>
-                    </div>
+                            <div className={styles.row}>
+                                <div className={styles.info}>
+                                    <h3>Import Data</h3>
+                                    <p>Restore from a previous CSV backup.</p>
+                                </div>
+                                <label className={styles.importBtn}>
+                                    <FileUp size={16} /> Import CSV
+                                    <input type="file" accept=".csv" onChange={handleImport} hidden />
+                                </label>
+                            </div>
 
-                    <div className={styles.row}>
-                        <div className={styles.info}>
-                            <h3>Import Data</h3>
-                            <p>Migrate data from other ledger apps via CSV.</p>
+                            <div className={styles.row}>
+                                <div className={styles.info}>
+                                    <h3 style={{ color: 'var(--danger)' }}>Reset Application</h3>
+                                    <p>Erase all data and start fresh.</p>
+                                </div>
+                                <button className={styles.dangerBtn} onClick={clearData}>
+                                    <Trash2 size={16} /> Clear Everything
+                                </button>
+                            </div>
                         </div>
-                        <label className={styles.importBtn}>
-                            <FileUp size={18} /> Import CSV
-                            <input type="file" accept=".csv" onChange={handleImport} hidden />
-                        </label>
-                    </div>
-                </div>
-            </section>
+                    </section>
+                )}
 
-            <section className={styles.section}>
-                <h2><Shield size={20} /> Security</h2>
-                <div className={styles.card}>
-                    <div className={styles.row}>
-                        <div className={styles.info}>
-                            <h3>Biometric App Lock</h3>
-                            <p>Require fingerprint or FaceID to open the app.</p>
-                            {!isSupported && <p className={styles.warning}>Not supported on this device/browser.</p>}
+                {activeTab === 'SECURITY' && (
+                    <section className={styles.section}>
+                        <div className={styles.card}>
+                            <div className={styles.row}>
+                                <div className={styles.info}>
+                                    <h3>Biometric Lock</h3>
+                                    <p>Secure app access with Fingerprint/FaceID.</p>
+                                    {!isSupported && <p style={{ color: 'var(--warning)', fontSize: '0.75rem', marginTop: 4 }}>Device not supported.</p>}
+                                </div>
+                                <button
+                                    className={`${styles.toggleBtn} ${lockEnabled ? styles.active : ''}`}
+                                    onClick={toggleLock}
+                                    disabled={!isSupported}
+                                >
+                                    {lockEnabled ? <ToggleRight size={24} color="white" /> : <ToggleLeft size={24} color="var(--text-dim)" />}
+                                </button>
+                            </div>
                         </div>
-                        <button
-                            className={`${styles.toggleBtn} ${lockEnabled ? styles.active : ''}`}
-                            onClick={toggleLock}
-                            disabled={!isSupported}
-                        >
-                            {lockEnabled ? <ToggleRight size={32} /> : <ToggleLeft size={32} />}
-                        </button>
-                    </div>
-                </div>
-            </section>
-
-            <section className={styles.section}>
-                <h2><Shield size={20} /> Danger Zone</h2>
-                <div className={styles.card}>
-                    <div className={styles.row}>
-                        <div className={styles.info}>
-                            <h3 className={styles.dangerText}>Clear All Data</h3>
-                            <p>Wipes all customers and transactions from this device.</p>
-                        </div>
-                        <button className={styles.dangerBtn} onClick={clearData}>
-                            <Trash2 size={18} /> Clear Data
-                        </button>
-                    </div>
-                </div>
-            </section>
+                    </section>
+                )}
+            </main>
 
             <div className={styles.footer}>
-                <p>LedgerManager v1.0.0</p>
-                <p>Built with ❤️ for Personal Finance</p>
+                <p>LedgerManager v1.1.0 (Pro)</p>
             </div>
         </div>
     );

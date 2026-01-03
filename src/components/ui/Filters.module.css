@@ -1,0 +1,156 @@
+.triggerBar {
+    background: var(--surface);
+    border: 1px solid var(--border-thick);
+    border-radius: var(--radius-sm);
+    padding: 0.85rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: var(--transition-smooth);
+    margin-bottom: 1.5rem;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.triggerBar:hover {
+    background: var(--surface-header);
+    border-color: var(--primary);
+}
+
+.barLeft {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.filterCount {
+    font-size: 0.65rem;
+    background: var(--primary);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 10px;
+    text-transform: uppercase;
+}
+
+/* Panel logic simplified since it's now inside a modal */
+.panel {
+    background: var(--surface);
+    /* No border or padding needed as modal handles it */
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    /* Reduced from 1.5rem for mobile */
+}
+
+@media (min-width: 768px) {
+    .grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+    }
+}
+
+.group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    /* Reduced from 10px */
+}
+
+.group label {
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.inputRow {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.inputRow input {
+    width: 100px;
+    /* Fixed smaller width */
+    flex: none;
+    /* Don't expand */
+    padding: 8px 12px;
+    border: 1px solid var(--border-thick);
+    border-radius: var(--radius-sm);
+    font-size: 0.9rem;
+    background: var(--surface);
+    /* Match global input style */
+    color: var(--text-main);
+}
+
+.pillGroup {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.pillGroup button {
+    background: var(--background);
+    border: 1px solid var(--border-thick);
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: var(--transition-smooth);
+    min-height: 40px;
+}
+
+.pillGroup button:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.pillGroup button.activePill {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+.footer {
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+}
+
+.resetBtn {
+    background: transparent;
+    border: 1px solid var(--border-thick);
+    padding: 8px 16px;
+    border-radius: var(--radius-sm);
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text-dim);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+}
+
+.applyBtn {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 8px 20px;
+    border-radius: var(--radius-sm);
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+}

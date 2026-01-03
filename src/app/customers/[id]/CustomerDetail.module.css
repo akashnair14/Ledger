@@ -2,41 +2,62 @@
     display: flex;
     flex-direction: column;
     gap: 2rem;
+    padding-bottom: 80px;
+    /* Safe space for bottom fixed actions */
 }
 
 .header {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    flex-direction: column;
+    gap: 1rem;
     padding-bottom: 1.25rem;
     border-bottom: 1px solid var(--border);
 }
 
 .headerActions {
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 0.75rem;
+    width: 100%;
+}
+
+@media (min-width: 768px) {
+    .header {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0;
+    }
+
+    .headerActions {
+        display: flex;
+        width: auto;
+    }
 }
 
 .reminderBtn {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 0.65rem 1rem;
-    background: #25D366;
-    /* WhatsApp Green */
-    color: white;
+    justify-content: center;
+    gap: 8px;
+    padding: 0.65rem 1.25rem;
+    /* Match Download Button */
+    background: transparent;
+    border: 1px solid #25D366;
+    color: #25D366;
     border-radius: var(--radius-sm);
-    font-size: 0.8rem;
+    font-size: 0.85rem;
+    /* Match Download Button */
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
     transition: var(--transition-smooth);
-    box-shadow: 0 4px 6px rgba(37, 211, 102, 0.2);
+    min-height: 44px;
+    width: 100%;
 }
 
 .reminderBtn:hover {
-    background: #128C7E;
-    transform: translateY(-1px);
+    background: #25D366;
+    color: white;
 }
 
 .backButton {
@@ -44,9 +65,17 @@
 }
 
 .customerSummary h1 {
-    font-size: 1.75rem;
+    font-size: 1.5rem;
+    /* Cap size on mobile */
     color: var(--text-main);
     margin-bottom: 4px;
+    line-height: 1.2;
+}
+
+@media (min-width: 768px) {
+    .customerSummary h1 {
+        font-size: 2rem;
+    }
 }
 
 .quickInfo {
@@ -67,20 +96,25 @@
 .balanceCard {
     background: var(--surface);
     border: 1px solid var(--border-thick);
-    padding: 2rem;
-    display: grid;
-    grid-template-columns: 1fr 1px 1fr;
-    gap: 2rem;
-    align-items: center;
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
     position: sticky;
     top: -1px;
-    /* Stays at top */
     z-index: 100;
-    margin: 0 -1.5rem;
-    /* Full width edge to edge in container */
-    padding-left: 3.5rem;
-    padding-right: 3.5rem;
+    margin: 0 -1rem;
     box-shadow: var(--shadow-soft);
+}
+
+@media (min-width: 768px) {
+    .balanceCard {
+        display: grid;
+        grid-template-columns: 1fr 1px 1fr;
+        gap: 2rem;
+        padding: 2rem 3.5rem;
+        margin: 0 -1.5rem;
+    }
 }
 
 .balanceInfo {
@@ -197,46 +231,103 @@
 
 .txnCardContainer {
     position: relative;
-    overflow: hidden;
-    background: var(--danger);
-    border-bottom: 1px solid var(--border-thick);
+    /* Clean list item style */
 }
 
 .txnCard {
     display: grid;
-    grid-template-columns: auto 100px 1fr 120px;
-    padding: 1rem;
+    grid-template-columns: 1fr auto;
+    gap: 8px 12px;
+    padding: 1rem 0;
+    /* Vertical padding only */
+    align-items: flex-start;
+    background: transparent;
+    /* Remove card bg */
+    border: none;
+    border-bottom: 1px solid var(--border);
+    /* Divider */
+    border-radius: 0;
+    margin-bottom: 0;
+}
+
+@media (min-width: 768px) {
+    .txnCard {
+        grid-template-columns: auto 1fr 120px 40px;
+        padding: 1rem;
+        gap: 1.5rem;
+        align-items: center;
+    }
+
+    .txnCard>div {
+        grid-column: auto !important;
+        grid-row: auto !important;
+    }
+}
+
+/* Mobile Layout Strategy: 2x2 Grid */
+/* Row 1: Date | Actions */
+/* Row 2: Main | Amount */
+.txnCard .txnDate {
+    grid-column: 1;
+    grid-row: 1;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+}
+
+.txnCard>div:last-child {
+    /* Actions Div */
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+}
+
+.txnCard .txnMain {
+    grid-column: 1;
+    grid-row: 2;
+}
+
+.txnCard .txnAmount {
+    grid-column: 2;
+    grid-row: 2;
+    align-self: start;
+}
+
+/* Select Mode Override */
+.clickableCard {
+    /* Checkbox | Date */
+    /*          | Main | Amount */
+    grid-template-columns: auto 1fr auto !important;
     align-items: center;
-    background: var(--surface);
-    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    position: relative;
-    z-index: 2;
 }
 
-.swiped .txnCard {
-    transform: translateX(-70px);
+.clickableCard .checkboxContainer {
+    grid-row: 1 / -1;
+    grid-column: 1;
+    padding-right: 12px;
 }
 
-.swipeActions {
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    width: 70px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1;
+.clickableCard .txnDate {
+    grid-column: 2;
+    grid-row: 1;
 }
 
+.clickableCard .txnMain {
+    grid-column: 2;
+    grid-row: 2;
+}
+
+.clickableCard .txnAmount {
+    grid-column: 3;
+    grid-row: 1 / -1;
+    /* Center vertically */
+    align-self: center;
+}
+
+/* Remove Swipe Styles */
+.swiped .txnCard,
+.swipeActions,
 .deleteSwipeBtn {
-    width: 100%;
-    height: 100%;
-    background: var(--danger);
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: none;
 }
 
 .ledgerHeader {
@@ -345,22 +436,20 @@
 .bottomActions {
     position: fixed;
     bottom: var(--nav-height);
-    /* Sits above standard bottom nav */
     left: 0;
     right: 0;
     background: var(--surface);
     border-top: 1px solid var(--border-thick);
-    padding: 1.25rem 1.75rem;
+    padding: 1rem 1.25rem;
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 1rem;
+    gap: 0.75rem;
     box-shadow: 0 -10px 25px rgba(0, 0, 0, 0.1);
     z-index: 1001;
-    /* Above bottom nav */
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     background: rgba(var(--surface-rgb, 255, 255, 255), 0.95);
-    padding-bottom: calc(1.25rem + env(safe-area-inset-bottom));
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom));
 }
 
 @media (min-width: 768px) {
@@ -433,7 +522,7 @@
 }
 
 .bulkDeleteBtn {
-    padding: 0.75rem 1.5rem;
+    padding: 0.65rem 1.25rem;
     background: var(--danger);
     color: white;
     border-radius: var(--radius-sm);
@@ -443,6 +532,7 @@
     align-items: center;
     gap: 10px;
     box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+    min-height: 44px;
 }
 
 /* Form Styles */
@@ -680,31 +770,75 @@
     gap: 1rem;
 }
 
-.cancelBtn {
-    padding: 1rem;
-    border: 1px solid var(--border-thick);
+.creditBtn {
+    flex: 1;
+    background: var(--danger);
+    color: white;
+    padding: 0.65rem 1rem;
     border-radius: var(--radius-sm);
-    font-weight: 800;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    font-size: 0.8rem;
-    letter-spacing: 0.05em;
-}
-
-.submitBtn {
-    padding: 1rem;
-    background: var(--primary);
-    color: var(--background) !important;
-    border-radius: var(--radius-sm);
-    font-weight: 900;
+    font-weight: 700;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 12px;
-    text-transform: uppercase;
-    font-size: 0.85rem;
-    letter-spacing: 0.1em;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    gap: 8px;
+    min-height: 44px;
+}
+
+.paymentBtn {
+    flex: 1;
+    background: var(--success);
+    color: white;
+    padding: 0.65rem 1rem;
+    border-radius: var(--radius-sm);
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius-sm);
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 44px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    border: none;
+}
+
+.cancelBtn {
+    padding: 0.75rem 1.5rem;
+    border: 1px solid var(--border-thick);
+    background: transparent;
+    color: var(--text-dim);
+    border-radius: var(--radius-sm);
+    font-weight: 700;
+    cursor: pointer;
+    min-height: 44px;
+    font-size: 0.9rem;
+}
+
+.submitBtn {
+    padding: 0.75rem 1.5rem;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 44px;
+    font-size: 0.9rem;
+}
+
+.submitBtn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
 }
 
 .submitBtn:hover {
@@ -739,17 +873,6 @@
 
     .ledgerHeader {
         display: none;
-    }
-
-    .txnCard {
-        grid-template-columns: 1fr 100px;
-        gap: 10px;
-    }
-
-    .txnDate {
-        grid-column: 1 / 3;
-        font-size: 0.7rem;
-        margin-bottom: 4px;
     }
 
     .formSection {

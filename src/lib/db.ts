@@ -67,6 +67,7 @@ export class LedgerDatabase extends Dexie {
     books!: Table<Book>;
     attachments!: Table<Attachment>;
     syncMetadata!: Table<SyncMetadata>;
+    settings!: Table<{ key: string, value: any }>;
 
     constructor() {
         super('LedgerDB');
@@ -117,6 +118,15 @@ export class LedgerDatabase extends Dexie {
             customers: 'id, name, phone, bookId, updatedAt, isDeleted',
             transactions: 'id, customerId, bookId, type, date, paymentMode, invoiceNumber, customPaymentMode, updatedAt, isDeleted, *tags',
             syncMetadata: 'key'
+        });
+
+        this.version(5).stores({
+            books: 'id, name, updatedAt, isDeleted',
+            attachments: 'id, txnId, updatedAt',
+            customers: 'id, name, phone, bookId, updatedAt, isDeleted',
+            transactions: 'id, customerId, bookId, type, date, paymentMode, invoiceNumber, customPaymentMode, updatedAt, isDeleted, *tags',
+            syncMetadata: 'key',
+            settings: 'key'
         });
     }
 }
