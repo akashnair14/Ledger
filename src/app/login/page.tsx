@@ -142,6 +142,11 @@ function LoginContent() {
                         {message.text}
                     </div>
                 )}
+
+                <div className={styles.footer}>
+                    <Shield size={12} />
+                    <span>Enterprise-Grade Security Active</span>
+                </div>
             </div>
         </div>
     )
