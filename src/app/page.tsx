@@ -1,17 +1,16 @@
 'use client';
 
-import { useState } from 'react';
-import { db, generateId, now, Customer } from '@/lib/db';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { UserPlus, Search, User, ChevronRight, Filter, Edit2, Trash2, RefreshCw, BarChart3 } from 'lucide-react';
-import { useBook } from '@/context/BookContext';
+import { useState, useEffect } from 'react';
+import { Customer } from '@/lib/db';
+import { UserPlus, Search, User, ChevronRight, Filter, Edit2, Trash2, RefreshCw, BarChart3, Sparkles, PartyPopper, CheckCircle2 } from 'lucide-react';
 import { PWAInstallButton } from '@/components/ui/PWAInstallButton';
 import styles from './page.module.css';
 import Link from 'next/link';
 import { Modal } from '@/components/ui/Modal';
+import { useCustomers, addCustomer, updateCustomer, deleteCustomer, getTransactionCount } from '@/hooks/useSupabase';
+import { createClient } from '@/lib/supabase/client';
 
 export default function CustomersPage() {
-  const { activeBook } = useBook();
   const [searchQuery, setSearchQuery] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [customerToEdit, setCustomerToEdit] = useState<Customer | null>(null);
@@ -23,89 +22,95 @@ export default function CustomersPage() {
   const [address, setAddress] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
-  const customers = useLiveQuery(
-    async () => {
-      if (!activeBook) return [];
-      const all = await db.customers
-        .where('bookId')
-        .equals(activeBook.id)
-        .and(c => c.isDeleted === 0)
-        .reverse()
-        .sortBy('updatedAt');
+  // Welcome State
+  const [showWelcome, setShowWelcome] = useState(false);
+  const [userDisplayName, setUserDisplayName] = useState('');
 
-      if (!searchQuery) return all;
+  const { customers: allCustomers, isLoading } = useCustomers();
 
-      const q = searchQuery.toLowerCase();
-      return all.filter(c =>
-        c.name.toLowerCase().includes(q) ||
-        c.phone.includes(q)
-      );
-    },
-    [searchQuery, activeBook?.id]
-  );
+  useEffect(() => {
+    const checkWelcome = async () => {
+      const welcomeShown = sessionStorage.getItem('welcome_shown');
+      if (!welcomeShown) {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const displayName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'User';
+          setUserDisplayName(displayName);
+          setShowWelcome(true);
+          sessionStorage.setItem('welcome_shown', 'true');
+        }
+      }
+    };
+    checkWelcome();
+  }, []);
+
+  // Client-side search
+  const customers = allCustomers?.filter(c => {
+    if (!searchQuery) return true;
+    const q = searchQuery.toLowerCase();
+    return c.name.toLowerCase().includes(q) || c.phone.includes(q);
+  });
 
   const validateForm = async () => {
     if (name.trim().length < 3) return 'Name must be at least 3 characters';
     if (phone && !/^\d{0,10}$/.test(phone)) return 'Phone number must be digits only and max 10 characters';
 
-    // Check for duplicates
-    const duplicate = await db.customers
-      .where({ bookId: activeBook?.id, isDeleted: 0 })
-      .filter(c =>
+    // Check for duplicates in the currently loaded list
+    if (allCustomers) {
+      const duplicate = allCustomers.find(c =>
         c.name.toLowerCase() === name.trim().toLowerCase() &&
         c.phone === phone.trim() &&
         c.id !== customerToEdit?.id
-      )
-      .first();
-
-    if (duplicate) return 'A customer with this name and phone already exists in this ledger';
-
+      );
+      if (duplicate) return 'A customer with this name and phone already exists';
+    }
     return null;
   };
 
   const handleSaveCustomer = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!activeBook) {
-      alert('Please create or select a ledger book first using the switcher in the header.');
-      return;
-    }
-
     const error = await validateForm();
     if (error) return alert(error);
 
     setIsSaving(true);
     try {
-      const customerId = customerToEdit?.id || generateId();
-      await db.customers.put({
-        id: customerId,
-        name: name.trim(),
-        phone: phone.trim(),
-        email: email.trim(),
-        address: address.trim(),
-        bookId: activeBook.id,
-        createdAt: customerToEdit?.createdAt || now(),
-        updatedAt: now(),
-        isDeleted: 0
-      });
+      if (customerToEdit) {
+        await updateCustomer(customerToEdit.id, {
+          name: name.trim(),
+          phone: phone.trim(),
+          email: email.trim(),
+          address: address.trim()
+        });
+      } else {
+        await addCustomer({
+          name: name.trim(),
+          phone: phone.trim(),
+          email: email.trim(),
+          address: address.trim()
+        });
+      }
       closeModal();
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      alert('Failed to save customer');
+      alert('Failed to save customer: ' + (err.message || 'Unknown error'));
     } finally {
       setIsSaving(false);
     }
   };
 
   const handleDeleteCustomer = async (id: string) => {
-    const txnCount = await db.transactions.where('customerId').equals(id).and(t => t.isDeleted === 0).count();
-    const msg = txnCount > 0
-      ? `This customer has ${txnCount} active transactions. Deleting the customer will soft-delete everything. Continue?`
-      : 'Are you sure you want to delete this customer?';
+    try {
+      const txnCount = await getTransactionCount(id);
+      const msg = txnCount > 0
+        ? `This customer has ${txnCount} transactions. Deleting will remove them ALL permanently. Continue?`
+        : 'Are you sure you want to delete this customer?';
 
-    if (confirm(msg)) {
-      await db.customers.update(id, { isDeleted: 1, updatedAt: now() });
-      // Soft delete all transactions for this customer too
-      await db.transactions.where('customerId').equals(id).modify({ isDeleted: 1, updatedAt: now() });
+      if (confirm(msg)) {
+        await deleteCustomer(id);
+      }
+    } catch (err: any) {
+      alert('Delete failed: ' + (err.message || 'Unknown error'));
     }
   };
 
@@ -160,22 +165,18 @@ export default function CustomersPage() {
         </div>
 
         <div className={styles.list}>
-          {!customers ? (
+          {isLoading ? (
             <div className={styles.loading}>Loading...</div>
-          ) : !customers?.length ? (
+          ) : !customers || !customers.length ? (
             <div className={styles.empty}>
               <User size={48} className={styles.emptyIcon} />
               <h2>No Customers Found</h2>
               <p>
-                {!activeBook
-                  ? 'Create a ledger book in the header to start adding customers.'
-                  : 'Add your first customer by clicking the button above.'}
+                Add your first customer by clicking the button above.
               </p>
-              {activeBook && (
-                <button className={styles.primaryBtn} onClick={() => setIsModalOpen(true)}>
-                  Add Customer
-                </button>
-              )}
+              <button className={styles.primaryBtn} onClick={() => setIsModalOpen(true)}>
+                Add Customer
+              </button>
             </div>
           ) : (
             customers.map((customer, index) => (
@@ -206,6 +207,7 @@ export default function CustomersPage() {
         </div>
       </main>
 
+      {/* Customer Form Modal */}
       <Modal
         isOpen={isModalOpen}
         onClose={closeModal}
@@ -256,6 +258,31 @@ export default function CustomersPage() {
             {isSaving ? <RefreshCw size={18} className="spin" /> : (customerToEdit ? 'Update Details' : 'Create Customer')}
           </button>
         </form>
+      </Modal>
+
+      {/* Welcome Message Modal */}
+      <Modal
+        isOpen={showWelcome}
+        onClose={() => setShowWelcome(false)}
+        title=""
+      >
+        <div className={styles.welcomeContent}>
+          <div className={styles.welcomeIconBox}>
+            <Sparkles size={40} />
+          </div>
+          <div className={styles.welcomeText}>
+            <h2>Welcome Back, {userDisplayName}!</h2>
+            <p>Your financial records are synchronized and ready. Let's manage your ledger with precision.</p>
+          </div>
+          <div className={styles.welcomeActions}>
+            <button className={styles.startBtn} onClick={() => setShowWelcome(false)}>
+              Get Started <ChevronRight size={20} />
+            </button>
+          </div>
+          <div style={{ display: 'flex', gap: '8px', color: 'var(--success)', fontWeight: 'bold', fontSize: '0.8rem' }}>
+            <CheckCircle2 size={16} /> Secure Ledger Session Active
+          </div>
+        </div>
       </Modal>
     </div >
   );

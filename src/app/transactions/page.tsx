@@ -1,7 +1,7 @@
 'use client';
 
-import { db, PaymentMode } from '@/lib/db';
-import { useLiveQuery } from 'dexie-react-hooks';
+import { PaymentMode } from '@/lib/db';
+import { useCustomers, useTransactions } from '@/hooks/useSupabase';
 import { useBook } from '@/context/BookContext';
 import {
     ReceiptText,
@@ -9,13 +9,10 @@ import {
     ArrowDownLeft,
     Search,
     Paperclip,
-    Tag,
     Filter,
-    Calendar,
-    ChevronDown,
-    X
+    RefreshCw
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import styles from './TransactionsPage.module.css';
 import Link from 'next/link';
 
@@ -30,51 +27,53 @@ export default function TransactionsPage() {
     const [typeFilter, setTypeFilter] = useState<'ALL' | 'CREDIT' | 'PAYMENT'>('ALL');
     const [modeFilter, setModeFilter] = useState<'ALL' | PaymentMode>('ALL');
 
-    const data = useLiveQuery(async () => {
-        if (!activeBook) return [];
-        const transactions = await db.transactions
-            .where('bookId').equals(activeBook.id)
-            .and(t => t.isDeleted === 0)
-            .reverse()
-            .sortBy('date');
+    const { customers, isLoading: loadingCustomers } = useCustomers();
+    const { transactions, isLoading: loadingTxns } = useTransactions();
 
-        const customers = await db.customers.where('bookId').equals(activeBook.id).toArray();
+    const filtered = useMemo(() => {
+        if (!transactions || !customers) return [];
 
-        return transactions.map(t => ({
-            ...t,
-            customerName: customers.find(c => c.id === t.customerId)?.name || 'Deleted Customer'
-        }));
-    }, [activeBook]);
+        return transactions
+            .filter(t => {
+                // Book Filter
+                if (activeBook && t.bookId !== activeBook.id) return false;
 
-    const filtered = data?.filter(t => {
-        // Search Match
-        const q = searchQuery.toLowerCase();
-        const searchMatch = !searchQuery ||
-            t.customerName.toLowerCase().includes(q) ||
-            (t.note && t.note.toLowerCase().includes(q)) ||
-            (t.invoiceNumber && t.invoiceNumber.toLowerCase().includes(q)) ||
-            (t.tags && t.tags.some(tag => tag.toLowerCase().includes(q)));
+                // Search Match
+                const customer = customers.find(c => c.id === t.customerId);
+                const customerName = customer?.name || 'Deleted Customer';
 
-        if (!searchMatch) return false;
+                const q = searchQuery.toLowerCase();
+                const searchMatch = !searchQuery ||
+                    customerName.toLowerCase().includes(q) ||
+                    (t.note && t.note.toLowerCase().includes(q)) ||
+                    (t.invoiceNumber && t.invoiceNumber.toLowerCase().includes(q)) ||
+                    (t.tags && t.tags.some(tag => tag.toLowerCase().includes(q)));
 
-        // Type Match
-        if (typeFilter !== 'ALL' && t.type !== typeFilter) return false;
+                if (!searchMatch) return false;
 
-        // Mode Match
-        if (modeFilter !== 'ALL' && t.paymentMode !== modeFilter) return false;
+                // Type Match
+                if (typeFilter !== 'ALL' && t.type !== typeFilter) return false;
 
-        // Date Match
-        if (startDate) {
-            if (t.date < new Date(startDate).getTime()) return false;
-        }
-        if (endDate) {
-            const endOfDay = new Date(endDate);
-            endOfDay.setHours(23, 59, 59, 999);
-            if (t.date > endOfDay.getTime()) return false;
-        }
+                // Mode Match
+                if (modeFilter !== 'ALL' && t.paymentMode !== modeFilter) return false;
 
-        return true;
-    });
+                // Date Match
+                if (startDate) {
+                    if (t.date < new Date(startDate).getTime()) return false;
+                }
+                if (endDate) {
+                    const endOfDay = new Date(endDate);
+                    endOfDay.setHours(23, 59, 59, 999);
+                    if (t.date > endOfDay.getTime()) return false;
+                }
+
+                return true;
+            })
+            .map(t => ({
+                ...t,
+                customerName: customers.find(c => c.id === t.customerId)?.name || 'Deleted Customer'
+            }));
+    }, [transactions, customers, activeBook, searchQuery, typeFilter, modeFilter, startDate, endDate]);
 
     const resetFilters = () => {
         setStartDate('');
@@ -83,6 +82,8 @@ export default function TransactionsPage() {
         setModeFilter('ALL');
         setSearchQuery('');
     };
+
+    const isLoading = loadingCustomers || loadingTxns;
 
     return (
         <div className={styles.container}>
@@ -147,8 +148,11 @@ export default function TransactionsPage() {
             </div>
 
             <div className={styles.list}>
-                {!filtered ? (
-                    <p className={styles.loading}>Accessing ledger records...</p>
+                {isLoading ? (
+                    <div className={styles.loadingArea}>
+                        <RefreshCw size={24} className="spin" />
+                        <p>Accessing ledger records...</p>
+                    </div>
                 ) : filtered.length === 0 ? (
                     <div className={styles.empty}>
                         <ReceiptText size={48} />

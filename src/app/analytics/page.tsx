@@ -1,8 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { db } from '@/lib/db';
+import { useState, useMemo } from 'react';
+import { useCustomers, useTransactions } from '@/hooks/useSupabase';
 import { useBook } from '@/context/BookContext';
 import {
     TrendingUp,
@@ -27,28 +26,30 @@ export default function AnalyticsPage() {
     const { activeBook } = useBook();
     const [timeframe, setTimeframe] = useState<30 | 90>(30);
 
-    const stats = useLiveQuery(async () => {
-        if (!activeBook) return null;
+    const { customers, isLoading: loadingCustomers } = useCustomers();
+    const { transactions, isLoading: loadingTxns } = useTransactions();
 
-        const transactions = await db.transactions
-            .where('bookId').equals(activeBook.id)
-            .and(t => t.isDeleted === 0)
-            .sortBy('date');
+    const stats = useMemo(() => {
+        if (!customers || !transactions) return null;
 
-        const customers = await db.customers
-            .where('bookId').equals(activeBook.id)
-            .and(c => c.isDeleted === 0)
-            .toArray();
+        // Filter by book if needed (though Supabase might already be filtered by policy)
+        const bookTransactions = activeBook
+            ? transactions.filter(t => t.bookId === activeBook.id)
+            : transactions;
+
+        const bookCustomers = activeBook
+            ? customers.filter(c => c.bookId === activeBook.id)
+            : customers;
 
         // 1. Basic Stats & Customer Balances
         let totalReceivable = 0;
         let totalPayable = 0;
-        const customerBalances = customers.map(c => {
-            const customerTxns = transactions.filter(t => t.customerId === c.id);
+        const customerBalances = bookCustomers.map(c => {
+            const customerTxns = bookTransactions.filter(t => t.customerId === c.id);
             const balance = customerTxns.reduce((sum, t) => sum + (t.type === 'CREDIT' ? t.amount : -t.amount), 0);
             if (balance > 0) totalReceivable += balance;
             else if (balance < 0) totalPayable += Math.abs(balance);
-            return { ...c, balance, lastTxnDate: customerTxns[customerTxns.length - 1]?.date || c.updatedAt };
+            return { ...c, balance, lastTxnDate: customerTxns[0]?.date || c.updatedAt }; // transactions are sorted by date desc
         });
 
         // 2. Trend Data Calculation
@@ -56,9 +57,17 @@ export default function AnalyticsPage() {
         const startTimestamp = now - timeframe * 24 * 60 * 60 * 1000;
         const trendData: any[] = [];
 
+        // Pre-group transactions by date string for O(1) lookup in loop
+        const txnsByDay: Record<string, typeof bookTransactions> = {};
+        bookTransactions.forEach(t => {
+            const d = new Date(t.date).toISOString().split('T')[0];
+            if (!txnsByDay[d]) txnsByDay[d] = [];
+            txnsByDay[d].push(t);
+        });
+
         let runningBalance = 0;
         // Calculate initial balance at start point
-        transactions.forEach(t => {
+        bookTransactions.forEach(t => {
             if (t.date < startTimestamp) {
                 runningBalance += (t.type === 'CREDIT' ? t.amount : -t.amount);
             }
@@ -68,12 +77,12 @@ export default function AnalyticsPage() {
         for (let i = timeframe; i >= 0; i--) {
             const date = new Date(now - i * 24 * 60 * 60 * 1000);
             const dateStr = date.toISOString().split('T')[0];
-            const startOfDay = new Date(dateStr).getTime();
-            const endOfDay = startOfDay + 24 * 60 * 60 * 1000;
 
-            const dayTxns = transactions.filter(t => t.date >= startOfDay && t.date < endOfDay);
+            const dayTxns = txnsByDay[dateStr] || [];
             dayTxns.forEach(t => {
-                runningBalance += (t.type === 'CREDIT' ? t.amount : -t.amount);
+                if (t.date >= startTimestamp) { // Only add if it wasn't in initial balance
+                    runningBalance += (t.type === 'CREDIT' ? t.amount : -t.amount);
+                }
             });
 
             trendData.push({
@@ -86,14 +95,17 @@ export default function AnalyticsPage() {
         return {
             totalReceivable,
             totalPayable,
-            customerCount: customers.length,
-            transactionCount: transactions.length,
+            customerCount: bookCustomers.length,
+            transactionCount: bookTransactions.length,
             trendData,
-            agedDebts: customerBalances.filter(c => c.balance > 0 && c.lastTxnDate < now - (30 * 24 * 60 * 60 * 1000)).sort((a, b) => a.lastTxnDate - b.lastTxnDate)
+            agedDebts: customerBalances
+                .filter(c => c.balance > 0 && c.lastTxnDate < now - (30 * 24 * 60 * 60 * 1000))
+                .sort((a, b) => a.lastTxnDate - b.lastTxnDate)
         };
-    }, [activeBook?.id, timeframe]);
+    }, [customers, transactions, activeBook?.id, timeframe]);
 
-    if (!stats) return <div className={styles.loading}>Analyzing Ledger...</div>;
+    if (loadingCustomers || loadingTxns) return <div className={styles.loading}>Analyzing Ledger...</div>;
+    if (!stats) return <div className={styles.loading}>No data available for analysis.</div>;
 
     return (
         <div className={styles.container}>

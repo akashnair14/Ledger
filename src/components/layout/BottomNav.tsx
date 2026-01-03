@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Users, ReceiptText, Settings, CreditCard } from 'lucide-react';
+import { Users, ReceiptText, Settings, BarChart3 } from 'lucide-react';
 import styles from './BottomNav.module.css';
 
 export const BottomNav = () => {
@@ -11,7 +11,7 @@ export const BottomNav = () => {
     const navItems = [
         { label: 'Customers', href: '/', icon: Users },
         { label: 'Transactions', href: '/transactions', icon: ReceiptText },
-        { label: 'Sync', href: '/sync', icon: CreditCard },
+        { label: 'Analytics', href: '/analytics', icon: BarChart3 },
         { label: 'Settings', href: '/settings', icon: Settings },
     ];
 

@@ -1,8 +1,8 @@
 'use client';
 
 import { db } from '@/lib/db';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { FileUp, Trash2, Database, Shield, Building2, Upload, ToggleLeft, ToggleRight, Download } from 'lucide-react';
+import { useCustomers, useTransactions } from '@/hooks/useSupabase';
+import { FileUp, Trash2, Database, Shield, Building2, Upload, ToggleLeft, ToggleRight, Download, RefreshCw, LogOut } from 'lucide-react';
 import { exportToCSV, exportToExcel, exportToJSON } from '@/lib/export/generate';
 import { importFromCSV } from '@/lib/import/csv';
 import { bioAuth } from '@/lib/auth/biometrics';
@@ -14,8 +14,8 @@ type Tab = 'PROFILE' | 'DATA' | 'SECURITY';
 
 export default function SettingsPage() {
     const { activeBook } = useBook();
-    const customers = useLiveQuery(() => db.customers.toArray());
-    const transactions = useLiveQuery(() => db.transactions.toArray());
+    const { customers, isLoading: customersLoading } = useCustomers();
+    const { transactions, isLoading: txnsLoading } = useTransactions();
 
     // UI State
     const [activeTab, setActiveTab] = useState<Tab>('PROFILE');
@@ -80,7 +80,10 @@ export default function SettingsPage() {
     };
 
     const handleExport = (type: 'CSV' | 'JSON' | 'EXCEL') => {
-        if (!customers || !transactions) return;
+        if (!customers || !transactions) {
+            alert('Data is still loading or unavailable.');
+            return;
+        }
         if (type === 'CSV') exportToCSV(customers, transactions);
         if (type === 'JSON') exportToJSON(customers, transactions);
         if (type === 'EXCEL') exportToExcel(customers, transactions);
@@ -96,7 +99,7 @@ export default function SettingsPage() {
                 return;
             }
             await importFromCSV(file, activeBook.id);
-            alert('Import successful!');
+            alert('Import successful! Note: Local import is separate from Supabase storage.');
             window.location.reload();
         } catch (err) {
             console.error(err);
@@ -105,18 +108,34 @@ export default function SettingsPage() {
     };
 
     const clearData = async () => {
-        if (!confirm('This will delete ALL local data. This cannot be undone. Are you sure?')) return;
+        if (!confirm('This will delete ALL local data. Cloud data in Supabase will NOT be affected. Continue?')) return;
         await db.customers.clear();
         await db.transactions.clear();
         await db.syncMetadata.clear();
-        alert('All data cleared.');
+        alert('Local cache cleared.');
         window.location.reload();
     };
+
+    const handleSignOut = async () => {
+        if (!confirm('Are you sure you want to log out?')) return;
+        const { createClient } = await import('@/lib/supabase/client');
+        const supabase = createClient();
+        await supabase.auth.signOut();
+        window.location.href = '/login';
+    };
+
+    const isDataLoading = customersLoading || txnsLoading;
 
     return (
         <div className={styles.container}>
             <header className={styles.header}>
-                <h1>Settings</h1>
+                <div className={styles.titleRow}>
+                    <h1>Settings</h1>
+                    <button className={styles.logoutBtn} onClick={handleSignOut}>
+                        <LogOut size={18} />
+                        <span>Log Out</span>
+                    </button>
+                </div>
                 <div className={styles.tabs}>
                     <button
                         className={`${styles.tabBtn} ${activeTab === 'PROFILE' ? styles.active : ''}`}
@@ -193,18 +212,18 @@ export default function SettingsPage() {
                         <div className={styles.card}>
                             <div className={styles.row}>
                                 <div className={styles.info}>
-                                    <h3>Export Backup</h3>
-                                    <p>Download all your data securely.</p>
+                                    <h3>Export Backup (Supabase)</h3>
+                                    <p>Download all your cloud data securely.</p>
                                 </div>
                                 <div className={styles.btnGroup}>
-                                    <button className={styles.importBtn} onClick={() => handleExport('CSV')}>
-                                        <Download size={16} /> CSV
+                                    <button className={styles.importBtn} onClick={() => handleExport('CSV')} disabled={isDataLoading}>
+                                        {isDataLoading ? <RefreshCw className="spin" size={16} /> : <Download size={16} />} CSV
                                     </button>
-                                    <button className={styles.importBtn} onClick={() => handleExport('EXCEL')}>
-                                        <Download size={16} /> Excel
+                                    <button className={styles.importBtn} onClick={() => handleExport('EXCEL')} disabled={isDataLoading}>
+                                        {isDataLoading ? <RefreshCw className="spin" size={16} /> : <Download size={16} />} Excel
                                     </button>
-                                    <button className={styles.importBtn} onClick={() => handleExport('JSON')}>
-                                        <Database size={16} /> JSON
+                                    <button className={styles.importBtn} onClick={() => handleExport('JSON')} disabled={isDataLoading}>
+                                        {isDataLoading ? <RefreshCw className="spin" size={16} /> : <Database size={16} />} JSON
                                     </button>
                                 </div>
                             </div>
@@ -212,7 +231,7 @@ export default function SettingsPage() {
                             <div className={styles.row}>
                                 <div className={styles.info}>
                                     <h3>Import Data</h3>
-                                    <p>Restore from a previous CSV backup.</p>
+                                    <p>Restore to local cache from a CSV backup.</p>
                                 </div>
                                 <label className={styles.importBtn}>
                                     <FileUp size={16} /> Import CSV
@@ -222,11 +241,11 @@ export default function SettingsPage() {
 
                             <div className={styles.row}>
                                 <div className={styles.info}>
-                                    <h3 style={{ color: 'var(--danger)' }}>Reset Application</h3>
-                                    <p>Erase all data and start fresh.</p>
+                                    <h3 style={{ color: 'var(--danger)' }}>Reset Local Storage</h3>
+                                    <p>Erase local cache. Cloud data will remain safe.</p>
                                 </div>
                                 <button className={styles.dangerBtn} onClick={clearData}>
-                                    <Trash2 size={16} /> Clear Everything
+                                    <Trash2 size={16} /> Clear Cache
                                 </button>
                             </div>
                         </div>
@@ -256,7 +275,7 @@ export default function SettingsPage() {
             </main>
 
             <div className={styles.footer}>
-                <p>LedgerManager v1.1.0 (Pro)</p>
+                <p>LedgerManager v1.2.0 (Supabase Optimized)</p>
             </div>
         </div>
     );

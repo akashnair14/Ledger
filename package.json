@@ -9,8 +9,9 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@supabase/ssr": "^0.8.0",
+    "@supabase/supabase-js": "^2.89.0",
     "@types/react-calendar-heatmap": "^1.9.0",
-    "crypto-js": "^4.2.0",
     "dexie": "^4.2.1",
     "dexie-react-hooks": "^4.2.0",
     "framer-motion": "^12.23.26",
@@ -23,10 +24,10 @@
     "react-calendar-heatmap": "^1.10.0",
     "react-dom": "19.2.3",
     "recharts": "^3.6.0",
+    "swr": "^2.3.8",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
-    "@types/crypto-js": "^4.2.2",
     "@types/node": "^20",
     "@types/papaparse": "^5.5.2",
     "@types/react": "^19",

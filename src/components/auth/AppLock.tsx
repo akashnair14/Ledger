@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { bioAuth } from '@/lib/auth/biometrics';
-import { autoSync } from '@/lib/sync/autoSync';
 import { Fingerprint, Lock, ShieldCheck } from 'lucide-react';
 import styles from './AppLock.module.css';
 
@@ -19,13 +18,11 @@ export const AppLock: React.FC<AppLockProps> = ({ children }) => {
         const checkLock = async () => {
             const enabled = await bioAuth.isEnabled();
             if (enabled) {
-                // Check if already authenticated in this session
                 const sessionAuth = sessionStorage.getItem('app_unlocked');
                 if (sessionAuth === 'true') {
                     setIsLocked(false);
                 } else {
                     setIsLocked(true);
-                    // Proactively attempt to unlock
                     handleUnlock();
                 }
             }
@@ -33,7 +30,6 @@ export const AppLock: React.FC<AppLockProps> = ({ children }) => {
         };
 
         checkLock();
-        autoSync.init();
     }, []);
 
     const handleUnlock = async () => {
@@ -49,9 +45,7 @@ export const AppLock: React.FC<AppLockProps> = ({ children }) => {
         setIsChecking(false);
     };
 
-    if (isChecking && !isLocked) {
-        return null; // Initial check
-    }
+    if (isChecking && !isLocked) return null;
 
     if (isLocked) {
         return (
@@ -62,24 +56,19 @@ export const AppLock: React.FC<AppLockProps> = ({ children }) => {
                     </div>
                     <h2>Ledger Locked</h2>
                     <p>Verification required to access your financial records.</p>
-
                     {error && <p className={styles.error}>{error}</p>}
-
                     <button
                         className={styles.unlockBtn}
                         onClick={handleUnlock}
                         disabled={isChecking}
                     >
-                        {isChecking ? (
-                            'Verifying...'
-                        ) : (
+                        {isChecking ? 'Verifying...' : (
                             <>
                                 <Fingerprint size={24} />
                                 <span>Unlock with Biometrics</span>
                             </>
                         )}
                     </button>
-
                     <div className={styles.footer}>
                         <ShieldCheck size={16} />
                         <span>Secure Device Encryption Active</span>

@@ -853,7 +853,103 @@
     border-radius: 12px;
 }
 
+.totalPreview {
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: var(--success);
+    background: rgba(6, 95, 70, 0.05);
+    padding: 6px 12px;
+    border-radius: 4px;
+    margin-top: 4px;
+    display: inline-block;
+    border: 1px dashed rgba(6, 95, 70, 0.2);
+}
 
+.fileUpload {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+}
+
+.uploadTrigger {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 0.75rem 1rem;
+    background: var(--surface-header);
+    border: 1px dashed var(--border-thick);
+    border-radius: var(--radius-sm);
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: var(--transition-smooth);
+}
+
+.uploadTrigger:hover {
+    background: var(--surface);
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.clearFile {
+    padding: 8px;
+    color: var(--danger);
+    background: rgba(127, 29, 29, 0.05);
+    border-radius: 50%;
+    transition: var(--transition-smooth);
+}
+
+.clearFile:hover {
+    background: var(--danger);
+    color: white;
+}
+
+.confirmHeader {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1rem;
+}
+
+.tagCredit,
+.tagPayment {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    color: white;
+}
+
+.tagCredit {
+    background: var(--danger);
+}
+
+.tagPayment {
+    background: var(--success);
+}
+
+.confirmMain {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.confirmMain h2 {
+    font-size: 2.5rem;
+    font-weight: 900;
+    font-family: var(--font-mono), monospace;
+    letter-spacing: -0.05em;
+    margin-bottom: 0.5rem;
+}
+
+.confirmDetails {
+    background: var(--surface-header);
+    border-radius: var(--radius-sm);
+    padding: 1rem;
+}
 
 @keyframes slideUp {
     from {

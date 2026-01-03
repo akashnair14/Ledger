@@ -11,9 +11,36 @@
     gap: 1rem;
 }
 
+.titleRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
 .header h1 {
     font-size: 2rem;
     color: var(--text-main);
+    margin: 0;
+}
+
+.logoutBtn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0.6rem 1rem;
+    border-radius: var(--radius-sm);
+    background: rgba(127, 29, 29, 0.05);
+    color: var(--danger);
+    border: 1px solid rgba(127, 29, 29, 0.2);
+    font-weight: 700;
+    font-size: 0.85rem;
+    transition: var(--transition-smooth);
+}
+
+.logoutBtn:hover {
+    background: var(--danger);
+    color: white;
 }
 
 .tabs {
