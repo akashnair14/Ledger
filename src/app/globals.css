@@ -252,6 +252,7 @@ textarea:focus {
   /* Mobile Sheet Style */
   justify-content: center;
   z-index: 2000;
+  padding: 0;
 }
 
 @media (min-width: 600px) {
@@ -264,51 +265,75 @@ textarea:focus {
 .modal {
   background: var(--surface);
   width: 100%;
-  max-width: 480px;
-  max-height: 92vh;
+  max-width: 520px;
+  /* Cap width for readability */
+  max-height: 90vh;
+  /* Safety margin */
   border-radius: 20px 20px 0 0;
-  /* Sheet look on mobile */
-  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.1);
-  animation: slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.2);
+  display: flex;
   flex-direction: column;
   overflow: hidden;
+  /* Header/Footer stay, Content scrolls */
 }
 
-.modal {
-  border-radius: var(--radius-sm);
-  max-height: 85vh;
-  max-width: 680px;
-  /* Wider for desktop */
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+@media (min-width: 600px) {
+  .modal {
+    border-radius: var(--radius-lg);
+    max-height: 85vh;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  }
 }
 
 .modal-header {
-  padding: 1.25rem 1.5rem;
-  border-bottom: 2px solid var(--border);
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--border);
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-shrink: 0;
+  /* Don't shrink */
 }
 
 .modal-header h2 {
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  letter-spacing: 0.05em;
 }
 
 .modal-content {
-  padding: 1.25rem;
-  /* Reduced from 1.5rem for mobile */
+  padding: 1.5rem;
   overflow-y: auto;
   flex: 1;
+  /* Grow to fill space */
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.modal-footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+  flex-shrink: 0;
+  /* Fixed at bottom */
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
 }
 
 .close-btn {
   color: var(--text-dim);
   transition: var(--transition-smooth);
+  padding: 4px;
+  border-radius: 50%;
 }
 
 .close-btn:hover {
-  color: var(--primary);
+  background: var(--surface-header);
+  color: var(--text-main);
 }
 
 /* Refined reveal animation */
@@ -331,7 +356,7 @@ textarea:focus {
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 5px;
+  width: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -339,8 +364,12 @@ textarea:focus {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--border-thick);
+  background: var(--border);
   border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-dim);
 }
 
 @keyframes spin {

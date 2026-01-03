@@ -557,9 +557,26 @@ export default function CustomerDetailPage() {
                 isOpen={isTxnModalOpen}
                 onClose={() => !isSaving && setTxnModalOpen(false)}
                 title={txnType === 'CREDIT' ? 'Give Credit (Debit)' : 'Receive Payment (Credit)'}
+                footer={
+                    !showConfirm ? (
+                        <div className={styles.modalActions}>
+                            <button type="button" className={styles.cancelBtn} onClick={() => setTxnModalOpen(false)}>Discard</button>
+                            <button type="submit" form="txn-form" className={styles.submitBtn}>
+                                Review & Confirm
+                            </button>
+                        </div>
+                    ) : (
+                        <div className={styles.modalActions}>
+                            <button className={styles.cancelBtn} onClick={() => setShowConfirm(false)} disabled={isSaving}>Edit Details</button>
+                            <button className={styles.submitBtn} onClick={handleFinalSubmit} disabled={isSaving}>
+                                {isSaving ? <RefreshCw size={18} className="spin" /> : 'Confirm Entry'}
+                            </button>
+                        </div>
+                    )
+                }
             >
                 {!showConfirm ? (
-                    <form onSubmit={handlePreSubmit} className={styles.form}>
+                    <form id="txn-form" onSubmit={handlePreSubmit} className={styles.form}>
                         <div className={styles.formSection}>
                             <div className={styles.sectionHeader}>
                                 <Wallet size={14} />
@@ -712,51 +729,64 @@ export default function CustomerDetailPage() {
                                     </div>
                                 )}
                             </div>
-                        </div>
 
-                        <div className={styles.modalActions}>
-                            <button type="button" className={styles.cancelBtn} onClick={() => setTxnModalOpen(false)}>Discard</button>
-                            <button type="submit" className={styles.submitBtn}>
-                                Review & Confirm
-                            </button>
+                            <div className={styles.inputGroup}>
+                                <label>Attachments (Optional)</label>
+                                <label className={styles.fileUpload}>
+                                    {attachment ? (
+                                        <div className={styles.fileName}>
+                                            <Paperclip size={16} />
+                                            {attachment.name}
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <Camera size={24} />
+                                            <span>Upload Bill / Receipt</span>
+                                        </>
+                                    )}
+                                    <input
+                                        type="file"
+                                        accept="image/*,application/pdf"
+                                        onChange={handleFileChange}
+                                        hidden
+                                    />
+                                </label>
+                            </div>
                         </div>
                     </form>
                 ) : (
-                    <div className={styles.confirmView}>
-                        <div className={styles.confirmCard}>
-                            <div className={styles.confirmRow}>
-                                <span>Record Type</span>
-                                <strong className={txnType === 'CREDIT' ? styles.negative : styles.positive}>
-                                    {txnType === 'CREDIT' ? 'GIVE CREDIT (DEBIT)' : 'RECEIVE PAYMENT (CREDIT)'}
-                                </strong>
-                            </div>
-                            <div className={styles.confirmRow}>
-                                <span>Amount Payable</span>
-                                <strong style={{ fontSize: '1.5rem' }}>₹{Number(amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</strong>
-                            </div>
-                            <div className={styles.confirmRow}>
-                                <span>Payment Mode</span>
-                                <strong>{paymentMode === 'OTHER' ? customPaymentMode : paymentMode.replace('_', ' ')}</strong>
-                            </div>
-                            {invoiceNumber && (
+                    <div className="confirmView">
+                        {/* Confirm View Content Logic remains same, just wrapper */}
+                        <div className={styles.confirmView}>
+                            <div className={styles.confirmCard}>
                                 <div className={styles.confirmRow}>
-                                    <span>Voucher/Invoice</span>
-                                    <strong>#{invoiceNumber}</strong>
+                                    <span>Record Type</span>
+                                    <strong className={txnType === 'CREDIT' ? styles.negative : styles.positive}>
+                                        {txnType === 'CREDIT' ? 'GIVE CREDIT (DEBIT)' : 'RECEIVE PAYMENT (CREDIT)'}
+                                    </strong>
                                 </div>
-                            )}
-                            <div className={styles.confirmRow}>
-                                <span>Record Date</span>
-                                <strong>{new Date(invoiceDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</strong>
+                                <div className={styles.confirmRow}>
+                                    <span>Amount Payable</span>
+                                    <strong style={{ fontSize: '1.5rem' }}>₹{Number(amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</strong>
+                                </div>
+                                <div className={styles.confirmRow}>
+                                    <span>Payment Mode</span>
+                                    <strong>{paymentMode === 'OTHER' ? customPaymentMode : paymentMode.replace('_', ' ')}</strong>
+                                </div>
+                                {invoiceNumber && (
+                                    <div className={styles.confirmRow}>
+                                        <span>Voucher/Invoice</span>
+                                        <strong>#{invoiceNumber}</strong>
+                                    </div>
+                                )}
+                                <div className={styles.confirmRow}>
+                                    <span>Record Date</span>
+                                    <strong>{new Date(invoiceDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</strong>
+                                </div>
                             </div>
-                        </div>
-                        <p className={styles.confirmNote}>
-                            By confirming, you are creating an immutable entry in the system. This record will be synced to your secure cloud storage.
-                        </p>
-                        <div className={styles.modalActions}>
-                            <button className={styles.cancelBtn} onClick={() => setShowConfirm(false)} disabled={isSaving}>Edit Details</button>
-                            <button className={styles.submitBtn} onClick={handleFinalSubmit} disabled={isSaving}>
-                                {isSaving ? <RefreshCw size={18} className="spin" /> : 'Confirm Entry'}
-                            </button>
+                            <p className={styles.confirmNote}>
+                                By confirming, you are creating an immutable entry in the system. This record will be synced to your secure cloud storage.
+                            </p>
                         </div>
                     </div>
                 )}

@@ -9,9 +9,10 @@ interface ModalProps {
     onClose: () => void;
     title: string;
     children: React.ReactNode;
+    footer?: React.ReactNode;
 }
 
-export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
+export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, footer }) => {
     useEffect(() => {
         if (isOpen) {
             document.body.style.overflow = 'hidden';
@@ -44,6 +45,11 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }
                         <div className="modal-content">
                             {children}
                         </div>
+                        {footer && (
+                            <div className="modal-footer">
+                                {footer}
+                            </div>
+                        )}
                     </motion.div>
                 </div>
             )}
