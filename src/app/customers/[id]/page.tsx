@@ -93,9 +93,9 @@ export default function CustomerDetailPage() {
     // Calculator Helper
     const evaluateExpression = (expr: string): number => {
         try {
-            // Safe evaluation for simple math: +, -, *, /
+            // Safe evaluation for simple math: +, -, *, /, (, )
             // Remove everything except numbers and operators
-            const cleanExpr = expr.replace(/[^0-9+\-*/.]/g, '');
+            const cleanExpr = expr.replace(/[^0-9+\-*/.()]/g, '');
             if (!cleanExpr) return 0;
             const result = new Function(`return ${cleanExpr}`)();
             return typeof result === 'number' && isFinite(result) ? result : 0;
@@ -357,7 +357,11 @@ export default function CustomerDetailPage() {
                             <input
                                 type="text"
                                 value={amount}
-                                onChange={(e) => setAmount(e.target.value)}
+                                onChange={(e) => {
+                                    // Only allow numbers and math operators
+                                    const val = e.target.value.replace(/[^0-9+\-*/.()]/g, '');
+                                    setAmount(val);
+                                }}
                                 placeholder="e.g. 500+250"
                                 required
                                 autoFocus
