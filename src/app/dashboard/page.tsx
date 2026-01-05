@@ -334,7 +334,7 @@ export default function CustomersPage() {
             />
           </div>
           <button type="submit" className={styles.submitBtn} disabled={isSaving}>
-            {isSaving ? <RefreshCw size={18} className="spin" /> : (customerToEdit ? 'Update Details' : 'Create Customer')}
+            {isSaving ? <RefreshCw size={18} className="spin" /> : (customerToEdit ? 'Update Details' : `Create ${activeTab === 'CUSTOMER' ? 'Customer' : 'Supplier'}`)}
           </button>
         </form>
       </Modal>
