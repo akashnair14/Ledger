@@ -9,43 +9,43 @@ const supabase = createClient()
 // --- Types mapping ---
 
 // Map Supabase 'books' row to App 'Book'
-const mapBook = (row: Record<string, any>): Book => ({
-    id: row.id,
-    name: row.name,
-    createdAt: new Date(row.created_at).getTime(),
-    updatedAt: new Date(row.updated_at || row.created_at).getTime(),
+const mapBook = (row: Record<string, unknown>): Book => ({
+    id: row.id as string,
+    name: row.name as string,
+    createdAt: new Date(row.created_at as string).getTime(),
+    updatedAt: new Date((row.updated_at as string) || (row.created_at as string)).getTime(),
     isDeleted: row.is_deleted ? 1 : 0
 })
 
 // Map Supabase 'customers' row to App 'Customer'
-const mapCustomer = (row: Record<string, any>): Customer => ({
-    id: row.id,
-    name: row.name,
-    phone: row.mobile || '', // Map mobile -> phone
-    email: row.email,
-    address: row.address,
-    bookId: row.book_id || 'default-book',
-    createdAt: new Date(row.created_at).getTime(),
-    updatedAt: new Date(row.updated_at || row.created_at).getTime(),
+const mapCustomer = (row: Record<string, unknown>): Customer => ({
+    id: row.id as string,
+    name: row.name as string,
+    phone: (row.mobile as string) || '', // Map mobile -> phone
+    email: row.email as string,
+    address: row.address as string,
+    bookId: (row.book_id as string) || 'default-book',
+    createdAt: new Date(row.created_at as string).getTime(),
+    updatedAt: new Date((row.updated_at as string) || (row.created_at as string)).getTime(),
     isDeleted: 0
 })
 
 // Map Supabase 'transactions' row to App 'Transaction'
-const mapTransaction = (row: Record<string, any>): Transaction => ({
-    id: row.id,
-    customerId: row.customer_id,
-    bookId: row.book_id || 'default-book',
+const mapTransaction = (row: Record<string, unknown>): Transaction => ({
+    id: row.id as string,
+    customerId: row.customer_id as string,
+    bookId: (row.book_id as string) || 'default-book',
     amount: Number(row.amount),
-    type: row.type,
+    type: row.type as 'CREDIT' | 'PAYMENT',
     paymentMode: row.mode as PaymentMode,
-    invoiceNumber: row.invoice_no,
-    invoiceDate: row.date ? new Date(row.date).getTime() : Date.now(),
-    date: row.date ? new Date(row.date).getTime() : Date.now(),
-    note: row.note,
-    tags: row.tags || [],
+    invoiceNumber: row.invoice_no as string,
+    invoiceDate: row.date ? new Date(row.date as string).getTime() : Date.now(),
+    date: row.date ? new Date(row.date as string).getTime() : Date.now(),
+    note: row.note as string,
+    tags: (row.tags as string[]) || [],
     hasAttachment: !!row.attachment_url,
-    createdAt: new Date(row.created_at).getTime(),
-    updatedAt: new Date(row.created_at).getTime(),
+    createdAt: new Date(row.created_at as string).getTime(),
+    updatedAt: new Date(row.created_at as string).getTime(),
     isDeleted: 0,
     deviceId: 'web',
     imported: false
@@ -150,7 +150,7 @@ export const addBook = async (name: string, id?: string) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('Authentication required');
 
-    const row: any = {
+    const row: Record<string, unknown> = {
         name,
         user_id: user.id,
         is_deleted: false
@@ -180,7 +180,7 @@ export const addCustomer = async (customer: Partial<Customer>) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('Authenticaton required');
 
-    const row: Record<string, any> = {
+    const row: Record<string, unknown> = {
         name: customer.name,
         mobile: customer.phone,
         email: customer.email,
@@ -206,7 +206,7 @@ export const addTransaction = async (txn: Partial<Transaction>) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('Authenticaton required');
 
-    const row: Record<string, any> = {
+    const row: Record<string, unknown> = {
         customer_id: txn.customerId,
         amount: txn.amount,
         type: txn.type,
@@ -235,7 +235,7 @@ export const addTransaction = async (txn: Partial<Transaction>) => {
 }
 
 export const updateCustomer = async (id: string, updates: Partial<Customer>) => {
-    const row: Record<string, any> = {}
+    const row: Record<string, unknown> = {}
     if (updates.name) row.name = updates.name
     if (updates.phone) row.mobile = updates.phone
     if (updates.email) row.email = updates.email

@@ -86,6 +86,7 @@ export async function generateVoucher(customer: Customer, t: Transaction, balanc
         headStyles: { fillColor: [59, 130, 246] }
     });
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const finalY = (doc as any).lastAutoTable.finalY + 20;
     doc.setFontSize(14);
     doc.text('Net Balance Status:', 14, finalY);
@@ -99,14 +100,14 @@ export async function generateVoucher(customer: Customer, t: Transaction, balanc
 }
 
 async function attachBranding(doc: jsPDF) {
-    const bizName = (await db.settings.get('business_name'))?.value || 'Ledger Manager';
-    const bizAddr = (await db.settings.get('business_address'))?.value || '';
-    const bizLogo = (await db.settings.get('business_logo'))?.value || '';
+    const bizName = (await db.settings.get('business_name'))?.value as string || 'Ledger Manager';
+    const bizAddr = (await db.settings.get('business_address'))?.value as string || '';
+    const bizLogo = (await db.settings.get('business_logo'))?.value as string || '';
 
     if (bizLogo) {
         try {
             doc.addImage(bizLogo, 'PNG', 14, 10, 30, 30);
-        } catch (e) { }
+        } catch { }
     }
 
     doc.setFontSize(22);
@@ -159,10 +160,10 @@ export async function exportToPDF(customerName: string, transactions: Transactio
         doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 62);
 
         let tableHead: string[][] = [];
-        let tableBody: any[][] = [];
+        let tableBody: (string | number)[][] = [];
 
         if (reportType === 'DETAILED') {
-            tableHead = [['Date', 'Mode', 'Dr (Given)', 'Cr (Recv)', 'Notes']];
+            tableHead = [['Date', 'Mode', 'Debit (Given)', 'Credit (Received)', 'Notes']];
             tableBody = filtered.map(t => [
                 new Date(t.date).toLocaleDateString(),
                 t.paymentMode,
@@ -171,8 +172,8 @@ export async function exportToPDF(customerName: string, transactions: Transactio
                 t.note || '-'
             ]);
         } else {
-            tableHead = [['Period', 'Dr (Given)', 'Cr (Recv)', 'Net Balance']];
-            const groups: Record<string, { dr: number, cr: number }> = {};
+            tableHead = [['Period', 'Debit (Given)', 'Credit (Received)', 'Net Balance']];
+            const groups: Record<string, { debit: number, credit: number }> = {};
 
             filtered.forEach(t => {
                 const date = new Date(t.date);
@@ -198,16 +199,16 @@ export async function exportToPDF(customerName: string, transactions: Transactio
                     key = `FY ${fy}`;
                 }
 
-                if (!groups[key]) groups[key] = { dr: 0, cr: 0 };
-                if (t.type === 'CREDIT') groups[key].dr += t.amount;
-                else groups[key].cr += t.amount;
+                if (!groups[key]) groups[key] = { debit: 0, credit: 0 };
+                if (t.type === 'CREDIT') groups[key].debit += t.amount;
+                else groups[key].credit += t.amount;
             });
 
             tableBody = Object.entries(groups).map(([period, data]) => [
                 period,
-                data.dr.toLocaleString(),
-                data.cr.toLocaleString(),
-                (data.dr - data.cr).toLocaleString()
+                data.debit.toLocaleString(),
+                data.credit.toLocaleString(),
+                (data.debit - data.credit).toLocaleString()
             ]);
         }
 

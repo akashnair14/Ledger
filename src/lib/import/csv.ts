@@ -8,7 +8,7 @@ export async function importFromCSV(file: File, bookId: string) {
             skipEmptyLines: true,
             complete: async (results) => {
                 try {
-                    const rows = results.data as any[];
+                    const rows = results.data as Record<string, string>[];
                     for (const row of rows) {
                         const customerName = row.CustomerName || row.Customer;
                         const amount = parseFloat(row.Amount);

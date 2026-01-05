@@ -21,6 +21,13 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const [layoutMode, setLayoutMode] = useState<LayoutMode>('standard');
     const [primaryColor, setPrimaryColorState] = useState<string>('#6366f1');
 
+    const setPrimaryColor = (color: string) => {
+        setPrimaryColorState(color);
+        localStorage.setItem('primaryColor', color);
+        document.documentElement.style.setProperty('--primary', color);
+        document.documentElement.style.setProperty('--primary-light', `${color}25`);
+    };
+
     useEffect(() => {
         const savedTheme = localStorage.getItem('theme') as Theme;
         if (savedTheme) {
@@ -42,13 +49,6 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             setPrimaryColor(savedColor);
         }
     }, []);
-
-    const setPrimaryColor = (color: string) => {
-        setPrimaryColorState(color);
-        localStorage.setItem('primaryColor', color);
-        document.documentElement.style.setProperty('--primary', color);
-        document.documentElement.style.setProperty('--primary-light', `${color}25`);
-    };
 
     const toggleTheme = () => {
         const newTheme = theme === 'light' ? 'dark' : 'light';

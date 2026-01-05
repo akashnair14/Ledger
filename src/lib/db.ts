@@ -58,7 +58,7 @@ export interface Attachment {
 
 export interface SyncMetadata {
     key: string;
-    value: any;
+    value: unknown;
 }
 
 export class LedgerDatabase extends Dexie {
@@ -67,7 +67,7 @@ export class LedgerDatabase extends Dexie {
     books!: Table<Book>;
     attachments!: Table<Attachment>;
     syncMetadata!: Table<SyncMetadata>;
-    settings!: Table<{ key: string, value: any }>;
+    settings!: Table<{ key: string, value: unknown }>;
 
     constructor() {
         super('LedgerDB');

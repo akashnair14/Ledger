@@ -46,7 +46,7 @@ export const Navbar = () => {
             setActiveBook(book); // Switch to the new book
         } catch (err) {
             console.error(err);
-            showToast('Failed to create ledger', 'error');
+            showToast('Failed to create ledger: ' + (err instanceof Error ? err.message : 'Unknown error'), 'error');
         } finally {
             setIsChecking(false);
         }
@@ -67,7 +67,7 @@ export const Navbar = () => {
             setIsDropdownOpen(false);
         } catch (err) {
             console.error(err);
-            showToast('Failed to update ledger', 'error');
+            showToast('Failed to update ledger: ' + (err instanceof Error ? err.message : 'Unknown error'), 'error');
         } finally {
             setIsChecking(false);
         }
