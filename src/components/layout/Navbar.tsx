@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import { useTheme } from '@/context/ThemeContext';
 import { useToast } from '@/context/ToastContext';
-import { hasCustomersInBook } from '@/hooks/useSupabase';
+import { hasCustomersInBook, addBook, updateBook, deleteBook } from '@/hooks/useSupabase';
 import Link from 'next/link';
 import { Modal } from '@/components/ui/Modal';
 import styles from './Navbar.module.css';
@@ -36,19 +36,20 @@ export const Navbar = () => {
         if (name.length < 3) return alert('Name must be at least 3 characters');
         if (books.some(b => b.name === name && b.isDeleted === 0)) return alert('Duplicate book name');
 
-        const newBookId = generateId();
-        await db.books.add({
-            id: newBookId,
-            name,
-            createdAt: now(),
-            updatedAt: now(),
-            isDeleted: 0
-        });
-
-        showToast('Ledger created successfully!');
-        setNewBookName('');
-        setIsBookModalOpen(false);
-        setIsDropdownOpen(false);
+        try {
+            setIsChecking(true);
+            const book = await addBook(name);
+            showToast('Ledger created successfully!');
+            setNewBookName('');
+            setIsBookModalOpen(false);
+            setIsDropdownOpen(false);
+            setActiveBook(book); // Switch to the new book
+        } catch (err) {
+            console.error(err);
+            showToast('Failed to create ledger', 'error');
+        } finally {
+            setIsChecking(false);
+        }
     };
 
     const handleUpdateBook = async (e: React.FormEvent) => {
@@ -57,15 +58,19 @@ export const Navbar = () => {
         if (name.length < 3) return alert('Name must be at least 3 characters');
         if (books.some(b => b.name === name && b.id !== bookToEdit.id && b.isDeleted === 0)) return alert('Duplicate book name');
 
-        await db.books.update(bookToEdit.id, {
-            name,
-            updatedAt: now()
-        });
-
-        showToast('Ledger name updated!');
-        setBookToEdit(null);
-        setNewBookName('');
-        setIsDropdownOpen(false);
+        try {
+            setIsChecking(true);
+            await updateBook(bookToEdit.id, name);
+            showToast('Ledger name updated!');
+            setBookToEdit(null);
+            setNewBookName('');
+            setIsDropdownOpen(false);
+        } catch (err) {
+            console.error(err);
+            showToast('Failed to update ledger', 'error');
+        } finally {
+            setIsChecking(false);
+        }
     };
 
     const handleDeleteBook = async (id: string) => {
@@ -79,7 +84,7 @@ export const Navbar = () => {
             }
 
             if (confirm('Are you sure? This will soft-delete the ledger.')) {
-                await db.books.update(id, { isDeleted: 1, updatedAt: now() });
+                await deleteBook(id);
                 if (activeBook?.id === id) {
                     const nextBook = books.find(b => b.id !== id && b.isDeleted === 0);
                     if (nextBook) setActiveBook(nextBook);

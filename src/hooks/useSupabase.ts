@@ -2,11 +2,20 @@
 
 import useSWR, { mutate } from 'swr'
 import { createClient } from '@/lib/supabase/client'
-import { Customer, Transaction, PaymentMode } from '@/lib/db'
+import { Customer, Transaction, PaymentMode, Book } from '@/lib/db'
 
 const supabase = createClient()
 
 // --- Types mapping ---
+
+// Map Supabase 'books' row to App 'Book'
+const mapBook = (row: Record<string, any>): Book => ({
+    id: row.id,
+    name: row.name,
+    createdAt: new Date(row.created_at).getTime(),
+    updatedAt: new Date(row.updated_at || row.created_at).getTime(),
+    isDeleted: row.is_deleted ? 1 : 0
+})
 
 // Map Supabase 'customers' row to App 'Customer'
 const mapCustomer = (row: Record<string, any>): Customer => ({
@@ -43,6 +52,17 @@ const mapTransaction = (row: Record<string, any>): Transaction => ({
 })
 
 // --- Fetchers ---
+
+const fetchBooks = async () => {
+    const { data, error } = await supabase
+        .from('books')
+        .select('*')
+        .eq('is_deleted', false)
+        .order('name')
+
+    if (error) throw error
+    return data.map(mapBook)
+}
 
 const fetchCustomers = async () => {
     const { data, error } = await supabase
@@ -82,6 +102,19 @@ const fetchAllTransactions = async () => {
 
 // --- Hooks ---
 
+export function useBooks() {
+    const { data, error, isLoading } = useSWR('books', fetchBooks, {
+        revalidateOnFocus: true,
+        revalidateOnReconnect: true,
+        revalidateIfStale: true,
+    })
+    return {
+        books: data || [],
+        isLoading,
+        error
+    }
+}
+
 export function useCustomers() {
     const { data, error, isLoading } = useSWR('customers', fetchCustomers, {
         revalidateOnFocus: true,
@@ -112,6 +145,36 @@ export function useTransactions(customerId?: string) {
 }
 
 // --- Mutations (Actions) ---
+
+export const addBook = async (name: string, id?: string) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Authentication required');
+
+    const row: any = {
+        name,
+        user_id: user.id,
+        is_deleted: false
+    }
+    if (id) row.id = id;
+
+    const { data, error } = await supabase.from('books').insert(row).select().single()
+    if (error) throw error
+
+    await mutate('books')
+    return mapBook(data)
+}
+
+export const updateBook = async (id: string, name: string) => {
+    const { error } = await supabase.from('books').update({ name, updated_at: new Date().toISOString() }).eq('id', id)
+    if (error) throw error
+    await mutate('books')
+}
+
+export const deleteBook = async (id: string) => {
+    const { error } = await supabase.from('books').update({ is_deleted: true, updated_at: new Date().toISOString() }).eq('id', id)
+    if (error) throw error
+    await mutate('books')
+}
 
 export const addCustomer = async (customer: Partial<Customer>) => {
     const { data: { user } } = await supabase.auth.getUser();
