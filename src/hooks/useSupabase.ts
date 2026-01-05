@@ -210,3 +210,13 @@ export const deleteTransaction = async (id: string, customerId: string) => {
 // Alias for backward compatibility if needed, but cleaned up
 export const deleteTransactionWithCache = deleteTransaction;
 
+export const hasCustomersInBook = async (bookId: string) => {
+    const { count, error } = await supabase
+        .from('customers')
+        .select('*', { count: 'exact', head: true })
+        .eq('book_id', bookId)
+
+    if (error) throw error
+    return (count || 0) > 0
+}
+

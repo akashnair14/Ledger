@@ -10,9 +10,11 @@ import {
     Moon,
     Sun,
     Edit3,
-    Trash2
+    Trash2,
+    Loader2
 } from 'lucide-react';
 import { useTheme } from '@/context/ThemeContext';
+import { hasCustomersInBook } from '@/hooks/useSupabase';
 import Link from 'next/link';
 import { Modal } from '@/components/ui/Modal';
 import styles from './Navbar.module.css';
@@ -24,6 +26,7 @@ export const Navbar = () => {
     const [isBookModalOpen, setIsBookModalOpen] = useState(false);
     const [bookToEdit, setBookToEdit] = useState<any | null>(null);
     const [newBookName, setNewBookName] = useState('');
+    const [isChecking, setIsChecking] = useState(false);
 
     const handleCreateBook = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -62,18 +65,27 @@ export const Navbar = () => {
     };
 
     const handleDeleteBook = async (id: string) => {
-        const hasData = await db.customers.where('bookId').equals(id).and(c => c.isDeleted === 0).count();
-        if (hasData > 0) {
-            return alert('Cannot delete book with active customers. Delete customers first.');
-        }
+        try {
+            setIsChecking(true);
+            const hasData = await hasCustomersInBook(id);
+            setIsChecking(false);
 
-        if (confirm('Are you sure? This will soft-delete the ledger.')) {
-            await db.books.update(id, { isDeleted: 1, updatedAt: now() });
-            if (activeBook?.id === id) {
-                const nextBook = books.find(b => b.id !== id && b.isDeleted === 0);
-                if (nextBook) setActiveBook(nextBook);
+            if (hasData) {
+                return alert('Cannot delete book with active customers. Delete customers first.');
             }
-            setIsDropdownOpen(false);
+
+            if (confirm('Are you sure? This will soft-delete the ledger.')) {
+                await db.books.update(id, { isDeleted: 1, updatedAt: now() });
+                if (activeBook?.id === id) {
+                    const nextBook = books.find(b => b.id !== id && b.isDeleted === 0);
+                    if (nextBook) setActiveBook(nextBook);
+                }
+                setIsDropdownOpen(false);
+            }
+        } catch (error) {
+            setIsChecking(false);
+            console.error('Delete book failed:', error);
+            alert('Failed to check ledger status. Please try again.');
         }
     };
 
@@ -90,8 +102,11 @@ export const Navbar = () => {
                         <button
                             className={styles.switcherBtn}
                             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                            disabled={isChecking}
                         >
-                            <span className={styles.bookName}>{activeBook?.name || 'Select Book'}</span>
+                            <span className={styles.bookName}>
+                                {isChecking ? <Loader2 size={14} className="spin" /> : (activeBook?.name || 'Select Book')}
+                            </span>
                             <ChevronDown size={14} />
                         </button>
 
@@ -115,11 +130,12 @@ export const Navbar = () => {
                                                     e.stopPropagation();
                                                     setBookToEdit(book);
                                                     setNewBookName(book.name);
+                                                    setIsDropdownOpen(false);
                                                 }}><Edit3 size={14} /></button>
                                                 <button onClick={(e) => {
                                                     e.stopPropagation();
                                                     handleDeleteBook(book.id);
-                                                }}><Trash2 size={14} /></button>
+                                                }} disabled={isChecking}><Trash2 size={14} /></button>
                                             </div>
                                         </div>
                                     ))}
@@ -129,6 +145,7 @@ export const Navbar = () => {
                                     onClick={() => {
                                         setIsBookModalOpen(true);
                                         setNewBookName('');
+                                        setIsDropdownOpen(false);
                                     }}
                                 >
                                     <Plus size={16} /> New Ledger
