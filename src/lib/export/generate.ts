@@ -162,7 +162,7 @@ export async function exportToPDF(customerName: string, transactions: Transactio
         let tableBody: any[][] = [];
 
         if (reportType === 'DETAILED') {
-            tableHead = [['Date', 'Mode', 'Debit', 'Credit', 'Notes']];
+            tableHead = [['Date', 'Mode', 'Dr (Given)', 'Cr (Recv)', 'Notes']];
             tableBody = filtered.map(t => [
                 new Date(t.date).toLocaleDateString(),
                 t.paymentMode,
@@ -171,9 +171,44 @@ export async function exportToPDF(customerName: string, transactions: Transactio
                 t.note || '-'
             ]);
         } else {
-            // Aggregation logic... (simplified here for brevity but functional)
-            tableHead = [['Period', 'Dr (Given)', 'Cr (Recv)', 'Net']];
-            // Add aggregation if needed, for optimization I'll focus on DETAILED first
+            tableHead = [['Period', 'Dr (Given)', 'Cr (Recv)', 'Net Balance']];
+            const groups: Record<string, { dr: number, cr: number }> = {};
+
+            filtered.forEach(t => {
+                const date = new Date(t.date);
+                let key = '';
+
+                if (reportType === 'SUMMARY_DAY') {
+                    key = date.toLocaleDateString();
+                } else if (reportType === 'SUMMARY_MONTH') {
+                    key = date.toLocaleString('default', { month: 'long', year: 'numeric' });
+                } else if (reportType === 'SUMMARY_QUARTER') {
+                    const month = date.getMonth(); // 0-indexed
+                    const year = date.getFullYear();
+                    // Financial Quarter (Apr-Mar cycle)
+                    // Q1: Apr-Jun, Q2: Jul-Sep, Q3: Oct-Dec, Q4: Jan-Mar
+                    if (month >= 3 && month <= 5) key = `Q1 (Apr-Jun) ${year}`;
+                    else if (month >= 6 && month <= 8) key = `Q2 (Jul-Sep) ${year}`;
+                    else if (month >= 9 && month <= 11) key = `Q3 (Oct-Dec) ${year}`;
+                    else key = `Q4 (Jan-Mar) ${year}`;
+                } else if (reportType === 'SUMMARY_FY') {
+                    const year = date.getFullYear();
+                    const month = date.getMonth();
+                    const fy = month >= 3 ? `${year}-${(year + 1).toString().slice(2)}` : `${year - 1}-${year.toString().slice(2)}`;
+                    key = `FY ${fy}`;
+                }
+
+                if (!groups[key]) groups[key] = { dr: 0, cr: 0 };
+                if (t.type === 'CREDIT') groups[key].dr += t.amount;
+                else groups[key].cr += t.amount;
+            });
+
+            tableBody = Object.entries(groups).map(([period, data]) => [
+                period,
+                data.dr.toLocaleString(),
+                data.cr.toLocaleString(),
+                (data.dr - data.cr).toLocaleString()
+            ]);
         }
 
         autoTable(doc, {

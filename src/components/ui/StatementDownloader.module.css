@@ -25,6 +25,20 @@
     background: var(--surface-header);
 }
 
+.stepTitle {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--text-main);
+    margin-bottom: 4px;
+}
+
+.stepDesc {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
+}
+
 .modalContent {
     display: flex;
     flex-direction: column;
@@ -48,7 +62,8 @@
 .pillGrid {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 10px;
+    margin-bottom: 1rem;
 }
 
 .pillGrid button {

@@ -16,17 +16,18 @@ export const StatementDownloader = ({ customerName, transactions }: StatementDow
     const [isOpen, setIsOpen] = useState(false);
     const [isGenerating, setIsGenerating] = useState(false);
 
-    // Report Configuration State
     const [reportType, setReportType] = useState<ReportType>('DETAILED');
     const [duration, setDuration] = useState<'ALL' | 'MONTH' | 'LAST_MONTH' | 'FY' | 'CUSTOM'>('ALL');
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
+    const [step, setStep] = useState<1 | 2>(1);
 
     const resetState = () => {
         setReportType('DETAILED');
         setDuration('ALL');
         setStartDate('');
         setEndDate('');
+        setStep(1);
         setIsOpen(false);
     };
 
@@ -104,68 +105,90 @@ export const StatementDownloader = ({ customerName, transactions }: StatementDow
             <Modal
                 isOpen={isOpen}
                 onClose={resetState}
-                title="Generate Report"
+                title={`Generate Report - Step ${step} of 2`}
             >
                 <div className={styles.modalContent}>
-                    {/* Duration Section */}
-                    <div className={styles.section}>
-                        <label className={styles.sectionLabel}>Report Duration</label>
-                        <div className={styles.pillGrid}>
-                            <button className={duration === 'ALL' ? styles.activePill : ''} onClick={() => setDuration('ALL')}>All Time</button>
-                            <button className={duration === 'MONTH' ? styles.activePill : ''} onClick={() => setDuration('MONTH')}>This Month</button>
-                            <button className={duration === 'LAST_MONTH' ? styles.activePill : ''} onClick={() => setDuration('LAST_MONTH')}>Last Month</button>
-                            <button className={duration === 'FY' ? styles.activePill : ''} onClick={() => setDuration('FY')}>Financial Year</button>
-                            <button className={duration === 'CUSTOM' ? styles.activePill : ''} onClick={() => setDuration('CUSTOM')}>Custom</button>
-                        </div>
+                    {step === 1 && (
+                        <div className={styles.section}>
+                            <h3 className={styles.stepTitle}>Select Time Period</h3>
+                            <p className={styles.stepDesc}>Choose the duration for which you want to generate the statement.</p>
 
-                        {duration === 'CUSTOM' && (
-                            <div className={styles.dateInputs}>
-                                <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
-                                <span>to</span>
-                                <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} />
+                            <div className={styles.pillGrid}>
+                                <button className={duration === 'ALL' ? styles.activePill : ''} onClick={() => setDuration('ALL')}>
+                                    <Calendar size={14} /> Full History
+                                </button>
+                                <button className={duration === 'MONTH' ? styles.activePill : ''} onClick={() => setDuration('MONTH')}>
+                                    <Calendar size={14} /> This Month
+                                </button>
+                                <button className={duration === 'LAST_MONTH' ? styles.activePill : ''} onClick={() => setDuration('LAST_MONTH')}>
+                                    <Calendar size={14} /> Last Month
+                                </button>
+                                <button className={duration === 'FY' ? styles.activePill : ''} onClick={() => setDuration('FY')}>
+                                    <Calendar size={14} /> Financial Year
+                                </button>
+                                <button className={duration === 'CUSTOM' ? styles.activePill : ''} onClick={() => setDuration('CUSTOM')}>
+                                    <Calendar size={14} /> Custom Date
+                                </button>
                             </div>
-                        )}
-                    </div>
 
-                    {/* Report Type Section */}
-                    <div className={styles.section}>
-                        <label className={styles.sectionLabel}>Report Type</label>
-                        <div className={styles.optionList}>
-                            <ReportOption
-                                type="DETAILED"
-                                title="All Entries (Detailed)"
-                                desc="List of all individual transactions with full details."
-                            />
-                            <ReportOption
-                                type="SUMMARY_DAY"
-                                title="Day-wise Summary"
-                                desc="Total given & received aggregated by day."
-                            />
-                            <ReportOption
-                                type="SUMMARY_MONTH"
-                                title="Monthly Summary"
-                                desc="Income & expense summary grouped by month."
-                            />
-                            <ReportOption
-                                type="SUMMARY_QUARTER"
-                                title="Quarterly Summary"
-                                desc="Financial performance grouped by quarters (Q1-Q4)."
-                            />
-                            <ReportOption
-                                type="SUMMARY_FY"
-                                title="Financial Year Summary"
-                                desc="Yearly performance based on Apr-Mar cycle."
-                            />
+                            {duration === 'CUSTOM' && (
+                                <div className={styles.dateInputs}>
+                                    <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
+                                    <span>to</span>
+                                    <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} />
+                                </div>
+                            )}
+
+                            <div className={styles.footer}>
+                                <button className={styles.cancelBtn} onClick={resetState}>Cancel</button>
+                                <button className={styles.generateBtn} onClick={() => setStep(2)}>
+                                    Next Step <ChevronRight size={18} />
+                                </button>
+                            </div>
                         </div>
-                    </div>
+                    )}
 
-                    {/* Footer Actions */}
-                    <div className={styles.footer}>
-                        <button className={styles.cancelBtn} onClick={resetState}>Cancel</button>
-                        <button className={styles.generateBtn} onClick={handleDownload} disabled={isGenerating}>
-                            {isGenerating ? <RefreshCw size={18} className="spin" /> : <><Download size={18} /> Generate PDF</>}
-                        </button>
-                    </div>
+                    {step === 2 && (
+                        <div className={styles.section}>
+                            <h3 className={styles.stepTitle}>Choose Report Style</h3>
+                            <p className={styles.stepDesc}>Detailed view shows every entry, while summaries group by period.</p>
+
+                            <div className={styles.optionList}>
+                                <ReportOption
+                                    type="DETAILED"
+                                    title="Standard Ledger (Detailed)"
+                                    desc="Full chronological list of all individual entries."
+                                />
+                                <ReportOption
+                                    type="SUMMARY_DAY"
+                                    title="Day-wise Totals"
+                                    desc="Daily summation of given and received amounts."
+                                />
+                                <ReportOption
+                                    type="SUMMARY_MONTH"
+                                    title="Monthly Analysis"
+                                    desc="Aggregation of transactions grouped by month."
+                                />
+                                <ReportOption
+                                    type="SUMMARY_QUARTER"
+                                    title="Quarterly Review"
+                                    desc="Financial overview for 3-month cycles (Q1-Q4)."
+                                />
+                                <ReportOption
+                                    type="SUMMARY_FY"
+                                    title="Annual Fiscal Report"
+                                    desc="High-level performance for the entire financial year."
+                                />
+                            </div>
+
+                            <div className={styles.footer}>
+                                <button className={styles.cancelBtn} onClick={() => setStep(1)}>Back</button>
+                                <button className={styles.generateBtn} onClick={handleDownload} disabled={isGenerating}>
+                                    {isGenerating ? <RefreshCw size={18} className="spin" /> : <><Download size={18} /> Generate PDF</>}
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </Modal>
         </div>
