@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Customer } from '@/lib/db';
-import { UserPlus, Search, User, ChevronRight, Filter, Edit2, Trash2, RefreshCw, BarChart3, Sparkles, CheckCircle2 } from 'lucide-react';
+import { UserPlus, Search, User, ChevronRight, Filter, Edit2, Trash2, RefreshCw, BarChart3, Sparkles, CheckCircle2, TrendingUp } from 'lucide-react';
 import { PWAInstallButton } from '@/components/ui/PWAInstallButton';
 import styles from './page.module.css';
 import Link from 'next/link';
@@ -11,6 +11,7 @@ import { useCustomers, addCustomer, updateCustomer, deleteCustomer, getTransacti
 import { createClient } from '@/lib/supabase/client';
 import { useBook } from '@/context/BookContext';
 import { useToast } from '@/context/ToastContext';
+import { InsightsView } from '@/components/dashboard/InsightsView';
 
 export default function CustomersPage() {
   const { showToast } = useToast();
@@ -49,7 +50,7 @@ export default function CustomersPage() {
     checkWelcome();
   }, []);
 
-  const [activeTab, setActiveTab] = useState<'CUSTOMER' | 'SUPPLIER'>('CUSTOMER');
+  const [activeTab, setActiveTab] = useState<'CUSTOMER' | 'SUPPLIER' | 'INSIGHTS'>('CUSTOMER');
 
   // Client-side search & Book filtering
   const customers = allCustomers?.filter(c => {
@@ -88,6 +89,8 @@ export default function CustomersPage() {
     e.preventDefault();
     const error = await validateForm();
     if (error) return alert(error);
+
+    if (activeTab === 'INSIGHTS') return;
 
     setIsSaving(true);
     try {
@@ -215,75 +218,87 @@ export default function CustomersPage() {
           >
             Suppliers
           </button>
+          <button
+            className={`${styles.tabBtn} ${activeTab === 'INSIGHTS' ? styles.activeTab : ''}`}
+            onClick={() => setActiveTab('INSIGHTS')}
+          >
+            Insights
+          </button>
         </div>
       </header>
 
       <main className={styles.main}>
         <PWAInstallButton />
 
-        <div className={styles.searchBar}>
-          <div className={styles.searchContainer}>
-            <Search size={20} className={styles.searchIcon} />
-            <input
-              type="text"
-              placeholder={`Search ${activeTab === 'CUSTOMER' ? 'customers' : 'suppliers'}...`}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-          <button className={styles.filterBtn}><Filter size={20} /></button>
-        </div>
-
-        <div className={styles.list}>
-          {isLoading ? (
-            <div className={styles.loading}>Loading...</div>
-          ) : !customers || !customers.length ? (
-            <div className={styles.empty}>
-              <User size={48} className={styles.emptyIcon} />
-              <h2>No {activeTab === 'CUSTOMER' ? 'Customers' : 'Suppliers'} Found</h2>
-              <p>
-                Add your first {activeTab.toLowerCase()} by clicking the button above.
-              </p>
-              <button
-                className={styles.primaryBtn}
-                onClick={() => {
-                  if (!activeBook) {
-                    alert('Book should be selected first');
-                    return;
-                  }
-                  setIsModalOpen(true);
-                }}
-              >
-                Add {activeTab === 'CUSTOMER' ? 'Customer' : 'Supplier'}
-              </button>
-            </div>
-          ) : (
-            customers.map((customer, index) => (
-              <div key={customer.id} className={styles.cardContainer}>
-                <Link
-                  href={`/customers/${customer.id}`}
-                  className={`${styles.customerCard} staggered-reveal`}
-                  style={{ '--i': index } as React.CSSProperties}
-                >
-                  <div className={styles.avatar}>
-                    {customer.name.charAt(0).toUpperCase()}
-                  </div>
-                  <div className={styles.info}>
-                    <h3>{customer.name}</h3>
-                    <p>{customer.phone}</p>
-                  </div>
-                  <div className={styles.customerMeta}>
-                    <ChevronRight size={20} className={styles.chevron} />
-                  </div>
-                </Link>
-                <div className={styles.cardActions}>
-                  <button onClick={() => openEdit(customer)}><Edit2 size={16} /></button>
-                  <button onClick={() => handleDeleteCustomer(customer.id)}><Trash2 size={16} /></button>
-                </div>
+        {activeTab === 'INSIGHTS' ? (
+          <InsightsView />
+        ) : (
+          <>
+            <div className={styles.searchBar}>
+              <div className={styles.searchContainer}>
+                <Search size={20} className={styles.searchIcon} />
+                <input
+                  type="text"
+                  placeholder={`Search ${activeTab === 'CUSTOMER' ? 'customers' : 'suppliers'}...`}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
               </div>
-            ))
-          )}
-        </div>
+              <button className={styles.filterBtn}><Filter size={20} /></button>
+            </div>
+
+            <div className={styles.list}>
+              {isLoading ? (
+                <div className={styles.loading}>Loading...</div>
+              ) : !customers || !customers.length ? (
+                <div className={styles.empty}>
+                  <User size={48} className={styles.emptyIcon} />
+                  <h2>No {activeTab === 'CUSTOMER' ? 'Customers' : 'Suppliers'} Found</h2>
+                  <p>
+                    Add your first {activeTab.toLowerCase()} by clicking the button above.
+                  </p>
+                  <button
+                    className={styles.primaryBtn}
+                    onClick={() => {
+                      if (!activeBook) {
+                        alert('Book should be selected first');
+                        return;
+                      }
+                      setIsModalOpen(true);
+                    }}
+                  >
+                    Add {activeTab === 'CUSTOMER' ? 'Customer' : 'Supplier'}
+                  </button>
+                </div>
+              ) : (
+                customers.map((customer, index) => (
+                  <div key={customer.id} className={styles.cardContainer}>
+                    <Link
+                      href={`/customers/${customer.id}`}
+                      className={`${styles.customerCard} staggered-reveal`}
+                      style={{ '--i': index } as React.CSSProperties}
+                    >
+                      <div className={styles.avatar}>
+                        {customer.name.charAt(0).toUpperCase()}
+                      </div>
+                      <div className={styles.info}>
+                        <h3>{customer.name}</h3>
+                        <p>{customer.phone}</p>
+                      </div>
+                      <div className={styles.customerMeta}>
+                        <ChevronRight size={20} className={styles.chevron} />
+                      </div>
+                    </Link>
+                    <div className={styles.cardActions}>
+                      <button onClick={() => openEdit(customer)}><Edit2 size={16} /></button>
+                      <button onClick={() => handleDeleteCustomer(customer.id)}><Trash2 size={16} /></button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </>
+        )}
       </main>
 
       {/* Customer Form Modal */}
