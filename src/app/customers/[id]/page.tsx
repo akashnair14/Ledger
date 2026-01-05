@@ -155,9 +155,26 @@ export default function CustomerDetailPage() {
         }
     }) || [];
 
+    // For SUPPLIERS: 
+    // CREDIT = You purchased on credit (You owe them money) -> Negative Balance for you? Or Positive Debt?
+    // Usually: Supplier Balance = Total Credit (Purchases) - Total Payment (You paid them)
+    // Positive Balance = You owe them.
+
+    // For CUSTOMERS:
+    // CREDIT = You gave goods (They owe you)
+    // Balance = Total Credit - Total Payment
+    // Positive Balance = They owe you.
+
+    // So the math is actually logically consistent (Credit - Payment), but the labels change.
+    // Customer: Credit = "Given", Payment = "Received"
+    // Supplier: Credit = "Purchased", Payment = "Paid"
+
     const totalCredit = allTransactions?.filter(t => t.type === 'CREDIT').reduce((sum, t) => sum + t.amount, 0) || 0;
     const totalPayment = allTransactions?.filter(t => t.type === 'PAYMENT').reduce((sum, t) => sum + t.amount, 0) || 0;
+
+    // For both: Positive means "Outstanding Debt" (They owe us OR We owe them)
     const balance = totalCredit - totalPayment;
+    const isSupplier = customer.type === 'SUPPLIER';
 
     const validateForm = async () => {
         const errors: any = {};
@@ -292,13 +309,20 @@ export default function CustomerDetailPage() {
                 <div className={styles.balanceInfo}>
                     <span className={styles.balanceLabel}>Current Balance</span>
                     <h2 className={balance >= 0 ? styles.negative : styles.positive}>
-                        ₹{Math.abs(balance).toLocaleString()}<small>{balance >= 0 ? ' (Net Debt)' : ' (Net Credit)'}</small>
+                        ₹{Math.abs(balance).toLocaleString()}
+                        <small>{balance >= 0 ? (isSupplier ? ' (You Owe)' : ' (Net Debt)') : (isSupplier ? ' (Advance Paid)' : ' (Net Credit)')}</small>
                     </h2>
                 </div>
                 <div className={styles.divider} />
                 <div className={styles.balanceStats}>
-                    <div className={styles.stat}><span className={styles.statLabel}>Total Given</span><span className={`${styles.statValue} ${styles.negative}`}>₹{totalCredit.toLocaleString()}</span></div>
-                    <div className={styles.stat}><span className={styles.statLabel}>Total Received</span><span className={`${styles.statValue} ${styles.positive}`}>₹{totalPayment.toLocaleString()}</span></div>
+                    <div className={styles.stat}>
+                        <span className={styles.statLabel}>{isSupplier ? 'Total Purchased' : 'Total Given'}</span>
+                        <span className={`${styles.statValue} ${styles.negative}`}>₹{totalCredit.toLocaleString()}</span>
+                    </div>
+                    <div className={styles.stat}>
+                        <span className={styles.statLabel}>{isSupplier ? 'Total Paid' : 'Total Received'}</span>
+                        <span className={`${styles.statValue} ${styles.positive}`}>₹{totalPayment.toLocaleString()}</span>
+                    </div>
                 </div>
             </div>
 
@@ -318,7 +342,13 @@ export default function CustomerDetailPage() {
                             {isSelectMode && <div className={`${styles.checkbox} ${selectedTxns.includes(t.id) ? styles.checked : ''}`}>{selectedTxns.includes(t.id) && <Check size={12} />}</div>}
                             <div className={styles.txnDate}>{new Date(t.date).toLocaleDateString(undefined, { day: '2-digit', month: 'short' })}</div>
                             <div className={styles.txnMain}>
-                                <div className={styles.txnNote}>{t.type === 'CREDIT' ? <ArrowUpRight size={14} className={styles.negative} /> : <ArrowDownLeft size={14} className={styles.positive} />}{t.note || (t.type === 'CREDIT' ? 'Given' : 'Received')}</div>
+                                <div className={styles.txnNote}>
+                                    {t.type === 'CREDIT'
+                                        ? <ArrowUpRight size={14} className={styles.negative} />
+                                        : <ArrowDownLeft size={14} className={styles.positive} />
+                                    }
+                                    {t.note || (t.type === 'CREDIT' ? (isSupplier ? 'Purchased' : 'Given') : (isSupplier ? 'Paid' : 'Received'))}
+                                </div>
                                 <div className={styles.txnTags}>
                                     <span className={styles.tagLabel}>{t.paymentMode}</span>
                                     {t.invoiceNumber && <span className={styles.tagLabel}>#{t.invoiceNumber}</span>}
@@ -344,12 +374,24 @@ export default function CustomerDetailPage() {
                 </div>
             ) : (
                 <div className={styles.bottomActions}>
-                    <button className={styles.giveBtn} onClick={() => { setTxnType('CREDIT'); setTxnModalOpen(true); }}><Plus size={20} /> GIVE CREDIT</button>
-                    <button className={styles.receiveBtn} onClick={() => { setTxnType('PAYMENT'); setTxnModalOpen(true); }}><Minus size={20} /> RECEIVE PAYMENT</button>
+                    <button className={styles.giveBtn} onClick={() => { setTxnType('CREDIT'); setTxnModalOpen(true); }}>
+                        <Plus size={20} /> {isSupplier ? 'PURCHASE / CREDIT' : 'GIVE CREDIT'}
+                    </button>
+                    <button className={styles.receiveBtn} onClick={() => { setTxnType('PAYMENT'); setTxnModalOpen(true); }}>
+                        <Minus size={20} /> {isSupplier ? 'PAY BALANCE' : 'RECEIVE PAYMENT'}
+                    </button>
                 </div>
             )}
 
-            <Modal isOpen={isTxnModalOpen} onClose={() => !isSaving && resetForm()} title={editingTxn ? 'Edit Transaction' : (txnType === 'CREDIT' ? 'Give Credit' : 'Receive Payment')}>
+            <Modal
+                isOpen={isTxnModalOpen}
+                onClose={() => !isSaving && resetForm()}
+                title={editingTxn ? 'Edit Transaction' : (
+                    txnType === 'CREDIT'
+                        ? (isSupplier ? 'Record Purchase' : 'Give Credit')
+                        : (isSupplier ? 'Record Payment' : 'Receive Payment')
+                )}
+            >
                 {!showConfirm ? (
                     <form onSubmit={handlePreSubmit} className={styles.form}>
                         <div className={styles.inputGroup}>
@@ -433,7 +475,10 @@ export default function CustomerDetailPage() {
                         <div className={styles.confirmCard}>
                             <div className={styles.confirmHeader}>
                                 <span className={txnType === 'CREDIT' ? styles.tagCredit : styles.tagPayment}>
-                                    {txnType === 'CREDIT' ? 'GIVING CREDIT' : 'RECEIVING PAYMENT'}
+                                    {txnType === 'CREDIT'
+                                        ? (isSupplier ? 'RECORDING PURCHASE' : 'GIVING CREDIT')
+                                        : (isSupplier ? 'RECORDING PAYMENT' : 'RECEIVING PAYMENT')
+                                    }
                                 </span>
                             </div>
                             <div className={styles.confirmMain}>
