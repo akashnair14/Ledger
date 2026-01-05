@@ -85,7 +85,8 @@ const fetchAllTransactions = async () => {
 export function useCustomers() {
     const { data, error, isLoading } = useSWR('customers', fetchCustomers, {
         revalidateOnFocus: true,
-        dedupingInterval: 5000
+        revalidateOnReconnect: true,
+        revalidateIfStale: true,
     })
     return {
         customers: data,
@@ -100,7 +101,8 @@ export function useTransactions(customerId?: string) {
 
     const { data, error, isLoading } = useSWR(key, fetcher, {
         revalidateOnFocus: true,
-        dedupingInterval: 5000
+        revalidateOnReconnect: true,
+        revalidateIfStale: true,
     })
     return {
         transactions: data,
@@ -129,7 +131,11 @@ export const addCustomer = async (customer: Partial<Customer>) => {
     const { data, error } = await supabase.from('customers').insert(row).select().single()
     if (error) throw error
 
-    await mutate('customers') // Revalidate cache
+    // Revalidate multiple keys to ensure consistency
+    await Promise.all([
+        mutate('customers'),
+        mutate('all-transactions') // In case stats are affected
+    ])
     return mapCustomer(data)
 }
 
@@ -176,14 +182,22 @@ export const updateCustomer = async (id: string, updates: Partial<Customer>) => 
     const { error } = await supabase.from('customers').update(row).eq('id', id)
     if (error) throw error
 
-    await mutate('customers')
+    await Promise.all([
+        mutate('customers'),
+        mutate(`transactions-${id}`), // Refresh specific customer detail if open
+        mutate('all-transactions')
+    ])
 }
 
 export const deleteCustomer = async (id: string) => {
     const { error } = await supabase.from('customers').delete().eq('id', id)
     if (error) throw error
 
-    await mutate('customers')
+    await Promise.all([
+        mutate('customers'),
+        mutate(`transactions-${id}`),
+        mutate('all-transactions')
+    ])
 }
 
 export const getTransactionCount = async (customerId: string) => {

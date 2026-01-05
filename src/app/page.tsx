@@ -47,8 +47,13 @@ export default function CustomersPage() {
     checkWelcome();
   }, []);
 
-  // Client-side search
+  // Client-side search & Book filtering
   const customers = allCustomers?.filter(c => {
+    // Book Filter - must match active book
+    if (!activeBook) return false;
+    if (c.bookId !== activeBook.id) return false;
+
+    // Search Match
     if (!searchQuery) return true;
     const q = searchQuery.toLowerCase();
     return c.name.toLowerCase().includes(q) || c.phone.includes(q);
