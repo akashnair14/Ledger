@@ -1,325 +1,256 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Customer } from '@/lib/db';
-import { UserPlus, Search, User, ChevronRight, Filter, Edit2, Trash2, RefreshCw, BarChart3, Sparkles, CheckCircle2 } from 'lucide-react';
-import { PWAInstallButton } from '@/components/ui/PWAInstallButton';
-import styles from './page.module.css';
+import React from 'react';
 import Link from 'next/link';
-import { Modal } from '@/components/ui/Modal';
-import { useCustomers, addCustomer, updateCustomer, deleteCustomer, getTransactionCount } from '@/hooks/useSupabase';
-import { createClient } from '@/lib/supabase/client';
-import { useBook } from '@/context/BookContext';
-import { useToast } from '@/context/ToastContext';
+import { motion } from 'framer-motion';
+import {
+    Users,
+    ShieldCheck,
+    Zap,
+    Database,
+    FileText,
+    BarChart3,
+    ArrowRight,
+    ChevronRight,
+    Smartphone,
+    CheckCircle2,
+    Lock
+} from 'lucide-react';
+import styles from './landing.module.css';
 
-export default function CustomersPage() {
-  const { showToast } = useToast();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [customerToEdit, setCustomerToEdit] = useState<Customer | null>(null);
-
-  // Form States
-  const [name, setName] = useState('');
-  const [phone, setPhone] = useState('');
-  const [email, setEmail] = useState('');
-  const [address, setAddress] = useState('');
-  const [isSaving, setIsSaving] = useState(false);
-
-  // Welcome State
-  const [showWelcome, setShowWelcome] = useState(false);
-  const [userDisplayName, setUserDisplayName] = useState('');
-
-  const { customers: allCustomers, isLoading } = useCustomers();
-  const { activeBook } = useBook();
-
-  useEffect(() => {
-    const checkWelcome = async () => {
-      const welcomeShown = sessionStorage.getItem('welcome_shown');
-      if (!welcomeShown) {
-        const supabase = createClient();
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          const displayName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'User';
-          setUserDisplayName(displayName);
-          setShowWelcome(true);
-          sessionStorage.setItem('welcome_shown', 'true');
+export default function LandingPage() {
+    const features = [
+        {
+            icon: <Users size={24} />,
+            title: "Customer Management",
+            description: "Organize your borrowers and lenders in a clean, searchable list with quick action buttons."
+        },
+        {
+            icon: <Zap size={24} />,
+            title: "Real-time Records",
+            description: "Record 'Given' and 'Received' entries instantly. Your balance updates automatically."
+        },
+        {
+            icon: <Database size={24} />,
+            title: "Offline-First Sync",
+            description: "Continue working without internet. Your data syncs to the cloud as soon as you are back online."
+        },
+        {
+            icon: <FileText size={24} />,
+            title: "PDF Statements",
+            description: "Generate professional account statements and payment vouchers in one click."
+        },
+        {
+            icon: <BarChart3 size={24} />,
+            title: "Business Analytics",
+            description: "Visualize your cash flow and growth with interactive charts and summaries."
+        },
+        {
+            icon: <ShieldCheck size={24} />,
+            title: "Enterprise Security",
+            description: "Your data is protected by Supabase's military-grade encryption and secure auth."
         }
-      }
-    };
-    checkWelcome();
-  }, []);
+    ];
 
-  // Client-side search & Book filtering
-  const customers = allCustomers?.filter(c => {
-    // Book Filter - must match active book
-    if (!activeBook) return false;
-    if (c.bookId !== activeBook.id) return false;
-
-    // Search Match
-    if (!searchQuery) return true;
-    const q = searchQuery.toLowerCase();
-    return c.name.toLowerCase().includes(q) || c.phone.includes(q);
-  });
-
-  const validateForm = async () => {
-    if (name.trim().length < 3) return 'Name must be at least 3 characters';
-    if (phone && !/^\d{0,10}$/.test(phone)) return 'Phone number must be digits only and max 10 characters';
-
-    // Check for duplicates in the currently loaded list
-    if (allCustomers) {
-      const duplicate = allCustomers.find(c =>
-        c.name.toLowerCase() === name.trim().toLowerCase() &&
-        c.phone === phone.trim() &&
-        c.id !== customerToEdit?.id
-      );
-      if (duplicate) return 'A customer with this name and phone already exists';
-    }
-    return null;
-  };
-
-  const handleSaveCustomer = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const error = await validateForm();
-    if (error) return alert(error);
-
-    setIsSaving(true);
-    try {
-      if (customerToEdit) {
-        await updateCustomer(customerToEdit.id, {
-          name: name.trim(),
-          phone: phone.trim(),
-          email: email.trim(),
-          address: address.trim()
-        });
-        showToast('Customer details updated');
-      } else {
-        if (!activeBook) {
-          alert('book should be selected or created before adding new customer');
-          setIsSaving(false);
-          return;
-        }
-        await addCustomer({
-          name: name.trim(),
-          phone: phone.trim(),
-          email: email.trim(),
-          address: address.trim(),
-          bookId: activeBook.id
-        });
-        showToast('Customer added successfully');
-      }
-      closeModal();
-    } catch (err: unknown) {
-      console.error(err);
-      alert('Failed to save customer: ' + (err instanceof Error ? err.message : 'Unknown error'));
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const handleDeleteCustomer = async (id: string) => {
-    try {
-      const txnCount = await getTransactionCount(id);
-      const msg = txnCount > 0
-        ? `This customer has ${txnCount} transactions. Deleting will remove them ALL permanently. Continue?`
-        : 'Are you sure you want to delete this customer?';
-
-      if (confirm(msg)) {
-        await deleteCustomer(id);
-        showToast('Customer deleted');
-      }
-    } catch (err: unknown) {
-      alert('Delete failed: ' + (err instanceof Error ? err.message : 'Unknown error'));
-    }
-  };
-
-  const openEdit = (customer: Customer) => {
-    setCustomerToEdit(customer);
-    setName(customer.name);
-    setPhone(customer.phone);
-    setEmail(customer.email || '');
-    setAddress(customer.address || '');
-    setIsModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setCustomerToEdit(null);
-    setName('');
-    setPhone('');
-    setEmail('');
-    setAddress('');
-  };
-
-  return (
-    <div className={styles.container}>
-      <header className={styles.header}>
-        <div className={styles.topBar}>
-          <h1>Ledger Manager</h1>
-          <div className={styles.headerActions}>
-            <Link href="/analytics" className={styles.iconBtn} title="View Analytics">
-              <BarChart3 size={20} />
-            </Link>
-            <button
-              className={styles.addBtn}
-              onClick={() => {
-                if (!activeBook) {
-                  alert('book should be selected or created before adding new customer');
-                  return;
-                }
-                setIsModalOpen(true);
-              }}
-            >
-              <UserPlus size={18} /> Add Customer
-            </button>
-          </div>
-        </div>
-      </header>
-
-      <main className={styles.main}>
-        <PWAInstallButton />
-
-        <div className={styles.searchBar}>
-          <div className={styles.searchContainer}>
-            <Search size={20} className={styles.searchIcon} />
-            <input
-              type="text"
-              placeholder="Search by name or phone..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-          <button className={styles.filterBtn}><Filter size={20} /></button>
-        </div>
-
-        <div className={styles.list}>
-          {isLoading ? (
-            <div className={styles.loading}>Loading...</div>
-          ) : !customers || !customers.length ? (
-            <div className={styles.empty}>
-              <User size={48} className={styles.emptyIcon} />
-              <h2>No Customers Found</h2>
-              <p>
-                Add your first customer by clicking the button above.
-              </p>
-              <button
-                className={styles.primaryBtn}
-                onClick={() => {
-                  if (!activeBook) {
-                    alert('book should be selected or created before adding new customer');
-                    return;
-                  }
-                  setIsModalOpen(true);
-                }}
-              >
-                Add Customer
-              </button>
-            </div>
-          ) : (
-            customers.map((customer, index) => (
-              <div key={customer.id} className={styles.cardContainer}>
-                <Link
-                  href={`/customers/${customer.id}`}
-                  className={`${styles.customerCard} staggered-reveal`}
-                  style={{ '--i': index } as React.CSSProperties}
-                >
-                  <div className={styles.avatar}>
-                    {customer.name.charAt(0).toUpperCase()}
-                  </div>
-                  <div className={styles.info}>
-                    <h3>{customer.name}</h3>
-                    <p>{customer.phone}</p>
-                  </div>
-                  <div className={styles.customerMeta}>
-                    <ChevronRight size={20} className={styles.chevron} />
-                  </div>
-                </Link>
-                <div className={styles.cardActions}>
-                  <button onClick={() => openEdit(customer)}><Edit2 size={16} /></button>
-                  <button onClick={() => handleDeleteCustomer(customer.id)}><Trash2 size={16} /></button>
+    return (
+        <div className={styles.container}>
+            {/* Navigation Header */}
+            <nav className={styles.navbar}>
+                <div className={styles.navContent}>
+                    <div className={styles.logo}>
+                        <div className={styles.logoIcon}>L</div>
+                        <span>LedgerManager</span>
+                    </div>
+                    <div className={styles.navLinks}>
+                        <Link href="/login" className={styles.loginLink}>Log In</Link>
+                        <Link href="/login" className={styles.signupBtn}>Get Started Free</Link>
+                    </div>
                 </div>
-              </div>
-            ))
-          )}
-        </div>
-      </main>
+            </nav>
 
-      {/* Customer Form Modal */}
-      <Modal
-        isOpen={isModalOpen}
-        onClose={closeModal}
-        title={customerToEdit ? 'Edit Customer' : 'Add New Customer'}
-      >
-        <form onSubmit={handleSaveCustomer} className={styles.form}>
-          <div className={styles.inputGroup}>
-            <label>Full Name *</label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. John Doe (min 3 chars)"
-              required
-              autoFocus
-            />
-          </div>
-          <div className={styles.inputGroup}>
-            <label>Phone Number (Optional - Max 10 digits)</label>
-            <input
-              type="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
-              placeholder="e.g. 9876543210"
-              maxLength={10}
-              inputMode="tel"
-            />
-          </div>
-          <div className={styles.inputGroup}>
-            <label>Email Address (Optional)</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="e.g. john@example.com"
-            />
-          </div>
-          <div className={styles.inputGroup}>
-            <label>Address (Optional)</label>
-            <textarea
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              placeholder="Full address here..."
-              className={styles.textarea}
-            />
-          </div>
-          <button type="submit" className={styles.submitBtn} disabled={isSaving}>
-            {isSaving ? <RefreshCw size={18} className="spin" /> : (customerToEdit ? 'Update Details' : 'Create Customer')}
-          </button>
-        </form>
-      </Modal>
+            {/* Hero Section */}
+            <section className={styles.hero}>
+                <div className={styles.gridBackground} />
+                <div className={styles.heroContent}>
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.6 }}
+                        className={styles.badge}
+                    >
+                        <SparkleIcon /> Trusted by 10,000+ businesses
+                    </motion.div>
 
-      {/* Welcome Message Modal */}
-      <Modal
-        isOpen={showWelcome}
-        onClose={() => setShowWelcome(false)}
-        title=""
-      >
-        <div className={styles.welcomeContent}>
-          <div className={styles.welcomeIconBox}>
-            <Sparkles size={40} />
-          </div>
-          <div className={styles.welcomeText}>
-            <h2>Welcome Back, {userDisplayName}!</h2>
-            <p>Your financial records are synchronized and ready. Let&apos;s manage your ledger with precision.</p>
-          </div>
-          <div className={styles.welcomeActions}>
-            <button className={styles.startBtn} onClick={() => setShowWelcome(false)}>
-              Get Started <ChevronRight size={20} />
-            </button>
-          </div>
-          <div style={{ display: 'flex', gap: '8px', color: 'var(--success)', fontWeight: 'bold', fontSize: '0.8rem' }}>
-            <CheckCircle2 size={16} /> Secure Ledger Session Active
-          </div>
+                    <motion.h1
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.6, delay: 0.1 }}
+                    >
+                        The Modern Way to <br /> <span>Manage Your Ledger</span>
+                    </motion.h1>
+
+                    <motion.p
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.6, delay: 0.2 }}
+                    >
+                        Replace your old diaries with a powerful, secure, and offline-first digital ledger.
+                        Track every penny, generate reports, and grow your business with confidence.
+                    </motion.p>
+
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.6, delay: 0.3 }}
+                        className={styles.heroActions}
+                    >
+                        <Link href="/login" className={styles.primaryBtn}>
+                            Start for Free <ArrowRight size={20} />
+                        </Link>
+                        <a href="#features" className={styles.secondaryBtn}>
+                            Explore Features
+                        </a>
+                    </motion.div>
+                </div>
+
+                {/* Floating Mockup Preview */}
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.8, delay: 0.4 }}
+                    className={styles.mockupContainer}
+                >
+                    <div className={styles.mockup}>
+                        <div className={styles.mockupHeader}>
+                            <div className={styles.dots}><span /><span /><span /></div>
+                            <div className={styles.url}>app.ledgermanager.io</div>
+                        </div>
+                        <div className={styles.mockupContent}>
+                            <div className={styles.skeletonLine} style={{ width: '40%', height: '24px', marginBottom: '20px' }} />
+                            <div className={styles.skeletonCard}>
+                                <div className={styles.skeletonCircle} />
+                                <div style={{ flex: 1 }}>
+                                    <div className={styles.skeletonLine} style={{ width: '60%' }} />
+                                    <div className={styles.skeletonLine} style={{ width: '30%' }} />
+                                </div>
+                            </div>
+                            <div className={styles.skeletonCard}>
+                                <div className={styles.skeletonCircle} />
+                                <div style={{ flex: 1 }}>
+                                    <div className={styles.skeletonLine} style={{ width: '70%' }} />
+                                    <div className={styles.skeletonLine} style={{ width: '40%' }} />
+                                </div>
+                            </div>
+                            <div className={styles.skeletonCard}>
+                                <div className={styles.skeletonCircle} />
+                                <div style={{ flex: 1 }}>
+                                    <div className={styles.skeletonLine} style={{ width: '50%' }} />
+                                    <div className={styles.skeletonLine} style={{ width: '20%' }} />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </motion.div>
+            </section>
+
+            {/* Stats Section */}
+            <section className={styles.stats}>
+                <div className={styles.statItem}>
+                    <h3>99.9%</h3>
+                    <p>Sync Uptime</p>
+                </div>
+                <div className={styles.statItem}>
+                    <h3>1M+</h3>
+                    <p>Monthly Entries</p>
+                </div>
+                <div className={styles.statItem}>
+                    <h3>256-bit</h3>
+                    <p>Secure Encryption</p>
+                </div>
+                <div className={styles.statItem}>
+                    <h3>0ms</h3>
+                    <p>Instant Offline Access</p>
+                </div>
+            </section>
+
+            {/* Features Grid */}
+            <section id="features" className={styles.features}>
+                <div className={styles.sectionHeader}>
+                    <h2>Powerful Features for <span>Growth</span></h2>
+                    <p>Everything you need to manage your business finance in one single app.</p>
+                </div>
+
+                <div className={styles.featureGrid}>
+                    {features.map((f, i) => (
+                        <motion.div
+                            key={i}
+                            whileHover={{ y: -10 }}
+                            className={styles.featureCard}
+                        >
+                            <div className={styles.featureIcon}>{f.icon}</div>
+                            <h3>{f.title}</h3>
+                            <p>{f.description}</p>
+                        </motion.div>
+                    ))}
+                </div>
+            </section>
+
+            {/* PWA Section */}
+            <section className={styles.pwaSection}>
+                <div className={styles.pwaContent}>
+                    <div className={styles.pwaText}>
+                        <h2>Install it like an <span>App</span></h2>
+                        <p>Add LedgerManager to your home screen. Works perfectly on Android, iOS, and Desktop without even opening the browser.</p>
+                        <ul className={styles.pwaList}>
+                            <li><CheckCircle2 size={18} /> Native-like experience</li>
+                            <li><CheckCircle2 size={18} /> Works offline offline</li>
+                            <li><CheckCircle2 size={18} /> Push notifications</li>
+                        </ul>
+                        <Link href="/login" className={styles.pwaBtn}>
+                            <Smartphone size={20} /> Install Now
+                        </Link>
+                    </div>
+                    <div className={styles.pwaVisual}>
+                        <div className={styles.phoneFrame}>
+                            <div className={styles.screen}>
+                                <div className={styles.appIcon}>L</div>
+                                <p>LedgerManager</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* CTA Section */}
+            <section className={styles.cta}>
+                <div className={styles.ctaBlur} />
+                <div className={styles.ctaContent}>
+                    <h2>Ready to Digitise Your Ledger?</h2>
+                    <p>Join thousands of users who have moved to a simpler, more secure finance management system.</p>
+                    <div className={styles.ctaActions}>
+                        <Link href="/login" className={styles.ctaPrimary}>
+                            Start Your Free Account <ArrowRight size={20} />
+                        </Link>
+                    </div>
+                    <p className={styles.ctaNoCredit}>No credit card required • Secure encryption • 100% Free</p>
+                </div>
+            </section>
+
+            {/* Footer */}
+            <footer className={styles.footer}>
+                <div className={styles.footerBottom}>
+                    <p>© 2026 LedgerManager. All rights reserved.</p>
+                    <div className={styles.socials}>
+                        <Lock size={16} /> Secure Ledger Environment
+                    </div>
+                </div>
+            </footer>
         </div>
-      </Modal>
-    </div >
-  );
+    );
 }
+
+const SparkleIcon = () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 2L14.4 9.6L22 12L14.4 14.4L12 22L9.6 14.4L2L12L9.6 9.6L12 2Z" fill="var(--primary)" />
+    </svg>
+);

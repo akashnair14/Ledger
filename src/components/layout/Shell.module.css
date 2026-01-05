@@ -19,6 +19,17 @@
     animation: fadeIn 0.4s var(--transition-smooth);
 }
 
+.publicMain {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.publicContent {
+    width: 100%;
+}
+
 @keyframes fadeIn {
     from {
         opacity: 0;

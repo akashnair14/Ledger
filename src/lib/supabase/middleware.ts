@@ -43,23 +43,21 @@ export async function updateSession(request: NextRequest) {
     } = await supabase.auth.getUser()
 
     // 3. Protected Routes Logic
-    // If user is NOT signed in and the current path is NOT /login or /auth/*, redirect to /login
-    if (
-        !user &&
-        !request.nextUrl.pathname.startsWith('/login') &&
-        !request.nextUrl.pathname.startsWith('/auth')
-    ) {
-        // no user, potentially respond by redirecting the user to the login page
+    // Routes that require authentication
+    const protectedRoutes = ['/dashboard', '/analytics', '/transactions', '/settings', '/customers'];
+    const isProtectedRoute = protectedRoutes.some(path => request.nextUrl.pathname.startsWith(path));
+
+    if (!user && isProtectedRoute) {
         const url = request.nextUrl.clone()
         url.pathname = '/login'
         return NextResponse.redirect(url)
     }
 
     // 4. Auth Route Logic
-    // If user IS signed in and attempts to go to /login, redirect to /
+    // If user IS signed in and attempts to go to /login, redirect to /dashboard
     if (user && request.nextUrl.pathname.startsWith('/login')) {
         const url = request.nextUrl.clone()
-        url.pathname = '/'
+        url.pathname = '/dashboard'
         return NextResponse.redirect(url)
     }
 

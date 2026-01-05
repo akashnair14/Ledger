@@ -9,11 +9,13 @@ export const BottomNav = () => {
     const pathname = usePathname();
 
     const navItems = [
-        { label: 'Customers', href: '/', icon: Users },
+        { label: 'Customers', href: '/dashboard', icon: Users },
         { label: 'Transactions', href: '/transactions', icon: ReceiptText },
         { label: 'Analytics', href: '/analytics', icon: BarChart3 },
         { label: 'Settings', href: '/settings', icon: Settings },
     ];
+
+    if (pathname === '/' || pathname === '/login') return null;
 
     return (
         <nav className={styles.bottomNav}>
