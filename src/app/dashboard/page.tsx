@@ -49,11 +49,17 @@ export default function CustomersPage() {
     checkWelcome();
   }, []);
 
+  const [activeTab, setActiveTab] = useState<'CUSTOMER' | 'SUPPLIER'>('CUSTOMER');
+
   // Client-side search & Book filtering
   const customers = allCustomers?.filter(c => {
     // Book Filter - must match active book
     if (!activeBook) return false;
     if (c.bookId !== activeBook.id) return false;
+
+    // Type Filter
+    const cType = c.type || 'CUSTOMER'; // Default for old data
+    if (cType !== activeTab) return false;
 
     // Search Match
     if (!searchQuery) return true;
@@ -65,14 +71,15 @@ export default function CustomersPage() {
     if (name.trim().length < 3) return 'Name must be at least 3 characters';
     if (phone && !/^\d{0,10}$/.test(phone)) return 'Phone number must be digits only and max 10 characters';
 
-    // Check for duplicates in the currently loaded list
+    // Check for duplicates in the currently loaded list (allCustomers contains both types)
     if (allCustomers) {
       const duplicate = allCustomers.find(c =>
         c.name.toLowerCase() === name.trim().toLowerCase() &&
         c.phone === phone.trim() &&
-        c.id !== customerToEdit?.id
+        c.id !== customerToEdit?.id &&
+        (c.type || 'CUSTOMER') === activeTab // Check within same type
       );
-      if (duplicate) return 'A customer with this name and phone already exists';
+      if (duplicate) return `A ${activeTab.toLowerCase()} with this name and phone already exists`;
     }
     return null;
   };
@@ -91,10 +98,10 @@ export default function CustomersPage() {
           email: email.trim(),
           address: address.trim()
         });
-        showToast('Customer details updated');
+        showToast(`${activeTab === 'CUSTOMER' ? 'Customer' : 'Supplier'} details updated`);
       } else {
         if (!activeBook) {
-          alert('book should be selected or created before adding new customer');
+          alert('book should be selected or created before adding new entity');
           setIsSaving(false);
           return;
         }
@@ -103,14 +110,15 @@ export default function CustomersPage() {
           phone: phone.trim(),
           email: email.trim(),
           address: address.trim(),
-          bookId: activeBook.id
+          bookId: activeBook.id,
+          type: activeTab
         });
-        showToast('Customer added successfully');
+        showToast(`${activeTab === 'CUSTOMER' ? 'Customer' : 'Supplier'} added successfully`);
       }
       closeModal();
     } catch (err: unknown) {
       console.error(err);
-      alert('Failed to save customer: ' + (err instanceof Error ? err.message : 'Unknown error'));
+      alert('Failed to save: ' + (err instanceof Error ? err.message : 'Unknown error'));
     } finally {
       setIsSaving(false);
     }
@@ -120,12 +128,12 @@ export default function CustomersPage() {
     try {
       const txnCount = await getTransactionCount(id);
       const msg = txnCount > 0
-        ? `This customer has ${txnCount} transactions. Deleting will remove them ALL permanently. Continue?`
-        : 'Are you sure you want to delete this customer?';
+        ? `This ${activeTab.toLowerCase()} has ${txnCount} transactions. Deleting will remove them ALL permanently. Continue?`
+        : `Are you sure you want to delete this ${activeTab.toLowerCase()}?`;
 
       if (confirm(msg)) {
         await deleteCustomer(id);
-        showToast('Customer deleted');
+        showToast(`${activeTab === 'CUSTOMER' ? 'Customer' : 'Supplier'} deleted`);
       }
     } catch (err: unknown) {
       alert('Delete failed: ' + (err instanceof Error ? err.message : 'Unknown error'));
@@ -159,19 +167,53 @@ export default function CustomersPage() {
             <Link href="/analytics" className={styles.iconBtn} title="View Analytics">
               <BarChart3 size={20} />
             </Link>
-            <button
-              className={styles.addBtn}
-              onClick={() => {
-                if (!activeBook) {
-                  alert('book should be selected or created before adding new customer');
-                  return;
-                }
-                setIsModalOpen(true);
-              }}
-            >
-              <UserPlus size={18} /> Add Customer
-            </button>
+
+            {activeTab === 'CUSTOMER' && (
+              <button
+                className={styles.addBtn}
+                onClick={() => {
+                  if (!activeBook) {
+                    alert('Book should be selected first');
+                    return;
+                  }
+                  setIsModalOpen(true);
+                }}
+              >
+                <UserPlus size={18} /> Add Customer
+              </button>
+            )}
+
+            {activeTab === 'SUPPLIER' && (
+              <button
+                className={styles.addBtn}
+                onClick={() => {
+                  if (!activeBook) {
+                    alert('Book should be selected first');
+                    return;
+                  }
+                  setIsModalOpen(true);
+                }}
+              >
+                <UserPlus size={18} /> Add Supplier
+              </button>
+            )}
+
           </div>
+        </div>
+
+        <div className={styles.tabs}>
+          <button
+            className={`${styles.tabBtn} ${activeTab === 'CUSTOMER' ? styles.activeTab : ''}`}
+            onClick={() => setActiveTab('CUSTOMER')}
+          >
+            Customers
+          </button>
+          <button
+            className={`${styles.tabBtn} ${activeTab === 'SUPPLIER' ? styles.activeTab : ''}`}
+            onClick={() => setActiveTab('SUPPLIER')}
+          >
+            Suppliers
+          </button>
         </div>
       </header>
 
@@ -183,7 +225,7 @@ export default function CustomersPage() {
             <Search size={20} className={styles.searchIcon} />
             <input
               type="text"
-              placeholder="Search by name or phone..."
+              placeholder={`Search ${activeTab === 'CUSTOMER' ? 'customers' : 'suppliers'}...`}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -197,21 +239,21 @@ export default function CustomersPage() {
           ) : !customers || !customers.length ? (
             <div className={styles.empty}>
               <User size={48} className={styles.emptyIcon} />
-              <h2>No Customers Found</h2>
+              <h2>No {activeTab === 'CUSTOMER' ? 'Customers' : 'Suppliers'} Found</h2>
               <p>
-                Add your first customer by clicking the button above.
+                Add your first {activeTab.toLowerCase()} by clicking the button above.
               </p>
               <button
                 className={styles.primaryBtn}
                 onClick={() => {
                   if (!activeBook) {
-                    alert('book should be selected or created before adding new customer');
+                    alert('Book should be selected first');
                     return;
                   }
                   setIsModalOpen(true);
                 }}
               >
-                Add Customer
+                Add {activeTab === 'CUSTOMER' ? 'Customer' : 'Supplier'}
               </button>
             </div>
           ) : (
@@ -247,7 +289,7 @@ export default function CustomersPage() {
       <Modal
         isOpen={isModalOpen}
         onClose={closeModal}
-        title={customerToEdit ? 'Edit Customer' : 'Add New Customer'}
+        title={customerToEdit ? `Edit ${activeTab === 'CUSTOMER' ? 'Customer' : 'Supplier'}` : `Add New ${activeTab === 'CUSTOMER' ? 'Customer' : 'Supplier'}`}
       >
         <form onSubmit={handleSaveCustomer} className={styles.form}>
           <div className={styles.inputGroup}>

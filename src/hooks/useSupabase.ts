@@ -27,6 +27,7 @@ const mapCustomer = (row: Record<string, unknown>): Customer => ({
     bookId: (row.book_id as string) || 'default-book',
     createdAt: new Date(row.created_at as string).getTime(),
     updatedAt: new Date((row.updated_at as string) || (row.created_at as string)).getTime(),
+    type: (row.type as 'CUSTOMER' | 'SUPPLIER') || 'CUSTOMER',
     isDeleted: 0
 })
 
@@ -212,6 +213,7 @@ export const addCustomer = async (customer: Partial<Customer>) => {
         mobile: customer.phone,
         email: customer.email,
         address: customer.address,
+        type: customer.type || 'CUSTOMER',
         user_id: user.id // Satisfy RLS policies
     }
 

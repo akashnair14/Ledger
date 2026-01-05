@@ -20,6 +20,7 @@ export interface Customer {
     createdAt: number;
     updatedAt: number;
     isDeleted: number;
+    type: 'CUSTOMER' | 'SUPPLIER';
 }
 
 export interface Transaction {
@@ -128,6 +129,19 @@ export class LedgerDatabase extends Dexie {
             transactions: 'id, customerId, bookId, type, date, paymentMode, invoiceNumber, customPaymentMode, updatedAt, isDeleted, *tags',
             syncMetadata: 'key',
             settings: 'key'
+        });
+
+        this.version(6).stores({
+            books: 'id, name, updatedAt, isDeleted',
+            attachments: 'id, txnId, updatedAt',
+            customers: 'id, name, phone, bookId, type, updatedAt, isDeleted',
+            transactions: 'id, customerId, bookId, type, date, paymentMode, invoiceNumber, customPaymentMode, updatedAt, isDeleted, *tags',
+            syncMetadata: 'key',
+            settings: 'key'
+        }).upgrade(async tx => {
+            await tx.table('customers').toCollection().modify({
+                type: 'CUSTOMER'
+            });
         });
     }
 }
