@@ -252,7 +252,8 @@
 
 @media (min-width: 768px) {
     .txnCard {
-        grid-template-columns: auto 1fr 120px 40px;
+        grid-template-columns: 100px 1fr 140px auto;
+        /* More space for actions */
         padding: 1rem;
         gap: 1.5rem;
         align-items: center;
