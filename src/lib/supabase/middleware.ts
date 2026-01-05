@@ -54,8 +54,8 @@ export async function updateSession(request: NextRequest) {
     }
 
     // 4. Auth Route Logic
-    // If user IS signed in and attempts to go to /login, redirect to /dashboard
-    if (user && request.nextUrl.pathname.startsWith('/login')) {
+    // If user IS signed in and attempts to go to /login OR / (landing page), redirect to /dashboard
+    if (user && (request.nextUrl.pathname === '/' || request.nextUrl.pathname.startsWith('/login'))) {
         const url = request.nextUrl.clone()
         url.pathname = '/dashboard'
         return NextResponse.redirect(url)

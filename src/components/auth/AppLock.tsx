@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { bioAuth } from '@/lib/auth/biometrics';
 import { Fingerprint, Lock, ShieldCheck } from 'lucide-react';
+import { usePathname } from 'next/navigation';
 import styles from './AppLock.module.css';
 
 interface AppLockProps {
@@ -10,12 +11,21 @@ interface AppLockProps {
 }
 
 export const AppLock: React.FC<AppLockProps> = ({ children }) => {
+    const pathname = usePathname();
     const [isLocked, setIsLocked] = useState<boolean>(false);
     const [isChecking, setIsChecking] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
+    const isPublic = pathname === '/' || pathname === '/login';
+
     useEffect(() => {
         const checkLock = async () => {
+            if (isPublic) {
+                setIsLocked(false);
+                setIsChecking(false);
+                return;
+            }
+
             const enabled = await bioAuth.isEnabled();
             if (enabled) {
                 const sessionAuth = sessionStorage.getItem('app_unlocked');
@@ -30,7 +40,7 @@ export const AppLock: React.FC<AppLockProps> = ({ children }) => {
         };
 
         checkLock();
-    }, []);
+    }, [isPublic]);
 
     const handleUnlock = async () => {
         setIsChecking(true);

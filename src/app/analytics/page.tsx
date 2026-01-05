@@ -110,7 +110,7 @@ export default function AnalyticsPage() {
     return (
         <div className={styles.container}>
             <header className={styles.header}>
-                <Link href="/" className={styles.backButton}>
+                <Link href="/dashboard" className={styles.backButton}>
                     <ArrowLeft size={24} />
                 </Link>
                 <h1>Elite Analytics</h1>

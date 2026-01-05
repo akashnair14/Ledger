@@ -244,7 +244,7 @@ export default function CustomerDetailPage() {
     return (
         <div className={styles.container}>
             <header className={styles.header}>
-                <Link href="/" className={styles.backButton}><ArrowLeft size={24} /></Link>
+                <Link href="/dashboard" className={styles.backButton}><ArrowLeft size={24} /></Link>
                 <div className={styles.customerSummary}>
                     <h1>{customer.name}</h1>
                     <div className={styles.quickInfo}>

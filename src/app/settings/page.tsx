@@ -127,11 +127,38 @@ export default function SettingsPage() {
     };
 
     const handleSignOut = async () => {
-        if (!confirm('Are you sure you want to log out?')) return;
-        const { createClient } = await import('@/lib/supabase/client');
-        const supabase = createClient();
-        await supabase.auth.signOut();
-        window.location.href = '/login';
+        if (!confirm('Are you sure you want to log out? This will also clear local cache for security.')) return;
+
+        showToast('Signing out and clearing data...');
+
+        try {
+            const { createClient } = await import('@/lib/supabase/client');
+            const supabase = createClient();
+
+            // 1. Sign out from Supabase
+            await supabase.auth.signOut();
+
+            // 2. Clear local database
+            await Promise.all([
+                db.customers.clear(),
+                db.transactions.clear(),
+                db.books.clear(),
+                db.attachments.clear(),
+                db.syncMetadata.clear(),
+                db.settings.clear()
+            ]);
+
+            // 3. Clear storage
+            localStorage.clear();
+            sessionStorage.clear();
+
+            // 4. Redirect
+            window.location.href = '/login';
+        } catch (err) {
+            console.error('Logout error:', err);
+            showToast('Logout failed, but session cleared', 'error');
+            window.location.href = '/login';
+        }
     };
 
     const isDataLoading = customersLoading || txnsLoading;

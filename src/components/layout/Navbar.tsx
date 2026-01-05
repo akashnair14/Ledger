@@ -98,7 +98,7 @@ export const Navbar = () => {
         <nav className={styles.navbar}>
             <div className={styles.container}>
                 <div className={styles.leftSection}>
-                    <Link href="/" className={styles.logo}>
+                    <Link href="/dashboard" className={styles.logo}>
                         <div className={styles.logoIcon}>L</div>
                         <span className={styles.appTitle}>LedgerManager</span>
                     </Link>

@@ -78,7 +78,7 @@ function LoginContent() {
                         setMessage({ text: error.message, type: 'error' })
                     } else if (data.session) {
                         // If session is present immediately (auto-confirm is on)
-                        router.push('/dashboard')
+                        router.replace('/dashboard')
                     } else {
                         // Fallback if session isn't automatically started
                         setMessage({ text: 'Sign up successful! Re-signing in...', type: 'success' })
@@ -87,7 +87,7 @@ function LoginContent() {
                             password,
                         })
                         if (signInError) setMessage({ text: signInError.message, type: 'error' })
-                        else router.push('/dashboard')
+                        else router.replace('/dashboard')
                     }
                 } else {
                     const { error } = await supabase.auth.signInWithPassword({
@@ -95,7 +95,7 @@ function LoginContent() {
                         password,
                     })
                     if (error) setMessage({ text: error.message, type: 'error' })
-                    else router.push('/dashboard')
+                    else router.replace('/dashboard')
                 }
             }
         } catch (_err) {
