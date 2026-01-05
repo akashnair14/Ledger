@@ -30,6 +30,7 @@ export async function importFromCSV(file: File, bookId: string) {
                                 bookId: bookId,
                                 createdAt: now(),
                                 updatedAt: now(),
+                                type: 'CUSTOMER',
                                 isDeleted: 0
                             };
                             await db.customers.add(customer);
