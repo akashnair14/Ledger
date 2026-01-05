@@ -1,5 +1,5 @@
 import { jsPDF } from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import Papa from 'papaparse';
 import { Customer, Transaction, db } from '../db';
@@ -73,7 +73,7 @@ export async function generateVoucher(customer: Customer, t: Transaction, balanc
     doc.text(customer.name, 140, 62);
     doc.text(customer.phone, 140, 68);
 
-    (doc as any).autoTable({
+    autoTable(doc, {
         startY: 80,
         head: [['Description', 'Type', 'Mode', 'Amount']],
         body: [[
@@ -176,7 +176,7 @@ export async function exportToPDF(customerName: string, transactions: Transactio
             // Add aggregation if needed, for optimization I'll focus on DETAILED first
         }
 
-        (doc as any).autoTable({
+        autoTable(doc, {
             startY: 70,
             head: tableHead,
             body: tableBody,

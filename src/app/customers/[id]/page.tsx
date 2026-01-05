@@ -265,6 +265,7 @@ export default function CustomerDetailPage() {
                         ₹{Math.abs(balance).toLocaleString()}<small>{balance >= 0 ? ' (Net Debt)' : ' (Net Credit)'}</small>
                     </h2>
                 </div>
+                <div className={styles.divider} />
                 <div className={styles.balanceStats}>
                     <div className={styles.stat}><span className={styles.statLabel}>Total Given</span><span className={`${styles.statValue} ${styles.negative}`}>₹{totalCredit.toLocaleString()}</span></div>
                     <div className={styles.stat}><span className={styles.statLabel}>Total Received</span><span className={`${styles.statValue} ${styles.positive}`}>₹{totalPayment.toLocaleString()}</span></div>
