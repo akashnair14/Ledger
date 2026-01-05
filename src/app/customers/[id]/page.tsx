@@ -33,7 +33,7 @@ import { TransactionFilters, FilterState } from '@/components/ui/Filters';
 import { SuccessAnimation } from '@/components/ui/SuccessAnimation';
 import { StatementDownloader } from '@/components/ui/StatementDownloader';
 import styles from './CustomerDetail.module.css';
-import { useCustomers, useTransactions, addTransaction, deleteTransaction } from '@/hooks/useSupabase';
+import { useCustomers, useTransactions, addTransaction, deleteTransaction, updateTransaction } from '@/hooks/useSupabase';
 import { useToast } from '@/context/ToastContext';
 import { generateVoucher } from '@/lib/export/generate';
 
@@ -60,6 +60,7 @@ export default function CustomerDetailPage() {
 
     // Transaction Form States
     const [isTxnModalOpen, setTxnModalOpen] = useState(false);
+    const [editingTxn, setEditingTxn] = useState<Transaction | null>(null);
     const [txnType, setTxnType] = useState<'CREDIT' | 'PAYMENT'>('CREDIT');
     const [amount, setAmount] = useState('');
     const [evaluatedAmount, setEvaluatedAmount] = useState(0);
@@ -174,9 +175,7 @@ export default function CustomerDetailPage() {
     const handleFinalSubmit = async () => {
         setIsSaving(true);
         try {
-            await addTransaction({
-                customerId: customerId,
-                bookId: customer.bookId || 'default-book',
+            const commonData = {
                 amount: evaluatedAmount,
                 type: txnType,
                 paymentMode,
@@ -184,11 +183,27 @@ export default function CustomerDetailPage() {
                 invoiceNumber: invoiceNumber.trim(),
                 date: new Date(invoiceDate).getTime(),
                 note: note.trim(),
-                tags
-            }, attachment || undefined);
+                tags,
+                attachmentUrl: editingTxn?.attachmentUrl // Preserve existing URL if not replaced
+            };
+
+            if (editingTxn) {
+                await updateTransaction(editingTxn.id, {
+                    ...commonData,
+                    customerId: customerId, // Ensure ID is present
+                }, attachment || undefined);
+                showToast('Transaction updated');
+            } else {
+                await addTransaction({
+                    ...commonData,
+                    customerId: customerId,
+                    bookId: customer.bookId || 'default-book',
+                }, attachment || undefined);
+                showToast('Entry saved successfully');
+            }
+
             resetForm();
             setShowConfirm(false);
-            showToast('Entry saved successfully');
             setShowSuccess(true);
             setTimeout(() => setShowSuccess(false), 2000);
         } catch (err: unknown) {
@@ -225,9 +240,24 @@ export default function CustomerDetailPage() {
     };
 
     const resetForm = () => {
-        setAmount(''); setNote(''); setPaymentMode('CASH'); setCustomPaymentMode('');
+        setAmount(''); setEvaluatedAmount(0); setNote(''); setPaymentMode('CASH'); setCustomPaymentMode('');
         setInvoiceNumber(''); setInvoiceDate(new Date().toISOString().split('T')[0]);
         setTags([]); setAttachment(null); setTxnModalOpen(false); setShowConfirm(false);
+        setEditingTxn(null);
+    };
+
+    const handleEdit = (txn: Transaction) => {
+        setEditingTxn(txn);
+        setTxnType(txn.type);
+        setAmount(txn.amount.toString());
+        setEvaluatedAmount(txn.amount);
+        setNote(txn.note || '');
+        setPaymentMode(txn.paymentMode);
+        setCustomPaymentMode(txn.customPaymentMode || '');
+        setInvoiceNumber(txn.invoiceNumber || '');
+        setInvoiceDate(new Date(txn.date).toISOString().split('T')[0]);
+        setTags(txn.tags || []);
+        setTxnModalOpen(true);
     };
 
     const handleSendReminder = () => {
@@ -298,8 +328,8 @@ export default function CustomerDetailPage() {
                             <div className={`${styles.txnAmount} ${t.type === 'CREDIT' ? styles.negative : styles.positive}`}>₹{t.amount.toLocaleString()}</div>
                             {!isSelectMode && (
                                 <div className={styles.cardActions}>
-                                    <button onClick={(e) => { e.stopPropagation(); generateVoucher(customer, t, balance); }}><Download size={14} /></button>
-                                    <button onClick={(e) => { e.stopPropagation(); handleDelete(t); }}><Trash2 size={14} /></button>
+                                    <button onClick={(e) => { e.stopPropagation(); handleEdit(t); }}><Edit2 size={16} /></button>
+                                    <button onClick={(e) => { e.stopPropagation(); handleDelete(t); }}><Trash2 size={16} /></button>
                                 </div>
                             )}
                         </div>
@@ -319,7 +349,7 @@ export default function CustomerDetailPage() {
                 </div>
             )}
 
-            <Modal isOpen={isTxnModalOpen} onClose={() => !isSaving && setTxnModalOpen(false)} title={txnType === 'CREDIT' ? 'Give Credit' : 'Receive Payment'}>
+            <Modal isOpen={isTxnModalOpen} onClose={() => !isSaving && resetForm()} title={editingTxn ? 'Edit Transaction' : (txnType === 'CREDIT' ? 'Give Credit' : 'Receive Payment')}>
                 {!showConfirm ? (
                     <form onSubmit={handlePreSubmit} className={styles.form}>
                         <div className={styles.inputGroup}>

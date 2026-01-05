@@ -417,6 +417,38 @@
     gap: 8px;
 }
 
+.cardActions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 1rem;
+    /* Generous spacing */
+}
+
+.cardActions button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    /* Larger touch target */
+    border-radius: var(--radius-sm);
+    color: var(--text-dim);
+    transition: var(--transition-smooth);
+    background: transparent;
+    border: 1px solid transparent;
+}
+
+.cardActions button:hover {
+    background: var(--surface-header);
+    color: var(--primary);
+    transform: scale(1.1);
+}
+
+.cardActions button:last-child:hover {
+    color: var(--danger);
+    /* Make delete red on hover */
+}
+
 .downloadBtn {
     color: var(--text-dim);
     padding: 6px;

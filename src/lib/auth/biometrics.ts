@@ -60,7 +60,10 @@ export class BioAuthService {
         const credIdMeta = await db.syncMetadata.get(CREDENTIAL_ID_KEY);
         if (!credIdMeta) return false;
 
-        const credentialId = new Uint8Array(atob(credIdMeta.value).split('').map(c => c.charCodeAt(0)));
+        const storedId = credIdMeta.value as string;
+        if (!storedId) return false;
+
+        const credentialId = new Uint8Array(atob(storedId).split('').map(c => c.charCodeAt(0)));
         const challenge = crypto.getRandomValues(new Uint8Array(32));
 
         try {
