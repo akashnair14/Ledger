@@ -1,6 +1,6 @@
 'use client';
 
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { Transaction, PaymentMode, Customer } from '@/lib/db';
 import {
     ArrowLeft,
@@ -24,7 +24,9 @@ import {
     Check,
     Calculator,
     FileText,
-    Upload
+    Upload,
+    Loader2,
+    ScanLine
 } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useRef, useEffect } from 'react';
@@ -130,6 +132,33 @@ export default function CustomerDetailPage() {
         window.addEventListener('keydown', handleKeyPress);
         return () => window.removeEventListener('keydown', handleKeyPress);
     }, [isTxnModalOpen]);
+
+    // Handle Voice Command / Quick Add Params
+    const searchParams = useSearchParams();
+    const router = useRouter();
+
+    useEffect(() => {
+        const quickAdd = searchParams.get('quickAdd');
+        if (quickAdd === 'true') {
+            const pAmount = searchParams.get('amount');
+            const pType = searchParams.get('type') as 'CREDIT' | 'PAYMENT';
+            const pNote = searchParams.get('note');
+
+            if (pAmount) setAmount(pAmount);
+            if (pType) setTxnType(pType);
+            if (pNote) setNote(pNote);
+
+            setTxnModalOpen(true);
+
+            // Clean URL
+            const newParams = new URLSearchParams(searchParams.toString());
+            newParams.delete('quickAdd');
+            newParams.delete('amount');
+            newParams.delete('type');
+            newParams.delete('note');
+            router.replace(`/customers/${id}?${newParams.toString()}`);
+        }
+    }, [searchParams, id, router]);
 
     if (customersLoading) return <div className={styles.loading}>Loading customer...</div>;
     if (!customer) return <div className={styles.loading}>Customer not found.</div>;
@@ -283,9 +312,35 @@ export default function CustomerDetailPage() {
         window.open(`https://wa.me/91${customer.phone.replace(/\D/g, '')}?text=${msg}`, '_blank');
     };
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const [isScanning, setIsScanning] = useState(false);
+    const [scanIntent, setScanIntent] = useState(false);
+
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-        if (file) setAttachment(file);
+        if (file) {
+            setAttachment(file);
+
+            // If triggered via Scan button
+            if (scanIntent) {
+                setIsScanning(true);
+                try {
+                    const { scanReceipt } = await import('@/lib/ai/ocr');
+                    const data = await scanReceipt(file);
+
+                    if (data.amount) setAmount(data.amount.toString());
+                    if (data.date) setInvoiceDate(data.date.split('T')[0]);
+                    if (data.invoiceNumber) setInvoiceNumber(data.invoiceNumber);
+
+                    showToast('Receipt scanned successfully');
+                } catch (err) {
+                    console.error(err);
+                    showToast('Failed to scan receipt', 'error');
+                } finally {
+                    setIsScanning(false);
+                    setScanIntent(false);
+                }
+            }
+        }
     };
 
     return (
@@ -450,6 +505,17 @@ export default function CustomerDetailPage() {
                                             <><Upload size={16} /> Select File</>
                                         )
                                     )}
+                                </button>
+
+                                <button
+                                    type="button"
+                                    className={`${styles.scanBtn} ${isScanning ? styles.scanning : ''}`}
+                                    onClick={() => { setScanIntent(true); fileInputRef.current?.click(); }}
+                                    disabled={isScanning}
+                                    title="Scan Receipt for Details"
+                                >
+                                    {isScanning ? <Loader2 size={16} className="spin" /> : <ScanLine size={16} />}
+                                    {isScanning ? 'Scanning...' : 'Auto-Scan'}
                                 </button>
 
                                 {(attachment || editingTxn?.attachmentUrl) && (
