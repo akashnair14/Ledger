@@ -34,6 +34,7 @@ import { SuccessAnimation } from '@/components/ui/SuccessAnimation';
 import { StatementDownloader } from '@/components/ui/StatementDownloader';
 import styles from './CustomerDetail.module.css';
 import { useCustomers, useTransactions, addTransaction, deleteTransaction } from '@/hooks/useSupabase';
+import { useToast } from '@/context/ToastContext';
 import { generateVoucher } from '@/lib/export/generate';
 
 const PAYMENT_MODES: { value: PaymentMode; label: string }[] = [
@@ -49,6 +50,7 @@ const PAYMENT_MODES: { value: PaymentMode; label: string }[] = [
 export default function CustomerDetailPage() {
     const { id } = useParams();
     const customerId = id as string;
+    const { showToast } = useToast();
 
     // Data Fetching
     const { customers, isLoading: customersLoading } = useCustomers();
@@ -186,6 +188,7 @@ export default function CustomerDetailPage() {
             });
             resetForm();
             setShowConfirm(false);
+            showToast('Entry saved successfully');
             setShowSuccess(true);
             setTimeout(() => setShowSuccess(false), 2000);
         } catch (err: unknown) {
@@ -200,9 +203,10 @@ export default function CustomerDetailPage() {
         if (confirm(`Delete ${selectedTxns.length} entries?`)) {
             try {
                 await Promise.all(selectedTxns.map(id => deleteTransaction(id, customerId)));
+                showToast(`${selectedTxns.length} entries deleted`);
                 setSelectedTxns([]);
                 setIsSelectMode(false);
-            } catch (err: unknown) { alert(err instanceof Error ? err.message : 'Unknown error'); }
+            } catch (err: unknown) { showToast('Bulk delete failed', 'error'); }
         }
     };
 
@@ -212,8 +216,11 @@ export default function CustomerDetailPage() {
 
     const handleDelete = async (txn: Transaction) => {
         if (confirm('Delete this entry?')) {
-            try { await deleteTransaction(txn.id, customerId); }
-            catch (err: unknown) { alert(err instanceof Error ? err.message : 'Unknown error'); }
+            try {
+                await deleteTransaction(txn.id, customerId);
+                showToast('Entry deleted');
+            }
+            catch (err: unknown) { showToast('Delete failed', 'error'); }
         }
     };
 

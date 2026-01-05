@@ -105,6 +105,54 @@
     flex-direction: column;
     overflow: hidden;
     box-shadow: var(--shadow-soft);
+    margin-bottom: 1.5rem;
+}
+
+.cardHeader {
+    padding: 1rem 1.5rem;
+    background: var(--surface-header);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.cardHeader h2 {
+    font-size: 0.9rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-dim);
+    margin: 0;
+}
+
+.accountInfo {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.infoRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.95rem;
+}
+
+.infoRow span:first-child {
+    color: var(--text-dim);
+    font-weight: 600;
+}
+
+.providerBadge {
+    padding: 2px 8px;
+    background: rgba(var(--primary-rgb), 0.1);
+    color: var(--primary);
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
 }
 
 .row {

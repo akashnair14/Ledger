@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/context/ThemeContext";
 import { BookProvider } from "@/context/BookContext";
 import { AppLock } from "@/components/auth/AppLock";
 import { Shell } from "@/components/layout/Shell";
+import { ToastProvider } from "@/context/ToastContext";
 
 const fraunces = Fraunces({
   subsets: ["latin"],
@@ -55,9 +56,11 @@ export default function RootLayout({
       <body className={`${fraunces.variable} ${hanken.variable} ${spaceMono.variable}`}>
         <ThemeProvider>
           <BookProvider>
-            <AppLock>
-              <Shell>{children}</Shell>
-            </AppLock>
+            <ToastProvider>
+              <AppLock>
+                <Shell>{children}</Shell>
+              </AppLock>
+            </ToastProvider>
           </BookProvider>
         </ThemeProvider>
       </body>

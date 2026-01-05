@@ -10,8 +10,10 @@ import { Modal } from '@/components/ui/Modal';
 import { useCustomers, addCustomer, updateCustomer, deleteCustomer, getTransactionCount } from '@/hooks/useSupabase';
 import { createClient } from '@/lib/supabase/client';
 import { useBook } from '@/context/BookContext';
+import { useToast } from '@/context/ToastContext';
 
 export default function CustomersPage() {
+  const { showToast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [customerToEdit, setCustomerToEdit] = useState<Customer | null>(null);
@@ -89,6 +91,7 @@ export default function CustomersPage() {
           email: email.trim(),
           address: address.trim()
         });
+        showToast('Customer details updated');
       } else {
         if (!activeBook) {
           alert('book should be selected or created before adding new customer');
@@ -102,6 +105,7 @@ export default function CustomersPage() {
           address: address.trim(),
           bookId: activeBook.id
         });
+        showToast('Customer added successfully');
       }
       closeModal();
     } catch (err: unknown) {
@@ -121,6 +125,7 @@ export default function CustomersPage() {
 
       if (confirm(msg)) {
         await deleteCustomer(id);
+        showToast('Customer deleted');
       }
     } catch (err: unknown) {
       alert('Delete failed: ' + (err instanceof Error ? err.message : 'Unknown error'));

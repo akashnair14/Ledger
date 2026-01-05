@@ -14,6 +14,7 @@ import {
     Loader2
 } from 'lucide-react';
 import { useTheme } from '@/context/ThemeContext';
+import { useToast } from '@/context/ToastContext';
 import { hasCustomersInBook } from '@/hooks/useSupabase';
 import Link from 'next/link';
 import { Modal } from '@/components/ui/Modal';
@@ -22,6 +23,7 @@ import styles from './Navbar.module.css';
 export const Navbar = () => {
     const { activeBook, setActiveBook, books } = useBook();
     const { theme, toggleTheme } = useTheme();
+    const { showToast } = useToast();
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [isBookModalOpen, setIsBookModalOpen] = useState(false);
     const [bookToEdit, setBookToEdit] = useState<any | null>(null);
@@ -43,6 +45,7 @@ export const Navbar = () => {
             isDeleted: 0
         });
 
+        showToast('Ledger created successfully!');
         setNewBookName('');
         setIsBookModalOpen(false);
         setIsDropdownOpen(false);
@@ -59,6 +62,7 @@ export const Navbar = () => {
             updatedAt: now()
         });
 
+        showToast('Ledger name updated!');
         setBookToEdit(null);
         setNewBookName('');
         setIsDropdownOpen(false);
@@ -80,12 +84,13 @@ export const Navbar = () => {
                     const nextBook = books.find(b => b.id !== id && b.isDeleted === 0);
                     if (nextBook) setActiveBook(nextBook);
                 }
+                showToast('Ledger deleted successfully!');
                 setIsDropdownOpen(false);
             }
         } catch (error) {
             setIsChecking(false);
             console.error('Delete book failed:', error);
-            alert('Failed to check ledger status. Please try again.');
+            showToast('Failed to delete ledger', 'error');
         }
     };
 

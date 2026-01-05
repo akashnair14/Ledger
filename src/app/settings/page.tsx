@@ -7,12 +7,15 @@ import { exportToCSV, exportToExcel, exportToJSON } from '@/lib/export/generate'
 import { importFromCSV } from '@/lib/import/csv';
 import { bioAuth } from '@/lib/auth/biometrics';
 import { useBook } from '@/context/BookContext';
+import { useToast } from '@/context/ToastContext';
+import { createClient } from '@/lib/supabase/client';
 import { useState, useEffect } from 'react';
 import styles from './SettingsPage.module.css';
 
 type Tab = 'PROFILE' | 'DATA' | 'SECURITY';
 
 export default function SettingsPage() {
+    const { showToast } = useToast();
     const { activeBook } = useBook();
     const { customers, isLoading: customersLoading } = useCustomers();
     const { transactions, isLoading: txnsLoading } = useTransactions();
@@ -28,6 +31,7 @@ export default function SettingsPage() {
     const [businessName, setBusinessName] = useState('');
     const [businessAddress, setBusinessAddress] = useState('');
     const [businessLogo, setBusinessLogo] = useState('');
+    const [user, setUser] = useState<any>(null);
 
     useEffect(() => {
         const initSecurity = async () => {
@@ -42,8 +46,14 @@ export default function SettingsPage() {
             if (addr) setBusinessAddress(addr.value);
             if (logo) setBusinessLogo(logo.value);
         };
+        const getUser = async () => {
+            const supabase = createClient();
+            const { data: { user } } = await supabase.auth.getUser();
+            setUser(user);
+        };
         initSecurity();
         initBranding();
+        getUser();
     }, []);
 
     const saveBranding = async (key: string, value: string) => {
@@ -99,11 +109,11 @@ export default function SettingsPage() {
                 return;
             }
             await importFromCSV(file, activeBook.id);
-            alert('Import successful! Note: Local import is separate from Supabase storage.');
-            window.location.reload();
+            showToast('Import successful!');
+            setTimeout(() => window.location.reload(), 1500);
         } catch (err) {
             console.error(err);
-            alert('Import failed.');
+            showToast('Import failed', 'error');
         }
     };
 
@@ -112,8 +122,8 @@ export default function SettingsPage() {
         await db.customers.clear();
         await db.transactions.clear();
         await db.syncMetadata.clear();
-        alert('Local cache cleared.');
-        window.location.reload();
+        showToast('Local cache cleared');
+        setTimeout(() => window.location.reload(), 1500);
     };
 
     const handleSignOut = async () => {
@@ -162,6 +172,29 @@ export default function SettingsPage() {
                 {activeTab === 'PROFILE' && (
                     <section className={styles.section}>
                         <div className={styles.card}>
+                            <div className={styles.cardHeader}>
+                                <Database size={18} />
+                                <h2>Account Information</h2>
+                            </div>
+                            <div className={styles.accountInfo}>
+                                <div className={styles.infoRow}>
+                                    <span>Logged in as:</span>
+                                    <strong>{user?.email || 'Loading...'}</strong>
+                                </div>
+                                <div className={styles.infoRow}>
+                                    <span>Provider:</span>
+                                    <span className={styles.providerBadge}>
+                                        {user?.app_metadata?.provider || 'Email'}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className={styles.card}>
+                            <div className={styles.cardHeader}>
+                                <Building2 size={18} />
+                                <h2>Business Branding</h2>
+                            </div>
                             <div className={styles.brandingGrid}>
                                 <div className={styles.logoSection}>
                                     <div className={styles.logoPreview}>
