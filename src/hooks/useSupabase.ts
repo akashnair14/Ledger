@@ -306,6 +306,32 @@ export const updateCustomer = async (id: string, updates: Partial<Customer>) => 
     ])
 }
 
+export const updateTransaction = async (id: string, updates: Partial<Transaction>, file?: File) => {
+    let attachmentUrl = updates.attachmentUrl;
+    if (file) {
+        attachmentUrl = await uploadAttachment(file);
+    }
+
+    const row: Record<string, unknown> = {};
+    if (updates.amount !== undefined) row.amount = updates.amount;
+    if (updates.type) row.type = updates.type;
+    if (updates.paymentMode) row.mode = updates.paymentMode;
+    if (updates.invoiceNumber !== undefined) row.invoice_no = updates.invoiceNumber;
+    if (updates.date) row.date = new Date(updates.date).toISOString();
+    if (updates.note !== undefined) row.note = updates.note;
+    if (updates.tags) row.tags = updates.tags;
+    if (attachmentUrl !== undefined) row.attachment_url = attachmentUrl;
+
+    const { error } = await supabase.from('transactions').update(row).eq('id', id);
+    if (error) throw error;
+
+    await Promise.all([
+        mutate(`transactions-${updates.customerId}`),
+        mutate('all-transactions'),
+        mutate('customers')
+    ]);
+};
+
 export const deleteCustomer = async (id: string) => {
     const { error } = await supabase.from('customers').delete().eq('id', id)
     if (error) throw error
