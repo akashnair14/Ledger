@@ -2,14 +2,14 @@
 
 import useSWR, { mutate } from 'swr'
 import { createClient } from '@/lib/supabase/client'
-import { Customer, Transaction, PaymentMode, Book } from '@/lib/db'
+import { Customer, Transaction, PaymentMode } from '@/lib/db'
 
 const supabase = createClient()
 
 // --- Types mapping ---
 
 // Map Supabase 'customers' row to App 'Customer'
-const mapCustomer = (row: any): Customer => ({
+const mapCustomer = (row: Record<string, any>): Customer => ({
     id: row.id,
     name: row.name,
     phone: row.mobile || '', // Map mobile -> phone
@@ -22,7 +22,7 @@ const mapCustomer = (row: any): Customer => ({
 })
 
 // Map Supabase 'transactions' row to App 'Transaction'
-const mapTransaction = (row: any): Transaction => ({
+const mapTransaction = (row: Record<string, any>): Transaction => ({
     id: row.id,
     customerId: row.customer_id,
     bookId: row.book_id || 'default-book',
@@ -115,7 +115,7 @@ export const addCustomer = async (customer: Partial<Customer>) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('Authenticaton required');
 
-    const row: any = {
+    const row: Record<string, any> = {
         name: customer.name,
         mobile: customer.phone,
         email: customer.email,
@@ -137,7 +137,7 @@ export const addTransaction = async (txn: Partial<Transaction>) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('Authenticaton required');
 
-    const row: any = {
+    const row: Record<string, any> = {
         customer_id: txn.customerId,
         amount: txn.amount,
         type: txn.type,
@@ -166,7 +166,7 @@ export const addTransaction = async (txn: Partial<Transaction>) => {
 }
 
 export const updateCustomer = async (id: string, updates: Partial<Customer>) => {
-    const row: any = {}
+    const row: Record<string, any> = {}
     if (updates.name) row.name = updates.name
     if (updates.phone) row.mobile = updates.phone
     if (updates.email) row.email = updates.email

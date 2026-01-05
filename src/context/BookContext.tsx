@@ -25,17 +25,7 @@ export function BookProvider({ children }: { children: React.ReactNode }) {
                 const book = books.find(b => b.id === savedBookId) || books[0];
                 setActiveBookState(book);
                 setIsLoading(false);
-            } else if (books.length === 0 && !isLoading) {
-                // Handle fresh install or empty state
-                const defaultBook: Book = {
-                    id: 'default-book',
-                    name: 'My Ledger',
-                    createdAt: now(),
-                    updatedAt: now(),
-                    isDeleted: 0
-                };
-                await db.books.add(defaultBook);
-                setActiveBookState(defaultBook);
+            } else {
                 setIsLoading(false);
             }
         };

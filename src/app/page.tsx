@@ -2,13 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import { Customer } from '@/lib/db';
-import { UserPlus, Search, User, ChevronRight, Filter, Edit2, Trash2, RefreshCw, BarChart3, Sparkles, PartyPopper, CheckCircle2 } from 'lucide-react';
+import { UserPlus, Search, User, ChevronRight, Filter, Edit2, Trash2, RefreshCw, BarChart3, Sparkles, CheckCircle2 } from 'lucide-react';
 import { PWAInstallButton } from '@/components/ui/PWAInstallButton';
 import styles from './page.module.css';
 import Link from 'next/link';
 import { Modal } from '@/components/ui/Modal';
 import { useCustomers, addCustomer, updateCustomer, deleteCustomer, getTransactionCount } from '@/hooks/useSupabase';
 import { createClient } from '@/lib/supabase/client';
+import { useBook } from '@/context/BookContext';
 
 export default function CustomersPage() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -27,6 +28,7 @@ export default function CustomersPage() {
   const [userDisplayName, setUserDisplayName] = useState('');
 
   const { customers: allCustomers, isLoading } = useCustomers();
+  const { activeBook } = useBook();
 
   useEffect(() => {
     const checkWelcome = async () => {
@@ -83,17 +85,23 @@ export default function CustomersPage() {
           address: address.trim()
         });
       } else {
+        if (!activeBook) {
+          alert('book should be selected or created before adding new customer');
+          setIsSaving(false);
+          return;
+        }
         await addCustomer({
           name: name.trim(),
           phone: phone.trim(),
           email: email.trim(),
-          address: address.trim()
+          address: address.trim(),
+          bookId: activeBook.id
         });
       }
       closeModal();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      alert('Failed to save customer: ' + (err.message || 'Unknown error'));
+      alert('Failed to save customer: ' + (err instanceof Error ? err.message : 'Unknown error'));
     } finally {
       setIsSaving(false);
     }
@@ -109,8 +117,8 @@ export default function CustomersPage() {
       if (confirm(msg)) {
         await deleteCustomer(id);
       }
-    } catch (err: any) {
-      alert('Delete failed: ' + (err.message || 'Unknown error'));
+    } catch (err: unknown) {
+      alert('Delete failed: ' + (err instanceof Error ? err.message : 'Unknown error'));
     }
   };
 
@@ -141,7 +149,16 @@ export default function CustomersPage() {
             <Link href="/analytics" className={styles.iconBtn} title="View Analytics">
               <BarChart3 size={20} />
             </Link>
-            <button className={styles.addBtn} onClick={() => setIsModalOpen(true)}>
+            <button
+              className={styles.addBtn}
+              onClick={() => {
+                if (!activeBook) {
+                  alert('book should be selected or created before adding new customer');
+                  return;
+                }
+                setIsModalOpen(true);
+              }}
+            >
               <UserPlus size={18} /> Add Customer
             </button>
           </div>
@@ -174,7 +191,16 @@ export default function CustomersPage() {
               <p>
                 Add your first customer by clicking the button above.
               </p>
-              <button className={styles.primaryBtn} onClick={() => setIsModalOpen(true)}>
+              <button
+                className={styles.primaryBtn}
+                onClick={() => {
+                  if (!activeBook) {
+                    alert('book should be selected or created before adding new customer');
+                    return;
+                  }
+                  setIsModalOpen(true);
+                }}
+              >
                 Add Customer
               </button>
             </div>
@@ -272,7 +298,7 @@ export default function CustomersPage() {
           </div>
           <div className={styles.welcomeText}>
             <h2>Welcome Back, {userDisplayName}!</h2>
-            <p>Your financial records are synchronized and ready. Let's manage your ledger with precision.</p>
+            <p>Your financial records are synchronized and ready. Let&apos;s manage your ledger with precision.</p>
           </div>
           <div className={styles.welcomeActions}>
             <button className={styles.startBtn} onClick={() => setShowWelcome(false)}>

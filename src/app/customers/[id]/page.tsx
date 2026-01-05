@@ -19,9 +19,7 @@ import {
     Calendar,
     ArrowUpRight,
     ArrowDownLeft,
-    RefreshCw,
     MessageSquare,
-    LinkIcon,
     Download,
     Check,
     Calculator,
@@ -37,7 +35,6 @@ import { StatementDownloader } from '@/components/ui/StatementDownloader';
 import styles from './CustomerDetail.module.css';
 import { useCustomers, useTransactions, addTransaction, deleteTransaction } from '@/hooks/useSupabase';
 import { generateVoucher } from '@/lib/export/generate';
-import { generateId, now } from '@/lib/db';
 
 const PAYMENT_MODES: { value: PaymentMode; label: string }[] = [
     { value: 'CASH', label: 'Cash' },
@@ -52,11 +49,10 @@ const PAYMENT_MODES: { value: PaymentMode; label: string }[] = [
 export default function CustomerDetailPage() {
     const { id } = useParams();
     const customerId = id as string;
-    const router = useRouter();
 
     // Data Fetching
     const { customers, isLoading: customersLoading } = useCustomers();
-    const { transactions: allTransactions, isLoading: txnsLoading } = useTransactions(customerId);
+    const { transactions: allTransactions } = useTransactions(customerId);
 
     const customer = customers?.find(c => c.id === customerId);
 
@@ -78,7 +74,6 @@ export default function CustomerDetailPage() {
     // UX States
     const [isSaving, setIsSaving] = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
-    const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
     const [isSelectMode, setIsSelectMode] = useState(false);
     const [selectedTxns, setSelectedTxns] = useState<string[]>([]);
     const [showSuccess, setShowSuccess] = useState(false);
@@ -99,7 +94,6 @@ export default function CustomerDetailPage() {
             // Remove everything except numbers and operators
             const cleanExpr = expr.replace(/[^0-9+\-*/.]/g, '');
             if (!cleanExpr) return 0;
-            // eslint-disable-next-line no-new-func
             const result = new Function(`return ${cleanExpr}`)();
             return typeof result === 'number' && isFinite(result) ? result : 0;
         } catch {
@@ -144,7 +138,7 @@ export default function CustomerDetailPage() {
         if (activeFilters.type !== 'ALL' && t.type !== activeFilters.type) return false;
         if (activeFilters.minAmount && t.amount < Number(activeFilters.minAmount)) return false;
         if (activeFilters.maxAmount && t.amount > Number(activeFilters.maxAmount)) return false;
-        if (activeFilters.paymentModes.length > 0 && !activeFilters.paymentModes.includes(t.paymentMode as any)) {
+        if (activeFilters.paymentModes.length > 0 && !activeFilters.paymentModes.includes(t.paymentMode as Transaction['paymentMode'])) {
             return false;
         }
         if (activeFilters.tags.length > 0 && !activeFilters.tags.some(tag => t.tags?.includes(tag))) return false;
@@ -163,11 +157,10 @@ export default function CustomerDetailPage() {
     const balance = totalCredit - totalPayment;
 
     const validateForm = async () => {
-        const errors: Record<string, string> = {};
+        const errors: any = {};
         if (!amount || evaluatedAmount <= 0) errors.amount = 'Valid amount required';
         if (paymentMode === 'OTHER' && !customPaymentMode.trim()) errors.customPaymentMode = 'Specify mode';
         if (new Date(invoiceDate).getTime() > Date.now()) errors.invoiceDate = 'Future date not allowed';
-        setFieldErrors(errors);
         return Object.keys(errors).length === 0;
     };
 
@@ -195,8 +188,8 @@ export default function CustomerDetailPage() {
             setShowConfirm(false);
             setShowSuccess(true);
             setTimeout(() => setShowSuccess(false), 2000);
-        } catch (err: any) {
-            alert('Failed: ' + err.message);
+        } catch (err: unknown) {
+            alert('Failed: ' + (err instanceof Error ? err.message : 'Unknown error'));
         } finally {
             setIsSaving(false);
         }
@@ -209,7 +202,7 @@ export default function CustomerDetailPage() {
                 await Promise.all(selectedTxns.map(id => deleteTransaction(id, customerId)));
                 setSelectedTxns([]);
                 setIsSelectMode(false);
-            } catch (err: any) { alert(err.message); }
+            } catch (err: unknown) { alert(err instanceof Error ? err.message : 'Unknown error'); }
         }
     };
 
@@ -220,22 +213,14 @@ export default function CustomerDetailPage() {
     const handleDelete = async (txn: Transaction) => {
         if (confirm('Delete this entry?')) {
             try { await deleteTransaction(txn.id, customerId); }
-            catch (err: any) { alert(err.message); }
+            catch (err: unknown) { alert(err instanceof Error ? err.message : 'Unknown error'); }
         }
     };
 
     const resetForm = () => {
         setAmount(''); setNote(''); setPaymentMode('CASH'); setCustomPaymentMode('');
         setInvoiceNumber(''); setInvoiceDate(new Date().toISOString().split('T')[0]);
-        setTags([]); setAttachment(null); setFieldErrors({}); setTxnModalOpen(false); setShowConfirm(false);
-    };
-
-    const handleAddTag = (e: React.KeyboardEvent) => {
-        if (e.key === 'Enter' && tagInput.trim()) {
-            e.preventDefault();
-            if (!tags.includes(tagInput.trim())) setTags([...tags, tagInput.trim()]);
-            setTagInput('');
-        }
+        setTags([]); setAttachment(null); setTxnModalOpen(false); setShowConfirm(false);
     };
 
     const handleSendReminder = () => {
@@ -290,7 +275,7 @@ export default function CustomerDetailPage() {
                 <TransactionFilters filters={activeFilters} onFilterChange={setActiveFilters} availableTags={availableTags} />
 
                 <div className={styles.list}>
-                    {filteredTransactions.map((t, index) => (
+                    {filteredTransactions.map((t) => (
                         <div key={t.id} className={`${styles.txnCard} ${isSelectMode ? styles.clickableCard : ''}`} onClick={() => isSelectMode && toggleTxnSelection(t.id)}>
                             {isSelectMode && <div className={`${styles.checkbox} ${selectedTxns.includes(t.id) ? styles.checked : ''}`}>{selectedTxns.includes(t.id) && <Check size={12} />}</div>}
                             <div className={styles.txnDate}>{new Date(t.date).toLocaleDateString(undefined, { day: '2-digit', month: 'short' })}</div>

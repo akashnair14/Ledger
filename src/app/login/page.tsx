@@ -2,13 +2,16 @@
 
 import { createClient } from '@/lib/supabase/client'
 import { useState, useEffect, Suspense } from 'react'
-import { Shield, Mail, ArrowRight, Loader2 } from 'lucide-react'
+import { Shield, Mail, ArrowRight, Loader2, Lock, Key, UserPlus, LogIn } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import styles from './login.module.css'
 
 function LoginContent() {
     const [email, setEmail] = useState('')
+    const [password, setPassword] = useState('')
     const [loading, setLoading] = useState(false)
+    const [authMethod, setAuthMethod] = useState<'magic-link' | 'password'>('magic-link')
+    const [isSignUp, setIsSignUp] = useState(false)
     const [message, setMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null)
     const router = useRouter()
     const searchParams = useSearchParams()
@@ -37,7 +40,7 @@ function LoginContent() {
                 setMessage({ text: error.message, type: 'error' })
                 setLoading(false)
             }
-        } catch (e) {
+        } catch (_err) {
             setMessage({ text: 'An unexpected error occurred.', type: 'error' })
             setLoading(false)
         }
@@ -50,20 +53,52 @@ function LoginContent() {
         setMessage(null)
 
         try {
-            const { error } = await supabase.auth.signInWithOtp({
-                email,
-                options: {
-                    emailRedirectTo: `${window.location.origin}/auth/callback`,
-                },
-            })
+            if (authMethod === 'magic-link') {
+                const { error } = await supabase.auth.signInWithOtp({
+                    email,
+                    options: {
+                        emailRedirectTo: `${window.location.origin}/auth/callback`,
+                    },
+                })
 
-            if (error) {
-                setMessage({ text: error.message, type: 'error' })
+                if (error) {
+                    setMessage({ text: error.message, type: 'error' })
+                } else {
+                    setMessage({ text: 'Check your email for the magic link!', type: 'success' })
+                    setEmail('')
+                }
             } else {
-                setMessage({ text: 'Check your email for the magic link!', type: 'success' })
-                setEmail('')
+                // Password Auth
+                if (isSignUp) {
+                    const { error, data } = await supabase.auth.signUp({
+                        email,
+                        password,
+                    })
+                    if (error) {
+                        setMessage({ text: error.message, type: 'error' })
+                    } else if (data.session) {
+                        // If session is present immediately (auto-confirm is on)
+                        router.push('/')
+                    } else {
+                        // Fallback if session isn't automatically started
+                        setMessage({ text: 'Sign up successful! Re-signing in...', type: 'success' })
+                        const { error: signInError } = await supabase.auth.signInWithPassword({
+                            email,
+                            password,
+                        })
+                        if (signInError) setMessage({ text: signInError.message, type: 'error' })
+                        else router.push('/')
+                    }
+                } else {
+                    const { error } = await supabase.auth.signInWithPassword({
+                        email,
+                        password,
+                    })
+                    if (error) setMessage({ text: error.message, type: 'error' })
+                    else router.push('/')
+                }
             }
-        } catch (e) {
+        } catch (_err) {
             setMessage({ text: 'An unexpected error occurred.', type: 'error' })
         }
         setLoading(false)
@@ -105,6 +140,30 @@ function LoginContent() {
                         <div className={styles.line}></div>
                     </div>
 
+                    <div className={styles.methodSelector}>
+                        <button
+                            className={`${styles.methodBtn} ${authMethod === 'magic-link' ? styles.activeMethod : ''}`}
+                            onClick={() => {
+                                setAuthMethod('magic-link');
+                                setMessage(null);
+                                setPassword('');
+                            }}
+                            type="button"
+                        >
+                            <Key size={14} /> Magic Link
+                        </button>
+                        <button
+                            className={`${styles.methodBtn} ${authMethod === 'password' ? styles.activeMethod : ''}`}
+                            onClick={() => {
+                                setAuthMethod('password');
+                                setMessage(null);
+                            }}
+                            type="button"
+                        >
+                            <Lock size={14} /> Password
+                        </button>
+                    </div>
+
                     <form onSubmit={handleEmailLogin} className={styles.form}>
                         <div className={styles.inputGroup}>
                             <Mail size={16} className={styles.inputIcon} />
@@ -118,14 +177,46 @@ function LoginContent() {
                                 disabled={loading}
                             />
                         </div>
+
+                        {authMethod === 'password' && (
+                            <div className={styles.inputGroup}>
+                                <Lock size={16} className={styles.inputIcon} />
+                                <input
+                                    type="password"
+                                    placeholder="Password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    required
+                                    className={styles.input}
+                                    disabled={loading}
+                                />
+                            </div>
+                        )}
+
                         <button
                             type="submit"
-                            disabled={loading || !email}
+                            disabled={loading || !email || (authMethod === 'password' && !password)}
                             className={styles.submitBtn}
                         >
-                            {loading ? <Loader2 className="spin" size={18} /> : 'Sign In'}
+                            {loading ? <Loader2 className="spin" size={18} /> : (
+                                isSignUp ? 'Create Account' : 'Sign In'
+                            )}
                             {!loading && <ArrowRight size={18} />}
                         </button>
+
+                        {authMethod === 'password' && (
+                            <button
+                                type="button"
+                                className={styles.toggleAuthMode}
+                                onClick={() => setIsSignUp(!isSignUp)}
+                            >
+                                {isSignUp ? (
+                                    <><LogIn size={14} /> Already have an account? Sign In</>
+                                ) : (
+                                    <><UserPlus size={14} /> Need an account? Sign Up</>
+                                )}
+                            </button>
+                        )}
                     </form>
                 </div>
 
