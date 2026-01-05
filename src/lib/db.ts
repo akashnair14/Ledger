@@ -42,6 +42,7 @@ export interface Transaction {
     isDeleted: number;
     deviceId: string;
     imported: boolean;
+    attachmentUrl?: string;
     externalSource?: string;
     externalReferenceId?: string;
 }

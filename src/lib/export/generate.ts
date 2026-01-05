@@ -26,7 +26,8 @@ export async function exportToCSV(customers: Customer[], transactions: Transacti
             Type: t.type,
             Amount: t.amount,
             Tags: (t.tags || []).join(', '),
-            Note: t.note || ''
+            Note: t.note || '',
+            Attachment: t.attachmentUrl || ''
         };
     });
 
@@ -48,7 +49,8 @@ export async function exportToExcel(customers: Customer[], transactions: Transac
             Type: t.type,
             Amount: t.amount,
             Tags: (t.tags || []).join(', '),
-            Note: t.note || ''
+            Note: t.note || '',
+            Attachment: t.attachmentUrl || ''
         };
     });
 
@@ -92,9 +94,14 @@ export async function generateVoucher(customer: Customer, t: Transaction, balanc
     doc.text('Net Balance Status:', 14, finalY);
     doc.text(`${balance >= 0 ? 'DUE' : 'REFUNDABLE'}: INR ${Math.abs(balance).toLocaleString('en-IN')}`, 14, finalY + 10);
 
-    doc.setFontSize(9);
     doc.setTextColor(150);
     doc.text('Generated via LedgerManager PWA - Secured & Reliable', 105, 285, { align: 'center' });
+
+    if (t.attachmentUrl) {
+        doc.setFontSize(12);
+        doc.setTextColor(59, 130, 246);
+        doc.textWithLink('→ Click here to View Bill/Attachment', 14, 270, { url: t.attachmentUrl });
+    }
 
     doc.save(`Voucher_${t.id.slice(0, 8)}.pdf`);
 }
@@ -163,13 +170,14 @@ export async function exportToPDF(customerName: string, transactions: Transactio
         let tableBody: (string | number)[][] = [];
 
         if (reportType === 'DETAILED') {
-            tableHead = [['Date', 'Mode', 'Debit (Given)', 'Credit (Received)', 'Notes']];
+            tableHead = [['Date', 'Mode', 'Debit (Given)', 'Credit (Received)', 'Notes', 'Bill']];
             tableBody = filtered.map(t => [
                 new Date(t.date).toLocaleDateString(),
                 t.paymentMode,
                 t.type === 'CREDIT' ? t.amount.toLocaleString() : '',
                 t.type === 'PAYMENT' ? t.amount.toLocaleString() : '',
-                t.note || '-'
+                t.note || '-',
+                t.attachmentUrl ? 'View Bill' : '-'
             ]);
         } else {
             tableHead = [['Period', 'Debit (Given)', 'Credit (Received)', 'Net Balance']];
@@ -217,7 +225,16 @@ export async function exportToPDF(customerName: string, transactions: Transactio
             head: tableHead,
             body: tableBody,
             theme: 'grid',
-            headStyles: { fillColor: [10, 15, 29] }
+            headStyles: { fillColor: [10, 15, 29] },
+            didDrawCell: (data) => {
+                if (reportType === 'DETAILED' && data.column.index === 5 && data.cell.text[0] === 'View Bill') {
+                    const t = filtered[data.row.index];
+                    if (t?.attachmentUrl) {
+                        doc.link(data.cell.x, data.cell.y, data.cell.width, data.cell.height, { url: t.attachmentUrl });
+                        doc.setTextColor(59, 130, 246);
+                    }
+                }
+            }
         });
 
         doc.save(`${customerName}_statement.pdf`);

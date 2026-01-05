@@ -8,6 +8,7 @@ import { importFromCSV } from '@/lib/import/csv';
 import { bioAuth } from '@/lib/auth/biometrics';
 import { useBook } from '@/context/BookContext';
 import { useToast } from '@/context/ToastContext';
+import { useSettings, saveSetting } from '@/hooks/useSupabase';
 import { createClient } from '@/lib/supabase/client';
 import { useState, useEffect } from 'react';
 import styles from './SettingsPage.module.css';
@@ -28,6 +29,7 @@ export default function SettingsPage() {
     const [isSupported, setIsSupported] = useState(false);
 
     // Branding State
+    const { settings: cloudSettings, isLoading: settingsLoading } = useSettings();
     const [businessName, setBusinessName] = useState('');
     const [businessAddress, setBusinessAddress] = useState('');
     const [businessLogo, setBusinessLogo] = useState('');
@@ -38,26 +40,33 @@ export default function SettingsPage() {
             setIsSupported(await bioAuth.isSupported());
             setLockEnabled(await bioAuth.isEnabled());
         };
-        const initBranding = async () => {
-            const name = await db.settings.get('business_name');
-            const addr = await db.settings.get('business_address');
-            const logo = await db.settings.get('business_logo');
-            if (name) setBusinessName(name.value);
-            if (addr) setBusinessAddress(addr.value);
-            if (logo) setBusinessLogo(logo.value);
-        };
         const getUser = async () => {
             const supabase = createClient();
             const { data: { user } } = await supabase.auth.getUser();
             setUser(user);
         };
         initSecurity();
-        initBranding();
         getUser();
     }, []);
 
-    const saveBranding = async (key: string, value: string) => {
+    useEffect(() => {
+        if (!settingsLoading && cloudSettings) {
+            if (cloudSettings.business_name) setBusinessName(cloudSettings.business_name);
+            if (cloudSettings.business_address) setBusinessAddress(cloudSettings.business_address);
+            if (cloudSettings.business_logo) setBusinessLogo(cloudSettings.business_logo);
+        }
+    }, [settingsLoading, cloudSettings]);
+
+    const saveBrandingLocal = async (key: string, value: string) => {
         await db.settings.put({ key, value });
+    };
+
+    const saveBrandingCloud = async (key: string, value: string) => {
+        try {
+            await saveSetting(key, value);
+        } catch (err) {
+            console.error('Failed to sync setting to cloud:', err);
+        }
     };
 
     const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -68,7 +77,9 @@ export default function SettingsPage() {
         reader.onloadend = async () => {
             const base64 = reader.result as string;
             setBusinessLogo(base64);
-            await saveBranding('business_logo', base64);
+            await saveBrandingLocal('business_logo', base64);
+            await saveBrandingCloud('business_logo', base64);
+            showToast('Logo updated and synced!');
         };
         reader.readAsDataURL(file);
     };
@@ -242,9 +253,11 @@ export default function SettingsPage() {
                                         <input
                                             type="text"
                                             value={businessName}
-                                            onChange={(e) => {
-                                                setBusinessName(e.target.value);
-                                                saveBranding('business_name', e.target.value);
+                                            onChange={(e) => setBusinessName(e.target.value)}
+                                            onBlur={() => {
+                                                saveBrandingLocal('business_name', businessName);
+                                                saveBrandingCloud('business_name', businessName);
+                                                showToast('Business name updated!');
                                             }}
                                             placeholder="e.g. Akash Enterprises"
                                         />
@@ -253,9 +266,11 @@ export default function SettingsPage() {
                                         <label>Business Address</label>
                                         <textarea
                                             value={businessAddress}
-                                            onChange={(e) => {
-                                                setBusinessAddress(e.target.value);
-                                                saveBranding('business_address', e.target.value);
+                                            onChange={(e) => setBusinessAddress(e.target.value)}
+                                            onBlur={() => {
+                                                saveBrandingLocal('business_address', businessAddress);
+                                                saveBrandingCloud('business_address', businessAddress);
+                                                showToast('Address updated!');
                                             }}
                                             placeholder="e.g. 123 Main St, City"
                                             rows={3}

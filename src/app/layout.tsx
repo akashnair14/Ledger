@@ -6,6 +6,7 @@ import { BookProvider } from "@/context/BookContext";
 import { AppLock } from "@/components/auth/AppLock";
 import { Shell } from "@/components/layout/Shell";
 import { ToastProvider } from "@/context/ToastContext";
+import { SettingsSync } from "@/components/layout/SettingsSync";
 
 const fraunces = Fraunces({
   subsets: ["latin"],
@@ -58,6 +59,7 @@ export default function RootLayout({
           <BookProvider>
             <ToastProvider>
               <AppLock>
+                <SettingsSync />
                 <Shell>{children}</Shell>
               </AppLock>
             </ToastProvider>

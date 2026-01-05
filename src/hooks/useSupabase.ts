@@ -44,6 +44,7 @@ const mapTransaction = (row: Record<string, unknown>): Transaction => ({
     note: row.note as string,
     tags: (row.tags as string[]) || [],
     hasAttachment: !!row.attachment_url,
+    attachmentUrl: row.attachment_url as string,
     createdAt: new Date(row.created_at as string).getTime(),
     updatedAt: new Date(row.created_at as string).getTime(),
     isDeleted: 0,
@@ -100,7 +101,33 @@ const fetchAllTransactions = async () => {
     return data.map(mapTransaction)
 }
 
+const fetchSettings = async () => {
+    const { data, error } = await supabase
+        .from('settings')
+        .select('*')
+
+    if (error) throw error
+    const settings: Record<string, string> = {}
+    data.forEach(s => {
+        settings[s.key] = s.value
+    })
+    return settings
+}
+
 // --- Hooks ---
+
+export function useSettings() {
+    const { data, error, isLoading } = useSWR('settings', fetchSettings, {
+        revalidateOnFocus: true,
+        revalidateOnReconnect: true,
+        revalidateIfStale: true,
+    })
+    return {
+        settings: data || {},
+        isLoading,
+        error
+    }
+}
 
 export function useBooks() {
     const { data, error, isLoading } = useSWR('books', fetchBooks, {
@@ -202,9 +229,35 @@ export const addCustomer = async (customer: Partial<Customer>) => {
     return mapCustomer(data)
 }
 
-export const addTransaction = async (txn: Partial<Transaction>) => {
+export const uploadAttachment = async (file: File) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Authentication required');
+
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${crypto.randomUUID()}.${fileExt}`;
+    const filePath = `${user.id}/${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+        .from('attachments')
+        .upload(filePath, file);
+
+    if (uploadError) throw uploadError;
+
+    const { data: { publicUrl } } = supabase.storage
+        .from('attachments')
+        .getPublicUrl(filePath);
+
+    return publicUrl;
+};
+
+export const addTransaction = async (txn: Partial<Transaction>, file?: File) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('Authenticaton required');
+
+    let attachmentUrl = txn.attachmentUrl;
+    if (file) {
+        attachmentUrl = await uploadAttachment(file);
+    }
 
     const row: Record<string, unknown> = {
         customer_id: txn.customerId,
@@ -215,6 +268,7 @@ export const addTransaction = async (txn: Partial<Transaction>) => {
         date: txn.date ? new Date(txn.date).toISOString() : new Date().toISOString(),
         note: txn.note,
         tags: txn.tags,
+        attachment_url: attachmentUrl,
         user_id: user.id // Satisfy RLS policies
     }
 
@@ -286,6 +340,18 @@ export const deleteTransaction = async (id: string, customerId: string) => {
 
 // Alias for backward compatibility if needed, but cleaned up
 export const deleteTransactionWithCache = deleteTransaction;
+
+export const saveSetting = async (key: string, value: string) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Authentication required');
+
+    const { error } = await supabase
+        .from('settings')
+        .upsert({ key, value, user_id: user.id }, { onConflict: 'user_id, key' })
+
+    if (error) throw error
+    await mutate('settings')
+}
 
 export const hasCustomersInBook = async (bookId: string) => {
     const { count, error } = await supabase

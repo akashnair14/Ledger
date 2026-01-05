@@ -185,7 +185,7 @@ export default function CustomerDetailPage() {
                 date: new Date(invoiceDate).getTime(),
                 note: note.trim(),
                 tags
-            });
+            }, attachment || undefined);
             resetForm();
             setShowConfirm(false);
             showToast('Entry saved successfully');
