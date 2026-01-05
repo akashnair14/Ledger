@@ -395,10 +395,31 @@ export default function CustomerDetailPage() {
                             <div className={styles.fileUpload}>
                                 <input type="file" ref={fileInputRef} onChange={handleFileChange} hidden />
                                 <button type="button" className={styles.uploadTrigger} onClick={() => fileInputRef.current?.click()}>
-                                    {attachment ? <><Check size={16} /> {attachment.name}</> : <><Upload size={16} /> Select File</>}
+                                    {attachment ? (
+                                        <><Check size={16} /> {attachment.name}</>
+                                    ) : (
+                                        editingTxn?.attachmentUrl ? (
+                                            <><Check size={16} /> Existing Attachment</>
+                                        ) : (
+                                            <><Upload size={16} /> Select File</>
+                                        )
+                                    )}
                                 </button>
-                                {attachment && <button type="button" className={styles.clearFile} onClick={() => setAttachment(null)}><X size={14} /></button>}
+
+                                {(attachment || editingTxn?.attachmentUrl) && (
+                                    <button type="button" className={styles.clearFile} onClick={() => {
+                                        setAttachment(null);
+                                        if (editingTxn) setEditingTxn({ ...editingTxn, attachmentUrl: undefined });
+                                    }}>
+                                        <X size={14} />
+                                    </button>
+                                )}
                             </div>
+                            {editingTxn?.attachmentUrl && !attachment && (
+                                <a href={editingTxn.attachmentUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.8rem', color: '#3b82f6', marginTop: '0.5rem', display: 'block', textAlign: 'center' }}>
+                                    View Current Attachment
+                                </a>
+                            )}
                         </div>
 
                         <button type="submit" className={styles.submitBtn}>Review Entry</button>
