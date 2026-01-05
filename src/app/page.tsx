@@ -11,7 +11,6 @@ import {
     FileText,
     BarChart3,
     ArrowRight,
-    ChevronRight,
     Smartphone,
     CheckCircle2,
     Lock
