@@ -8,12 +8,35 @@
     background: var(--surface);
     border-top: 1px solid var(--border);
     display: flex;
-    justify-content: space-around;
+    justify-content: space-between;
+    /* Changed to space-between for better control */
     align-items: center;
     z-index: 1000;
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     background: rgba(var(--surface-rgb, 255, 255, 255), 0.98);
+}
+
+.voiceWrapper {
+    position: relative;
+    top: -24px;
+    /* Float above the nav */
+    background: var(--surface);
+    border-radius: 50%;
+    padding: 6px;
+    /* Ring effect */
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+    z-index: 1001;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 12px;
+}
+
+/* Ensure the button inside also looks good if it's not already */
+.voiceWrapper>button {
+    box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.4) !important;
+    transform: scale(1.1);
 }
 
 .navItem {
