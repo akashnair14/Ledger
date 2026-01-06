@@ -38,6 +38,8 @@ import styles from './CustomerDetail.module.css';
 import { useCustomers, useTransactions, addTransaction, deleteTransaction, updateTransaction } from '@/hooks/useSupabase';
 import { useToast } from '@/context/ToastContext';
 import { generateVoucher } from '@/lib/export/generate';
+import { motion, AnimatePresence } from 'framer-motion';
+import { EmptyState } from '@/components/ui/EmptyState';
 
 const PAYMENT_MODES: { value: PaymentMode; label: string }[] = [
     { value: 'CASH', label: 'Cash' },
@@ -99,8 +101,6 @@ export default function CustomerDetailPage() {
     // Calculator Helper
     const evaluateExpression = (expr: string): number => {
         try {
-            // Safe evaluation for simple math: +, -, *, /, (, )
-            // Remove everything except numbers and operators
             const cleanExpr = expr.replace(/[^0-9+\-*/.()]/g, '');
             if (!cleanExpr) return 0;
             const result = new Function(`return ${cleanExpr}`)();
@@ -110,7 +110,6 @@ export default function CustomerDetailPage() {
         }
     };
 
-    // Auto-evaluate amount as user types
     useEffect(() => {
         const val = evaluateExpression(amount);
         setEvaluatedAmount(val);
@@ -154,7 +153,6 @@ export default function CustomerDetailPage() {
 
             setTxnModalOpen(true);
 
-            // Clean URL
             const newParams = new URLSearchParams(searchParams.toString());
             newParams.delete('quickAdd');
             newParams.delete('amount');
@@ -168,7 +166,6 @@ export default function CustomerDetailPage() {
     useEffect(() => {
         const txnId = searchParams.get('txn');
         if (txnId && !customersLoading && allTransactions) {
-            // Slight delay to allow rendering
             setTimeout(() => {
                 const element = document.getElementById(txnId);
                 if (element) {
@@ -207,24 +204,8 @@ export default function CustomerDetailPage() {
         }
     }) || [];
 
-    // For SUPPLIERS: 
-    // CREDIT = You purchased on credit (You owe them money) -> Negative Balance for you? Or Positive Debt?
-    // Usually: Supplier Balance = Total Credit (Purchases) - Total Payment (You paid them)
-    // Positive Balance = You owe them.
-
-    // For CUSTOMERS:
-    // CREDIT = You gave goods (They owe you)
-    // Balance = Total Credit - Total Payment
-    // Positive Balance = They owe you.
-
-    // So the math is actually logically consistent (Credit - Payment), but the labels change.
-    // Customer: Credit = "Given", Payment = "Received"
-    // Supplier: Credit = "Purchased", Payment = "Paid"
-
     const totalCredit = allTransactions?.filter(t => t.type === 'CREDIT').reduce((sum, t) => sum + t.amount, 0) || 0;
     const totalPayment = allTransactions?.filter(t => t.type === 'PAYMENT').reduce((sum, t) => sum + t.amount, 0) || 0;
-
-    // For both: Positive means "Outstanding Debt" (They owe us OR We owe them)
     const balance = totalCredit - totalPayment;
     const isSupplier = customer.type === 'SUPPLIER';
 
@@ -253,13 +234,13 @@ export default function CustomerDetailPage() {
                 date: new Date(invoiceDate).getTime(),
                 note: note.trim(),
                 tags,
-                attachmentUrl: editingTxn?.attachmentUrl // Preserve existing URL if not replaced
+                attachmentUrl: editingTxn?.attachmentUrl
             };
 
             if (editingTxn) {
                 await updateTransaction(editingTxn.id, {
                     ...commonData,
-                    customerId: customerId, // Ensure ID is present
+                    customerId: customerId,
                 }, attachment || undefined);
                 showToast('Transaction updated');
             } else {
@@ -335,23 +316,18 @@ export default function CustomerDetailPage() {
         window.open(`https://wa.me/91${customer.phone.replace(/\D/g, '')}?text=${msg}`, '_blank');
     };
 
-
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
             setAttachment(file);
-
-            // If triggered via Scan button
             if (scanIntent) {
                 setIsScanning(true);
                 try {
                     const { scanReceipt } = await import('@/lib/ai/ocr');
                     const data = await scanReceipt(file);
-
                     if (data.amount) setAmount(data.amount.toString());
                     if (data.date) setInvoiceDate(data.date.split('T')[0]);
                     if (data.invoiceNumber) setInvoiceNumber(data.invoiceNumber);
-
                     showToast('Receipt scanned successfully');
                 } catch (err) {
                     console.error(err);
@@ -420,33 +396,55 @@ export default function CustomerDetailPage() {
                 <TransactionFilters filters={activeFilters} onFilterChange={setActiveFilters} availableTags={availableTags} />
 
                 <div className={styles.list}>
-                    {filteredTransactions.map((t) => (
-                        <div key={t.id} id={t.id} className={`${styles.txnCard} ${isSelectMode ? styles.clickableCard : ''}`} onClick={() => isSelectMode && toggleTxnSelection(t.id)}>
-                            {isSelectMode && <div className={`${styles.checkbox} ${selectedTxns.includes(t.id) ? styles.checked : ''}`}>{selectedTxns.includes(t.id) && <Check size={12} />}</div>}
-                            <div className={styles.txnDate}>{new Date(t.date).toLocaleDateString(undefined, { day: '2-digit', month: 'short' })}</div>
-                            <div className={styles.txnMain}>
-                                <div className={styles.txnNote}>
-                                    {t.type === 'CREDIT'
-                                        ? <ArrowUpRight size={14} className={styles.negative} />
-                                        : <ArrowDownLeft size={14} className={styles.positive} />
-                                    }
-                                    {t.note || (t.type === 'CREDIT' ? (isSupplier ? 'Purchased' : 'Given') : (isSupplier ? 'Paid' : 'Received'))}
-                                </div>
-                                <div className={styles.txnTags}>
-                                    <span className={styles.tagLabel}>{t.paymentMode}</span>
-                                    {t.invoiceNumber && <span className={styles.tagLabel}>#{t.invoiceNumber}</span>}
-                                    {t.hasAttachment && <Paperclip size={10} />}
-                                </div>
-                            </div>
-                            <div className={`${styles.txnAmount} ${t.type === 'CREDIT' ? styles.negative : styles.positive}`}>₹{t.amount.toLocaleString()}</div>
-                            {!isSelectMode && (
-                                <div className={styles.cardActions}>
-                                    <button onClick={(e) => { e.stopPropagation(); handleEdit(t); }}><Edit2 size={16} /></button>
-                                    <button onClick={(e) => { e.stopPropagation(); handleDelete(t); }}><Trash2 size={16} /></button>
-                                </div>
-                            )}
-                        </div>
-                    ))}
+                    {filteredTransactions.length === 0 ? (
+                        <EmptyState
+                            icon={Receipt}
+                            title="No Transactions"
+                            description={activeFilters.type === 'ALL'
+                                ? "No entries found. Start by recording a transaction."
+                                : "No transactions match your current filters."}
+                        />
+                    ) : (
+                        <AnimatePresence>
+                            {filteredTransactions.map((t, index) => (
+                                <motion.div
+                                    key={t.id}
+                                    id={t.id}
+                                    layout
+                                    initial={{ opacity: 0, x: -20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: 20 }}
+                                    transition={{ delay: index * 0.03 }}
+                                    className={`${styles.txnCard} ${isSelectMode ? styles.clickableCard : ''}`}
+                                    onClick={() => isSelectMode && toggleTxnSelection(t.id)}
+                                >
+                                    {isSelectMode && <div className={`${styles.checkbox} ${selectedTxns.includes(t.id) ? styles.checked : ''}`}>{selectedTxns.includes(t.id) && <Check size={12} />}</div>}
+                                    <div className={styles.txnDate}>{new Date(t.date).toLocaleDateString(undefined, { day: '2-digit', month: 'short' })}</div>
+                                    <div className={styles.txnMain}>
+                                        <div className={styles.txnNote}>
+                                            {t.type === 'CREDIT'
+                                                ? <ArrowUpRight size={14} className={styles.negative} />
+                                                : <ArrowDownLeft size={14} className={styles.positive} />
+                                            }
+                                            {t.note || (t.type === 'CREDIT' ? (isSupplier ? 'Purchased' : 'Given') : (isSupplier ? 'Paid' : 'Received'))}
+                                        </div>
+                                        <div className={styles.txnTags}>
+                                            <span className={styles.tagLabel}>{t.paymentMode}</span>
+                                            {t.invoiceNumber && <span className={styles.tagLabel}>#{t.invoiceNumber}</span>}
+                                            {t.hasAttachment && <Paperclip size={10} />}
+                                        </div>
+                                    </div>
+                                    <div className={`${styles.txnAmount} ${t.type === 'CREDIT' ? styles.negative : styles.positive}`}>₹{t.amount.toLocaleString()}</div>
+                                    {!isSelectMode && (
+                                        <div className={styles.cardActions}>
+                                            <button onClick={(e) => { e.stopPropagation(); handleEdit(t); }}><Edit2 size={16} /></button>
+                                            <button onClick={(e) => { e.stopPropagation(); handleDelete(t); }}><Trash2 size={16} /></button>
+                                        </div>
+                                    )}
+                                </motion.div>
+                            ))}
+                        </AnimatePresence>
+                    )}
                 </div>
             </div>
 

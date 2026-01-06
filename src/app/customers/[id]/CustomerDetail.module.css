@@ -353,6 +353,12 @@
 
 .txnCard:hover {
     background: var(--surface-header);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+    border-color: transparent;
+    z-index: 10;
+    position: relative;
+    border-radius: var(--radius-sm);
 }
 
 .checkboxContainer {
