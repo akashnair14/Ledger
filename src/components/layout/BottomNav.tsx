@@ -16,7 +16,7 @@ export const BottomNav = () => {
         { label: 'Settings', href: '/settings', icon: Settings },
     ];
 
-    if (pathname === '/' || pathname === '/login') return null;
+    if (pathname === '/' || pathname === '/login' || pathname?.startsWith('/docs')) return null;
 
     return (
         <nav className={styles.bottomNav}>

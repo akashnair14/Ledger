@@ -14,40 +14,49 @@ import {
     Smartphone,
     CheckCircle2,
     Lock
-} from 'lucide-react';
+} from 'lucide-react'; // Assuming lucide-react for icons
 import styles from './landing.module.css';
+import { usePWAInstall } from '@/hooks/usePWAInstall';
+import { SpotlightCard } from '@/components/landing/SpotlightCard';
+import { MiniLedgerDemo } from '@/components/landing/MiniLedgerDemo';
 
 export default function LandingPage() {
+    const { promptInstall, canInstall, isInstalled } = usePWAInstall();
     const features = [
         {
             icon: <Users size={24} />,
             title: "Customer Management",
-            description: "Organize your borrowers and lenders in a clean, searchable list with quick action buttons."
+            description: "Organize your borrowers and lenders in a clean, searchable list with quick action buttons. manage everything in one place with ease.",
+            className: styles.colSpan2
         },
         {
             icon: <Zap size={24} />,
             title: "Real-time Records",
-            description: "Record 'Given' and 'Received' entries instantly. Your balance updates automatically."
+            description: "Record 'Given' and 'Received' entries instantly. Your balance updates automatically syncs across devices in real-time.",
+            className: styles.rowSpan2,
+            spotlight: "rgba(16, 185, 129, 0.2)" // Emerald glow
         },
         {
             icon: <Database size={24} />,
             title: "Offline-First Sync",
-            description: "Continue working without internet. Your data syncs to the cloud as soon as you are back online."
+            description: "Continue working without internet. Data syncs when online."
         },
         {
             icon: <FileText size={24} />,
             title: "PDF Statements",
-            description: "Generate professional account statements and payment vouchers in one click."
+            description: "Generate professional account statements in one click."
         },
         {
             icon: <BarChart3 size={24} />,
             title: "Business Analytics",
-            description: "Visualize your cash flow and growth with interactive charts and summaries."
+            description: "Visualize your cash flow and growth with interactive charts, summary cards, and spending trends.",
+            className: styles.colSpan2,
+            spotlight: "rgba(245, 158, 11, 0.2)" // Gold glow
         },
         {
             icon: <ShieldCheck size={24} />,
             title: "Enterprise Security",
-            description: "Your data is protected by Supabase's military-grade encryption and secure auth."
+            description: "Your data is protected by military-grade encryption."
         }
     ];
 
@@ -61,6 +70,7 @@ export default function LandingPage() {
                         <span>LedgerManager</span>
                     </div>
                     <div className={styles.navLinks}>
+                        <Link href="/docs" className={styles.loginLink}>User Guide</Link>
                         <Link href="/login" className={styles.loginLink}>Log In</Link>
                         <Link href="/login" className={styles.signupBtn}>Get Started Free</Link>
                     </div>
@@ -125,28 +135,7 @@ export default function LandingPage() {
                             <div className={styles.url}>app.ledgermanager.io</div>
                         </div>
                         <div className={styles.mockupContent}>
-                            <div className={styles.skeletonLine} style={{ width: '40%', height: '24px', marginBottom: '20px' }} />
-                            <div className={styles.skeletonCard}>
-                                <div className={styles.skeletonCircle} />
-                                <div style={{ flex: 1 }}>
-                                    <div className={styles.skeletonLine} style={{ width: '60%' }} />
-                                    <div className={styles.skeletonLine} style={{ width: '30%' }} />
-                                </div>
-                            </div>
-                            <div className={styles.skeletonCard}>
-                                <div className={styles.skeletonCircle} />
-                                <div style={{ flex: 1 }}>
-                                    <div className={styles.skeletonLine} style={{ width: '70%' }} />
-                                    <div className={styles.skeletonLine} style={{ width: '40%' }} />
-                                </div>
-                            </div>
-                            <div className={styles.skeletonCard}>
-                                <div className={styles.skeletonCircle} />
-                                <div style={{ flex: 1 }}>
-                                    <div className={styles.skeletonLine} style={{ width: '50%' }} />
-                                    <div className={styles.skeletonLine} style={{ width: '20%' }} />
-                                </div>
-                            </div>
+                            <MiniLedgerDemo />
                         </div>
                     </div>
                 </motion.div>
@@ -181,15 +170,15 @@ export default function LandingPage() {
 
                 <div className={styles.featureGrid}>
                     {features.map((f, i) => (
-                        <motion.div
+                        <SpotlightCard
                             key={i}
-                            whileHover={{ y: -10 }}
-                            className={styles.featureCard}
+                            className={`${styles.bentoCard} ${f.className || ''}`}
+                            spotlightColor={f.spotlight}
                         >
                             <div className={styles.featureIcon}>{f.icon}</div>
                             <h3>{f.title}</h3>
                             <p>{f.description}</p>
-                        </motion.div>
+                        </SpotlightCard>
                     ))}
                 </div>
             </section>
@@ -205,9 +194,15 @@ export default function LandingPage() {
                             <li><CheckCircle2 size={18} /> Works offline offline</li>
                             <li><CheckCircle2 size={18} /> Push notifications</li>
                         </ul>
-                        <Link href="/login" className={styles.pwaBtn}>
-                            <Smartphone size={20} /> Install Now
-                        </Link>
+                        {canInstall ? (
+                            <button className={styles.pwaBtn} onClick={promptInstall}>
+                                <Smartphone size={20} /> Install App
+                            </button>
+                        ) : (
+                            <Link href="/login" className={styles.pwaBtn}>
+                                <Smartphone size={20} /> Open App
+                            </Link>
+                        )}
                     </div>
                     <div className={styles.pwaVisual}>
                         <div className={styles.phoneFrame}>
@@ -240,6 +235,7 @@ export default function LandingPage() {
                 <div className={styles.footerBottom}>
                     <p>© 2026 LedgerManager. All rights reserved.</p>
                     <div className={styles.socials}>
+                        <Link href="/docs" style={{ color: 'var(--text-dim)', textDecoration: 'none', marginRight: '1rem', fontSize: '0.9rem' }}>User Guide</Link>
                         <Lock size={16} /> Secure Ledger Environment
                     </div>
                 </div>

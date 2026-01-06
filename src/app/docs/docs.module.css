@@ -1,0 +1,239 @@
+.container {
+    min-height: 100vh;
+    background: var(--background);
+    display: flex;
+    flex-direction: column;
+}
+
+.navbar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    padding: 0 1.5rem;
+}
+
+.navContent {
+    max-width: 1000px;
+    margin: 0 auto;
+    height: var(--header-height);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.backLink {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-muted);
+    font-weight: 600;
+    text-decoration: none;
+    transition: var(--transition-smooth);
+}
+
+.backLink:hover {
+    color: var(--primary);
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.logoIcon {
+    width: 32px;
+    height: 32px;
+    background: var(--primary);
+    color: white;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-fraunces), serif;
+}
+
+.main {
+    flex: 1;
+    display: flex;
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+    gap: 3rem;
+    width: 100%;
+}
+
+.sidebar {
+    width: 200px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 100px;
+    height: fit-content;
+    display: none;
+}
+
+@media (min-width: 768px) {
+    .sidebar {
+        display: block;
+    }
+}
+
+.sidebar h3 {
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 1rem;
+    letter-spacing: 0.05em;
+}
+
+.toc {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.toc a {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.95rem;
+    transition: var(--transition-smooth);
+}
+
+.toc a:hover {
+    color: var(--primary);
+    transform: translateX(4px);
+}
+
+.content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 3rem;
+}
+
+.section {
+    scroll-margin-top: 100px;
+    background: var(--surface);
+    padding: 2rem;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-card);
+}
+
+.iconBox {
+    width: 48px;
+    height: 48px;
+    background: var(--surface-header);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary);
+    margin-bottom: 1.5rem;
+}
+
+.section h2 {
+    font-size: 1.75rem;
+    margin-bottom: 1.5rem;
+    color: var(--text-main);
+}
+
+.section h3 {
+    font-size: 1.25rem;
+    margin: 1.5rem 0 0.75rem;
+    color: var(--text-main);
+}
+
+.section p,
+.section li {
+    line-height: 1.7;
+    color: var(--text-muted);
+    font-size: 1.05rem;
+    margin-bottom: 0.75rem;
+}
+
+.section ul,
+.section ol {
+    margin-bottom: 1.5rem;
+    padding-left: 1.5rem;
+}
+
+.cardParams {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+@media (min-width: 600px) {
+    .cardParams {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+.card {
+    background: var(--surface-header);
+    padding: 1.5rem;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+}
+
+.card h4 {
+    margin-bottom: 1rem;
+    color: var(--primary);
+}
+
+.actionGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin: 1.5rem 0;
+}
+
+.actionCard {
+    padding: 1.5rem;
+    border-radius: var(--radius-md);
+    text-align: center;
+}
+
+.give {
+    background: rgba(127, 29, 29, 0.05);
+    border: 1px solid rgba(127, 29, 29, 0.2);
+    color: var(--danger);
+}
+
+.receive {
+    background: rgba(6, 95, 70, 0.05);
+    border: 1px solid rgba(6, 95, 70, 0.2);
+    color: var(--success);
+}
+
+.actionCard h5 {
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+}
+
+.actionCard span {
+    display: block;
+    margin-top: 0.5rem;
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.faqItem {
+    background: var(--surface-header);
+    padding: 1.5rem;
+    border-radius: var(--radius-md);
+    margin-bottom: 1rem;
+}
+
+.faqItem strong {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--text-main);
+}

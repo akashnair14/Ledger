@@ -1,11 +1,22 @@
 .container {
-    --primary: #5b21b6;
-    --primary-light: #7c3aed;
-    --background: #0a0f1d;
-    --surface: #111827;
-    --text-main: #f9fafb;
-    --text-dim: #9ca3af;
-    --border: rgba(255, 255, 255, 0.1);
+    --primary: #7c3aed;
+    /* Keeping for brand consistency but reducing usage */
+    --primary-light: #a78bfa;
+    --background: #09090b;
+    /* Deep Zinc */
+    --surface: #18181b;
+    /* Zinc 900 */
+    --surface-header: #27272a;
+    /* Zinc 800 */
+    --text-main: #f4f4f5;
+    /* Zinc 100 */
+    --text-dim: #a1a1aa;
+    /* Zinc 400 */
+    --border: rgba(255, 255, 255, 0.08);
+    --accent-growth: #10b981;
+    /* Emerald */
+    --accent-gold: #f59e0b;
+    /* Amber/Gold */
 
     background-color: var(--background);
     color: var(--text-main);
@@ -100,9 +111,9 @@
 .gridBackground {
     position: absolute;
     inset: 0;
-    background-image: radial-gradient(rgba(124, 58, 237, 0.1) 1px, transparent 1px);
+    background-image: radial-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px);
     background-size: 40px 40px;
-    mask-image: linear-gradient(to bottom, black, transparent);
+    mask-image: linear-gradient(to bottom, black 40%, transparent 100%);
     z-index: -1;
 }
 
@@ -131,10 +142,13 @@
 }
 
 .hero h1 span {
-    background: linear-gradient(to right, #7c3aed, #ec4899);
+    background: linear-gradient(to right, #ffffff, #a1a1aa);
+    /* Clean metallic look */
+    /* Or for color: background: linear-gradient(to right, #34d399, #38bdf8); */
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 30px rgba(255, 255, 255, 0.1);
 }
 
 .hero p {
@@ -249,29 +263,7 @@
     background: #0a0f1d;
 }
 
-.skeletonCard {
-    background: #111827;
-    padding: 15px;
-    border-radius: 12px;
-    display: flex;
-    gap: 15px;
-    align-items: center;
-    margin-bottom: 12px;
-}
 
-.skeletonCircle {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: var(--surface);
-}
-
-.skeletonLine {
-    height: 12px;
-    background: var(--surface);
-    border-radius: 6px;
-    margin-bottom: 8px;
-}
 
 /* Stats */
 .stats {
@@ -329,35 +321,55 @@
     font-size: 1.1rem;
 }
 
+/* Bento Grid */
 .featureGrid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 2rem;
+    grid-auto-rows: minmax(180px, auto);
+    gap: 1.5rem;
 }
 
-.featureCard {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    padding: 2.5rem;
-    border-radius: 24px;
-    transition: all 0.3s;
+.bentoCard {
+    /* Base styles handled by SpotlightCard, adding layout specifics */
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
 
-.featureCard:hover {
-    border-color: var(--primary-light);
-    background: rgba(124, 58, 237, 0.05);
+.colSpan2 {
+    grid-column: span 2;
 }
 
+.rowSpan2 {
+    grid-row: span 2;
+}
+
+/* Feature specific visuals */
 .featureIcon {
-    width: 48px;
-    height: 48px;
-    background: rgba(124, 58, 237, 0.1);
-    color: var(--primary-light);
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-main);
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 12px;
+    border-radius: 10px;
     margin-bottom: 1.5rem;
+    border: 1px solid var(--border);
+}
+
+.bentoCard h3 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--text-main);
+}
+
+.bentoCard p {
+    font-size: 0.95rem;
+    color: var(--text-dim);
+    line-height: 1.5;
 }
 
 .featureCard h3 {

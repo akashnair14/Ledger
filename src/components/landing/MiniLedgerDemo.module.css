@@ -1,0 +1,179 @@
+.demoContainer {
+    font-family: var(--font-hanken), sans-serif;
+    color: var(--text-main);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    gap: 1.5rem;
+}
+
+.balanceCard {
+    text-align: center;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.01));
+    border-radius: 20px;
+    border: 1px solid var(--border);
+}
+
+.balanceLabel {
+    font-size: 0.9rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.balanceCard h2 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-top: 0.5rem;
+    font-family: var(--font-fraunces);
+}
+
+.pos {
+    color: var(--accent-growth);
+}
+
+.neg {
+    color: #ef4444;
+}
+
+.actionArea {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.inputWrapper {
+    position: relative;
+    background: var(--surface);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    padding: 0 1rem;
+    display: flex;
+    align-items: center;
+}
+
+.currencySymbol {
+    color: var(--text-dim);
+    font-size: 1.2rem;
+    margin-right: 0.5rem;
+}
+
+.amountInput {
+    background: transparent;
+    border: none;
+    color: var(--text-main);
+    font-size: 1.2rem;
+    padding: 1rem 0;
+    width: 100%;
+    outline: none;
+    font-weight: 600;
+}
+
+.buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.btnGiven,
+.btnReceived {
+    border: none;
+    padding: 0.8rem;
+    border-radius: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: transform 0.1s;
+}
+
+.btnGiven {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+}
+
+.btnReceived {
+    background: rgba(16, 185, 129, 0.15);
+    color: var(--accent-growth);
+}
+
+.btnGiven:active,
+.btnReceived:active {
+    transform: scale(0.95);
+}
+
+.iconUp {
+    transform: rotate(-45deg);
+}
+
+.iconDown {
+    transform: rotate(135deg);
+}
+
+.txList {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+}
+
+.txItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.txInfo {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.dotGreen,
+.dotRed {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.dotGreen {
+    background: var(--accent-growth);
+    box-shadow: 0 0 10px var(--accent-growth);
+}
+
+.dotRed {
+    background: #ef4444;
+    box-shadow: 0 0 10px #ef4444;
+}
+
+.txName {
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.txDate {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+}
+
+.txGreen {
+    color: var(--accent-growth);
+    font-weight: 700;
+}
+
+.txRed {
+    color: #ef4444;
+    font-weight: 700;
+}
+
+.demoNote {
+    text-align: center;
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    font-style: italic;
+    opacity: 0.6;
+}

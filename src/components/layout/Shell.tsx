@@ -9,7 +9,7 @@ import styles from './Shell.module.css';
 
 export const Shell = ({ children }: { children: React.ReactNode }) => {
     const pathname = usePathname();
-    const isPublic = pathname === '/' || pathname === '/login';
+    const isPublic = pathname === '/' || pathname === '/login' || pathname?.startsWith('/docs');
 
     return (
         <div className={styles.shell}>
@@ -31,9 +31,11 @@ export const Shell = ({ children }: { children: React.ReactNode }) => {
                 </div>
             </main>
 
-            <div className={styles.mobileNav}>
-                <BottomNav />
-            </div>
+            {!isPublic && (
+                <div className={styles.mobileNav}>
+                    <BottomNav />
+                </div>
+            )}
         </div>
     );
 };

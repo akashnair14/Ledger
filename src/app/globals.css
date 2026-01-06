@@ -110,6 +110,7 @@ body {
   position: relative;
   overflow-wrap: break-word;
   /* Ensure long text doesn't break layout */
+  scroll-behavior: smooth;
 }
 
 @media (min-width: 768px) {
