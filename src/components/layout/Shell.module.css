@@ -40,8 +40,39 @@
     }
 }
 
-@media (min-width: 768px) {
+/* Mobile Default */
+.desktopSidebar {
+    display: none;
+}
+
+.mobileNav {
+    display: block;
+}
+
+/* Desktop Styles */
+@media (min-width: 1024px) {
+    .shell {
+        flex-direction: row;
+        align-items: flex-start;
+    }
+
+    .desktopSidebar {
+        display: block;
+        height: 100vh;
+        position: sticky;
+        top: 0;
+    }
+
+    .mobileNav {
+        display: none;
+    }
+
     .main {
-        padding-top: 2rem;
+        padding: 2rem;
+        /* Remove extra bottom padding since bottom nav is gone */
+        padding-bottom: 2rem;
+        /* Ensure it takes remaining width */
+        max-width: 100%;
+        width: auto;
     }
 }

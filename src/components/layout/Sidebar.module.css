@@ -1,0 +1,260 @@
+.sidebar {
+    width: 260px;
+    height: 100vh;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem;
+    position: sticky;
+    top: 0;
+    flex-shrink: 0;
+}
+
+.header {
+    margin-bottom: 2rem;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.logoIcon {
+    width: 36px;
+    height: 36px;
+    background: var(--primary);
+    color: white;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 1.2rem;
+    font-family: var(--font-fraunces), serif;
+}
+
+.appTitle {
+    font-weight: 800;
+    font-size: 1.1rem;
+    letter-spacing: -0.02em;
+    color: var(--text-main);
+}
+
+.bookSection {
+    margin-bottom: 2rem;
+}
+
+.sectionLabel {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.75rem;
+}
+
+.bookSelector {
+    position: relative;
+}
+
+.activeBookBtn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: var(--surface-header);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text-main);
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+
+.activeBookBtn:hover {
+    border-color: var(--primary);
+}
+
+.bookName {
+    flex: 1;
+    text-align: left;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.rotate {
+    transform: rotate(180deg);
+}
+
+.dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    margin-top: 8px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-card);
+    border-radius: var(--radius-sm);
+    padding: 8px;
+    z-index: 50;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.bookResult {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px;
+    border-radius: var(--radius-sm);
+}
+
+.bookResult:hover {
+    background: var(--surface-header);
+}
+
+.bookSelect {
+    flex: 1;
+    text-align: left;
+    font-size: 0.9rem;
+    color: var(--text-main);
+}
+
+.bookActions {
+    display: flex;
+    gap: 4px;
+}
+
+.bookActions button {
+    padding: 4px;
+    color: var(--text-dim);
+    border-radius: 4px;
+}
+
+.bookActions button:hover {
+    background: var(--surface);
+    color: var(--text-main);
+}
+
+.addBookBtn {
+    width: 100%;
+    margin-top: 8px;
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: var(--primary);
+    font-weight: 600;
+    font-size: 0.85rem;
+    background: rgba(var(--primary-rgb), 0.05);
+    border-radius: var(--radius-sm);
+}
+
+.nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    flex: 1;
+}
+
+.navItem {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    color: var(--text-muted);
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.navItem:hover {
+    background: var(--surface-header);
+    color: var(--text-main);
+}
+
+.active {
+    background: rgba(var(--primary-rgb), 0.05);
+    color: var(--primary);
+    font-weight: 700;
+}
+
+.footer {
+    border-top: 1px solid var(--border);
+    padding-top: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.voiceWrapper {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px;
+    background: var(--surface-header);
+    border-radius: var(--radius-sm);
+}
+
+.voiceLabel {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+.utils {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.utilBtn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    width: 100%;
+}
+
+.utilBtn:hover {
+    background: var(--surface-header);
+    color: var(--text-main);
+}
+
+/* Modal Form Styles */
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.inputGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.inputGroup label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text-muted);
+}
+
+.submitBtn {
+    background: var(--primary);
+    color: white;
+    padding: 1rem;
+    border-radius: var(--radius-sm);
+    font-weight: 700;
+}
