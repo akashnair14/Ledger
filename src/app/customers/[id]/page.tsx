@@ -164,6 +164,25 @@ export default function CustomerDetailPage() {
         }
     }, [searchParams, id, router]);
 
+    // Search Highlight Logic
+    useEffect(() => {
+        const txnId = searchParams.get('txn');
+        if (txnId && !customersLoading && allTransactions) {
+            // Slight delay to allow rendering
+            setTimeout(() => {
+                const element = document.getElementById(txnId);
+                if (element) {
+                    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    element.style.backgroundColor = 'rgba(var(--primary-rgb), 0.15)';
+                    setTimeout(() => {
+                        element.style.transition = 'background-color 2s';
+                        element.style.backgroundColor = '';
+                    }, 2000);
+                }
+            }, 300);
+        }
+    }, [searchParams, customersLoading, allTransactions]);
+
     if (customersLoading) return <div className={styles.loading}>Loading customer...</div>;
     if (!customer) return <div className={styles.loading}>Customer not found.</div>;
 
@@ -402,7 +421,7 @@ export default function CustomerDetailPage() {
 
                 <div className={styles.list}>
                     {filteredTransactions.map((t) => (
-                        <div key={t.id} className={`${styles.txnCard} ${isSelectMode ? styles.clickableCard : ''}`} onClick={() => isSelectMode && toggleTxnSelection(t.id)}>
+                        <div key={t.id} id={t.id} className={`${styles.txnCard} ${isSelectMode ? styles.clickableCard : ''}`} onClick={() => isSelectMode && toggleTxnSelection(t.id)}>
                             {isSelectMode && <div className={`${styles.checkbox} ${selectedTxns.includes(t.id) ? styles.checked : ''}`}>{selectedTxns.includes(t.id) && <Check size={12} />}</div>}
                             <div className={styles.txnDate}>{new Date(t.date).toLocaleDateString(undefined, { day: '2-digit', month: 'short' })}</div>
                             <div className={styles.txnMain}>

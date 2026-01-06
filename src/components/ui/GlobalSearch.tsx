@@ -1,12 +1,15 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { db } from '@/lib/db';
-import { Search, User, ReceiptText, Command, X } from 'lucide-react';
+import { useCustomers, useTransactions } from '@/hooks/useSupabase';
+import { Search, User, ReceiptText, Command, X, ArrowRight, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import styles from './GlobalSearch.module.css';
+
+type SearchResult =
+    | { type: 'CUSTOMER' | 'SUPPLIER'; id: string; name: string; sub: string; date?: number }
+    | { type: 'TRANSACTION'; id: string; name: string; sub: string; txnId: string; date: number };
 
 export const GlobalSearch = () => {
     const [isOpen, setIsOpen] = useState(false);
@@ -15,25 +18,49 @@ export const GlobalSearch = () => {
     const inputRef = useRef<HTMLInputElement>(null);
     const router = useRouter();
 
-    const results = useLiveQuery(async () => {
-        if (!query.trim()) return [];
+    const { customers, isLoading: loadingCustomers } = useCustomers();
+    const { transactions, isLoading: loadingTxns } = useTransactions();
+
+    const results = useMemo(() => {
+        if (!query.trim() || !customers || !transactions) return [];
 
         const q = query.toLowerCase();
-        const customers = await db.customers
+        const MAX_PER_CATEGORY = 5;
+
+        // 1. Search Customers
+        const matchedCustomers = customers
             .filter(c => c.name.toLowerCase().includes(q) || c.phone.includes(q))
-            .limit(5)
-            .toArray();
+            .slice(0, MAX_PER_CATEGORY)
+            .map(c => ({
+                type: (c.type || 'CUSTOMER') as 'CUSTOMER' | 'SUPPLIER',
+                id: c.id,
+                name: c.name,
+                sub: c.phone,
+                date: c.updatedAt
+            } as SearchResult));
 
-        const transactions = await db.transactions
-            .filter(t => t.note?.toLowerCase().includes(q) || t.amount.toString().includes(q))
-            .limit(5)
-            .toArray();
+        // 2. Search Transactions
+        // Join with customer name for better context
+        const customerMap = new Map(customers.map(c => [c.id, c.name]));
 
-        return [
-            ...customers.map(c => ({ id: c.id, name: c.name, type: 'CUSTOMER', sub: c.phone })),
-            ...transactions.map(t => ({ id: t.customerId, name: `₹${t.amount}`, type: 'TRANSACTION', sub: t.note || 'No note', txnId: t.id }))
-        ];
-    }, [query]);
+        const matchedTxns = transactions
+            .filter(t =>
+                (t.note && t.note.toLowerCase().includes(q)) ||
+                t.amount.toString().includes(q) ||
+                (t.invoiceNumber && t.invoiceNumber.toLowerCase().includes(q))
+            )
+            .slice(0, MAX_PER_CATEGORY)
+            .map(t => ({
+                type: 'TRANSACTION',
+                id: t.customerId, // Navigate to customer
+                name: `₹${t.amount.toLocaleString()}`,
+                sub: `${t.note || 'No note'} • ${customerMap.get(t.customerId) || 'Unknown'}`,
+                txnId: t.id,
+                date: t.date
+            } as SearchResult));
+
+        return [...matchedCustomers, ...matchedTxns];
+    }, [query, customers, transactions]);
 
     const handleOpen = useCallback(() => {
         setIsOpen(true);
@@ -53,14 +80,31 @@ export const GlobalSearch = () => {
                 isOpen ? handleClose() : handleOpen();
             }
             if (e.key === 'Escape') handleClose();
+            if (isOpen) {
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    setSelectedIndex(prev => (prev + 1) % results.length);
+                }
+                if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    setSelectedIndex(prev => (prev - 1 + results.length) % results.length);
+                }
+                if (e.key === 'Enter' && results.length > 0) {
+                    onSelect(results[selectedIndex]);
+                }
+            }
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [isOpen, handleOpen, handleClose]);
+    }, [isOpen, handleOpen, handleClose, results, selectedIndex]);
 
-    const onSelect = (item: any) => {
-        if (item.type === 'CUSTOMER') router.push(`/customers/${item.id}`);
-        else router.push(`/customers/${item.id}?txn=${item.txnId}`);
+    const onSelect = (item: SearchResult) => {
+        if (!item) return;
+        if (item.type === 'CUSTOMER' || item.type === 'SUPPLIER') {
+            router.push(`/customers/${item.id}`);
+        } else {
+            router.push(`/customers/${item.id}?txn=${item.txnId}`);
+        }
         handleClose();
     };
 
@@ -80,40 +124,48 @@ export const GlobalSearch = () => {
                             <input
                                 ref={inputRef}
                                 type="text"
-                                placeholder="Search customers, notes, amounts... (Ctrl+K)"
+                                placeholder="Search customers, notes, invoice #..."
                                 value={query}
-                                onChange={e => setQuery(e.target.value)}
+                                onChange={e => {
+                                    setQuery(e.target.value);
+                                    setSelectedIndex(0);
+                                }}
                             />
-                            <button className={styles.closeBtn} onClick={handleClose}><X size={20} /></button>
+                            {loadingCustomers || loadingTxns ? <Loader2 className="spin" size={16} /> : <button className={styles.closeBtn} onClick={handleClose}><X size={20} /></button>}
                         </div>
 
                         <div className={styles.results}>
-                            {results?.map((item, idx) => (
+                            {results.map((item, idx) => (
                                 <div
-                                    key={`${item.type}-${item.id}-${idx}`}
+                                    key={`${item.type}-${item.id}-${item.type === 'TRANSACTION' ? item.txnId : idx}`}
                                     className={`${styles.resultItem} ${idx === selectedIndex ? styles.selected : ''}`}
                                     onClick={() => onSelect(item)}
                                     onMouseEnter={() => setSelectedIndex(idx)}
                                 >
-                                    {item.type === 'CUSTOMER' ? <User size={18} /> : <ReceiptText size={18} />}
+                                    <div className={styles.iconBox}>
+                                        {item.type === 'TRANSACTION' ? <ReceiptText size={18} /> : <User size={18} />}
+                                    </div>
                                     <div className={styles.resultInfo}>
-                                        <span className={styles.resultName}>{item.name}</span>
+                                        <div className={styles.resultTop}>
+                                            <span className={styles.resultName}>{item.name}</span>
+                                            {item.type === 'TRANSACTION' && <span className={styles.dateBadge}>{new Date(item.date).toLocaleDateString()}</span>}
+                                        </div>
                                         <span className={styles.resultSub}>{item.sub}</span>
                                     </div>
-                                    <span className={styles.resultType}>{item.type}</span>
+                                    {idx === selectedIndex && <ArrowRight size={16} className={styles.enterIcon} />}
                                 </div>
                             ))}
 
-                            {query && results?.length === 0 && (
+                            {query && results.length === 0 && !loadingCustomers && (
                                 <div className={styles.noResults}>No matches found.</div>
                             )}
 
                             {!query && (
                                 <div className={styles.hints}>
-                                    <p>Try searching for names, notes or amounts</p>
+                                    <p>Search by Name, Amount (e.g. 5000), Invoice No, or Notes.</p>
                                     <div className={styles.shortcutHints}>
-                                        <span><Command size={12} /> + K to toggle</span>
-                                        <span>ESC to close</span>
+                                        <span><Command size={12} /> K</span>
+                                        <span>to close</span>
                                     </div>
                                 </div>
                             )}

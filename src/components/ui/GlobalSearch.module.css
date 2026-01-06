@@ -121,6 +121,40 @@
     background: rgba(255, 255, 255, 0.2);
 }
 
+.iconBox {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: var(--surface-header);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+}
+
+.selected .iconBox {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+.resultTop {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.dateBadge {
+    font-size: 0.7rem;
+    font-family: var(--font-mono), monospace;
+    opacity: 0.7;
+}
+
+.enterIcon {
+    margin-left: 8px;
+    opacity: 0.8;
+}
+
 .noResults {
     padding: 2rem;
     text-align: center;
