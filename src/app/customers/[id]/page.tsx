@@ -365,9 +365,16 @@ export default function CustomerDetailPage() {
             <div className={styles.balanceCard}>
                 <div className={styles.balanceInfo}>
                     <span className={styles.balanceLabel}>Current Balance</span>
-                    <h2 className={balance >= 0 ? styles.negative : styles.positive}>
+                    <h2 className={(balance === 0 || (isSupplier ? balance < 0 : balance > 0)) ? styles.positive : styles.negative}>
                         ₹{Math.abs(balance).toLocaleString()}
-                        <small>{balance >= 0 ? (isSupplier ? ' (You Owe)' : ' (Net Debt)') : (isSupplier ? ' (Advance Paid)' : ' (Net Credit)')}</small>
+                        <small>
+                            {balance === 0 ? ' (Settled)' :
+                                (isSupplier
+                                    ? (balance > 0 ? ' (You Owe)' : ' (Advance Paid)')
+                                    : (balance > 0 ? ' (To Collect)' : ' (Advance Received)')
+                                )
+                            }
+                        </small>
                     </h2>
                 </div>
                 <div className={styles.divider} />
