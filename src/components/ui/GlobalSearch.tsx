@@ -102,7 +102,7 @@ export const GlobalSearch = () => {
         if (!item) return;
         if (item.type === 'CUSTOMER' || item.type === 'SUPPLIER') {
             router.push(`/customers/${item.id}`);
-        } else {
+        } else if (item.type === 'TRANSACTION') {
             router.push(`/customers/${item.id}?txn=${item.txnId}`);
         }
         handleClose();
