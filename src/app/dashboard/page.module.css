@@ -406,3 +406,29 @@
     transform: translateY(0);
   }
 }
+
+.nameRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.balanceBadge {
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-family: var(--font-mono), monospace;
+  letter-spacing: -0.02em;
+}
+
+.positiveVar {
+  background-color: rgba(6, 95, 70, 0.1);
+  color: var(--success);
+}
+
+.negativeVar {
+  background-color: rgba(127, 29, 29, 0.1);
+  color: var(--danger);
+}

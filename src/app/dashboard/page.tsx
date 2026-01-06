@@ -7,7 +7,8 @@ import { PWAInstallButton } from '@/components/ui/PWAInstallButton';
 import styles from './page.module.css';
 import Link from 'next/link';
 import { Modal } from '@/components/ui/Modal';
-import { useCustomers, addCustomer, updateCustomer, deleteCustomer, getTransactionCount } from '@/hooks/useSupabase';
+import { useCustomersWithBalance } from '@/hooks/useDashboard';
+import { addCustomer, updateCustomer, deleteCustomer, getTransactionCount } from '@/hooks/useSupabase';
 import { createClient } from '@/lib/supabase/client';
 import { useBook } from '@/context/BookContext';
 import { useToast } from '@/context/ToastContext';
@@ -30,7 +31,7 @@ export default function CustomersPage() {
   const [showWelcome, setShowWelcome] = useState(false);
   const [userDisplayName, setUserDisplayName] = useState('');
 
-  const { customers: allCustomers, isLoading } = useCustomers();
+  const { customers: allCustomers, isLoading } = useCustomersWithBalance();
   const { activeBook } = useBook();
 
   useEffect(() => {
