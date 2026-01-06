@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -39,6 +39,26 @@ export const Sidebar = () => {
     const [newBookName, setNewBookName] = useState('');
     const [isChecking, setIsChecking] = useState(false);
 
+    // Dropdown Ref
+    const dropdownRef = useRef<HTMLDivElement>(null);
+
+    // Click Outside Handler
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+                setIsBookDropdownOpen(false);
+            }
+        };
+
+        if (isBookDropdownOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [isBookDropdownOpen]);
+
     const navItems = [
         { label: 'Customers', href: '/dashboard', icon: Users },
         { label: 'Transactions', href: '/transactions', icon: ReceiptText },
@@ -46,7 +66,7 @@ export const Sidebar = () => {
         { label: 'Settings', href: '/settings', icon: Settings },
     ];
 
-    // Book Handlers (Duplicated from Navbar logic for now - clean dry pattern would be a hook, but okay for direct port)
+    // Book Handlers
     const handleCreateBook = async (e: React.FormEvent) => {
         e.preventDefault();
         const name = newBookName.trim();
@@ -127,7 +147,7 @@ export const Sidebar = () => {
 
             <div className={styles.bookSection}>
                 <label className={styles.sectionLabel}>Active Ledger</label>
-                <div className={styles.bookSelector}>
+                <div className={styles.bookSelector} ref={dropdownRef}>
                     <button
                         className={styles.activeBookBtn}
                         onClick={() => setIsBookDropdownOpen(!isBookDropdownOpen)}

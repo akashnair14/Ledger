@@ -1,55 +1,67 @@
 :root {
-  /* Disciplined Ledger Palette - Deep Navy & Bone */
-  --primary: #0a0f1d;
-  --primary-rgb: 10, 15, 29;
-  --primary-light: #161e31;
-  --primary-hover: #1c263d;
+  /* Modern Fintech Palette - Crisp Indigo & Slate */
+  --primary: #4f46e5;
+  /* Indigo 600 - Dynamic & Trustworthy */
+  --primary-rgb: 79, 70, 229;
+  --primary-light: #6366f1;
+  /* Indigo 500 */
+  --primary-hover: #4338ca;
+  /* Indigo 700 */
 
-  --secondary: #475569;
-  --accent: #d4d4d8;
+  --secondary: #64748b;
+  /* Slate 500 */
+  --accent: #e2e8f0;
+  /* Slate 200 */
 
-  --success: #065f46;
-  /* Deep Emerald Green (Serious) */
-  --danger: #7f1d1d;
-  /* Deep Crimson (Stable) */
-  --warning: #92400e;
+  --success: #10b981;
+  /* Emerald 500 - Vibrant */
+  --danger: #ef4444;
+  /* Red 500 - Clear Alert */
+  --warning: #f59e0b;
+  /* Amber 500 */
 
-  --background: #fcfaf7;
-  /* Parchment-tinted background */
+  --background: #f8fafc;
+  /* Slate 50 - Cool Professional White */
   --surface: #ffffff;
+  /* Pure White */
   --surface-rgb: 255, 255, 255;
-  --surface-header: #f8f6f2;
+  --surface-header: #f1f5f9;
+  /* Slate 100 - Subtle Gray */
 
-  --text-main: #0a0f1d;
-  --text-muted: #334155;
-  --text-dim: #64748b;
+  --text-main: #0f172a;
+  /* Slate 900 - Deep, Readable Blue-Black */
+  --text-muted: #475569;
+  /* Slate 600 */
+  --text-dim: #94a3b8;
+  /* Slate 400 */
   --text-on-primary: #ffffff;
 
-  --border: #e2e4e9;
-  --border-thick: #d1d5db;
+  --border: #e2e8f0;
+  /* Slate 200 */
+  --border-thick: #cbd5e1;
+  /* Slate 300 */
 
-  /* Disciplined Shadows - Subtle & Structured */
-  --shadow-soft: 0 1px 3px rgba(0, 0, 0, 0.1);
-  --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-  --shadow-glow: none;
+  /* Modern Shadows - Elevated & Diffused */
+  --shadow-soft: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  --shadow-card: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
+  --shadow-glow: 0 0 20px rgba(79, 70, 229, 0.15);
 
-  --radius-sm: 4px;
-  --radius-md: 6px;
-  --radius-lg: 12px;
-  --radius-xl: 16px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
 
   /* Responsive Heights */
-  --header-height: 52px;
-  /* Slightly more compact */
-  --nav-height: 56px;
+  --header-height: 56px;
+  --nav-height: 60px;
 
   @media (min-width: 768px) {
     --header-height: 64px;
     --nav-height: 64px;
   }
 
-  --transition-smooth: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-pop: 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  --transition-smooth: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-pop: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 [data-theme='dark'] {
