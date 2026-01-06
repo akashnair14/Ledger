@@ -491,11 +491,25 @@
     padding-bottom: calc(1rem + env(safe-area-inset-bottom));
 }
 
-@media (min-width: 768px) {
-    .bottomActions {
+@media (min-width: 1024px) {
+
+    .bottomActions,
+    .bulkActions {
+        left: 260px;
+        /* Match Sidebar width */
+        padding: 1.25rem 2rem;
         bottom: 0;
         z-index: 110;
-        padding-bottom: 1.25rem;
+        /* Center content visually if max-width is used */
+        display: flex;
+        justify-content: center;
+        gap: 2rem;
+    }
+
+    .bottomActions>*,
+    .bulkActions>* {
+        max-width: 400px;
+        width: 100%;
     }
 }
 
