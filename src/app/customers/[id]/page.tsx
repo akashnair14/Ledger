@@ -76,6 +76,10 @@ export default function CustomerDetailPage() {
     const [attachment, setAttachment] = useState<File | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+    // Scanning States
+    const [isScanning, setIsScanning] = useState(false);
+    const [scanIntent, setScanIntent] = useState(false);
+
     // UX States
     const [isSaving, setIsSaving] = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
@@ -312,8 +316,6 @@ export default function CustomerDetailPage() {
         window.open(`https://wa.me/91${customer.phone.replace(/\D/g, '')}?text=${msg}`, '_blank');
     };
 
-    const [isScanning, setIsScanning] = useState(false);
-    const [scanIntent, setScanIntent] = useState(false);
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
