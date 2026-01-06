@@ -283,7 +283,18 @@ export default function CustomersPage() {
                         {customer.name.charAt(0).toUpperCase()}
                       </div>
                       <div className={styles.info}>
-                        <h3>{customer.name}</h3>
+                        <div className={styles.nameRow}>
+                          <h3>{customer.name}</h3>
+                          <span className={`${styles.balanceBadge} ${customer.balance === 0
+                              ? styles.neutralVar
+                              : (activeTab === 'CUSTOMER'
+                                ? (customer.balance > 0 ? styles.positiveVar : styles.negativeVar)
+                                : (customer.balance > 0 ? styles.negativeVar : styles.positiveVar)
+                              )
+                            }`}>
+                            {customer.balance === 0 ? '₹0' : (customer.balance > 0 ? '₹' + customer.balance.toLocaleString() : '₹' + Math.abs(customer.balance).toLocaleString())}
+                          </span>
+                        </div>
                         <p>{customer.phone}</p>
                       </div>
                       <div className={styles.customerMeta}>

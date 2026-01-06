@@ -432,3 +432,9 @@
   background-color: rgba(127, 29, 29, 0.1);
   color: var(--danger);
 }
+
+.neutralVar {
+  background-color: var(--surface-header);
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+}
