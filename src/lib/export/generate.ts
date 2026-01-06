@@ -6,12 +6,21 @@ import { Customer, Transaction, db } from '../db';
 
 export type ReportType = 'DETAILED' | 'SUMMARY_DAY' | 'SUMMARY_MONTH' | 'SUMMARY_QUARTER' | 'SUMMARY_FY';
 
+
+function formatDate(date: number | string | Date): string {
+    const d = new Date(date);
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    return `${day}-${month}-${year}`;
+}
+
 export async function exportToCSV(customers: Customer[], transactions: Transaction[], variant: 'STANDARD' | 'TALLY' = 'STANDARD') {
     const data = transactions.map(t => {
         const customer = customers.find(c => c.id === t.customerId);
         if (variant === 'TALLY') {
             return {
-                Date: new Date(t.date).toLocaleDateString('en-GB'),
+                Date: formatDate(t.date),
                 Particulars: customer?.name || 'Unknown',
                 VchType: t.type === 'CREDIT' ? 'Sales' : 'Receipt',
                 VchNo: t.invoiceNumber || '',
@@ -21,7 +30,7 @@ export async function exportToCSV(customers: Customer[], transactions: Transacti
             };
         }
         return {
-            Date: new Date(t.date).toLocaleDateString(),
+            Date: formatDate(t.date),
             Customer: customer?.name || 'Unknown',
             Type: t.type,
             Amount: t.amount,
@@ -44,7 +53,7 @@ export async function exportToExcel(customers: Customer[], transactions: Transac
     const data = transactions.map(t => {
         const customer = customers.find(c => c.id === t.customerId);
         return {
-            Date: new Date(t.date).toLocaleDateString(),
+            Date: formatDate(t.date),
             Customer: customer?.name || 'Unknown',
             Type: t.type,
             Amount: t.amount,
@@ -67,7 +76,7 @@ export async function generateVoucher(customer: Customer, t: Transaction, balanc
     doc.setFontSize(12);
     doc.setTextColor(15, 23, 42);
     doc.text(`Voucher ID: ${t.id.slice(0, 8).toUpperCase()}`, 14, 55);
-    doc.text(`Date: ${new Date(t.date).toLocaleString('en-IN')}`, 14, 62);
+    doc.text(`Date: ${formatDate(t.date)}`, 14, 62);
 
     doc.setFontSize(10);
     doc.text('Customer Details:', 140, 55);
@@ -172,7 +181,7 @@ export async function exportToPDF(customerName: string, transactions: Transactio
         if (reportType === 'DETAILED') {
             tableHead = [['Date', 'Mode', 'Debit (Given)', 'Credit (Received)', 'Notes', 'Bill']];
             tableBody = filtered.map(t => [
-                new Date(t.date).toLocaleDateString(),
+                formatDate(t.date),
                 t.paymentMode,
                 t.type === 'CREDIT' ? t.amount.toLocaleString() : '',
                 t.type === 'PAYMENT' ? t.amount.toLocaleString() : '',
@@ -188,7 +197,7 @@ export async function exportToPDF(customerName: string, transactions: Transactio
                 let key = '';
 
                 if (reportType === 'SUMMARY_DAY') {
-                    key = date.toLocaleDateString();
+                    key = formatDate(date);
                 } else if (reportType === 'SUMMARY_MONTH') {
                     key = date.toLocaleString('default', { month: 'long', year: 'numeric' });
                 } else if (reportType === 'SUMMARY_QUARTER') {
