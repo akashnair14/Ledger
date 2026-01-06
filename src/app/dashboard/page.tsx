@@ -55,8 +55,13 @@ export default function CustomersPage() {
 
   const [activeTab, setActiveTab] = useState<'CUSTOMER' | 'SUPPLIER' | 'INSIGHTS'>('CUSTOMER');
 
+  // Filter & Sort States
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [filterType, setFilterType] = useState<'ALL' | 'HAS_BALANCE' | 'SETTLED'>('ALL');
+  const [sortType, setSortType] = useState<'NAME_ASC' | 'AMOUNT_DESC' | 'AMOUNT_ASC'>('NAME_ASC');
+
   // Client-side search & Book filtering
-  const customers = allCustomers?.filter(c => {
+  const filteredCustomers = allCustomers?.filter(c => {
     // Book Filter - must match active book
     if (!activeBook) return false;
     if (c.bookId !== activeBook.id) return false;
@@ -66,9 +71,24 @@ export default function CustomersPage() {
     if (cType !== activeTab) return false;
 
     // Search Match
-    if (!searchQuery) return true;
-    const q = searchQuery.toLowerCase();
-    return c.name.toLowerCase().includes(q) || c.phone.includes(q);
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      if (!c.name.toLowerCase().includes(q) && !c.phone.includes(q)) return false;
+    }
+
+    // Balance Filter
+    if (filterType === 'HAS_BALANCE') return c.balance !== 0;
+    if (filterType === 'SETTLED') return c.balance === 0;
+
+    return true;
+  });
+
+  // Sorting Logic (Abs for amount to show biggest balances first)
+  const customers = filteredCustomers?.sort((a, b) => {
+    if (sortType === 'NAME_ASC') return a.name.localeCompare(b.name);
+    if (sortType === 'AMOUNT_DESC') return Math.abs(b.balance) - Math.abs(a.balance);
+    if (sortType === 'AMOUNT_ASC') return Math.abs(a.balance) - Math.abs(b.balance);
+    return 0;
   });
 
   const validateForm = async () => {
@@ -247,7 +267,45 @@ export default function CustomersPage() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
-              <button className={styles.filterBtn}><Filter size={20} /></button>
+              <div style={{ position: 'relative' }}>
+                <button
+                  className={`${styles.filterBtn} ${filterType !== 'ALL' || sortType !== 'NAME_ASC' ? styles.activeFilter : ''}`}
+                  onClick={() => setIsFilterOpen(!isFilterOpen)}
+                  title="Sort & Filter"
+                >
+                  <Filter size={20} />
+                </button>
+                {isFilterOpen && (
+                  <div className={styles.filterDropdown}>
+                    <div className={styles.filterSection}>
+                      <h4>Sort By</h4>
+                      <button onClick={() => { setSortType('NAME_ASC'); setIsFilterOpen(false); }} className={sortType === 'NAME_ASC' ? styles.activeOption : ''}>
+                        Name (A-Z)
+                      </button>
+                      <button onClick={() => { setSortType('AMOUNT_DESC'); setIsFilterOpen(false); }} className={sortType === 'AMOUNT_DESC' ? styles.activeOption : ''}>
+                        Highest Amount First
+                      </button>
+                      <button onClick={() => { setSortType('AMOUNT_ASC'); setIsFilterOpen(false); }} className={sortType === 'AMOUNT_ASC' ? styles.activeOption : ''}>
+                        Lowest Amount First
+                      </button>
+                    </div>
+                    <div className={styles.divider} />
+                    <div className={styles.filterSection}>
+                      <h4>Filter By</h4>
+                      <button onClick={() => { setFilterType('ALL'); setIsFilterOpen(false); }} className={filterType === 'ALL' ? styles.activeOption : ''}>
+                        Show All
+                      </button>
+                      <button onClick={() => { setFilterType('HAS_BALANCE'); setIsFilterOpen(false); }} className={filterType === 'HAS_BALANCE' ? styles.activeOption : ''}>
+                        {activeTab === 'CUSTOMER' ? 'Has Balance' : 'Has Balance'}
+                      </button>
+                      <button onClick={() => { setFilterType('SETTLED'); setIsFilterOpen(false); }} className={filterType === 'SETTLED' ? styles.activeOption : ''}>
+                        Settled (Zero)
+                      </button>
+                    </div>
+                  </div>
+                )}
+                {isFilterOpen && <div className={styles.backdrop} onClick={() => setIsFilterOpen(false)} />}
+              </div>
             </div>
 
             <div className={styles.list}>
