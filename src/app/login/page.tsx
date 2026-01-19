@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useState, useEffect, Suspense } from 'react'
 import { Shield, Mail, ArrowRight, Loader2, Lock, Key, UserPlus, LogIn } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import Link from 'next/link'
 import styles from './login.module.css'
 
 function LoginContent() {
@@ -191,6 +192,12 @@ function LoginContent() {
                                     disabled={loading}
                                 />
                             </div>
+                        )}
+
+                        {authMethod === 'password' && !isSignUp && (
+                            <Link href="/forgot-password" className={styles.forgotPassword}>
+                                Forgot Password?
+                            </Link>
                         )}
 
                         <button

@@ -16,7 +16,7 @@ export const AppLock: React.FC<AppLockProps> = ({ children }) => {
     const [isChecking, setIsChecking] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
-    const isPublic = pathname === '/' || pathname === '/login' || pathname?.startsWith('/docs');
+    const isPublic = pathname === '/' || pathname === '/login' || pathname === '/forgot-password' || pathname === '/reset-password' || pathname?.startsWith('/auth') || pathname?.startsWith('/docs');
 
     useEffect(() => {
         const checkLock = async () => {

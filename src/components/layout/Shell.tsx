@@ -9,7 +9,7 @@ import styles from './Shell.module.css';
 
 export const Shell = ({ children }: { children: React.ReactNode }) => {
     const pathname = usePathname();
-    const isPublic = pathname === '/' || pathname === '/login' || pathname?.startsWith('/docs');
+    const isPublic = pathname === '/' || pathname === '/login' || pathname === '/forgot-password' || pathname === '/reset-password' || pathname?.startsWith('/auth') || pathname?.startsWith('/docs');
 
     return (
         <div className={styles.shell}>

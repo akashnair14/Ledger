@@ -270,8 +270,24 @@
   margin-top: 0.25rem;
 }
 
+
 .toggleAuthMode:hover {
   color: #2563eb;
+}
+
+.forgotPassword {
+  display: block;
+  text-align: right;
+  font-size: 0.85rem;
+  color: #64748b;
+  text-decoration: none;
+  font-weight: 500;
+  margin-top: 0.25rem;
+  transition: color 0.2s;
+}
+
+.forgotPassword:hover {
+  color: #3b82f6;
 }
 
 .message {
