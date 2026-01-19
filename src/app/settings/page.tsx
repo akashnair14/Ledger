@@ -166,13 +166,13 @@ export default function SettingsPage() {
             localStorage.clear(); // Clear everything else
             sessionStorage.clear();
 
-            // 4. Redirect
-            window.location.href = '/login';
+            // 4. Redirect to Server Logout (Clears Cookies)
+            window.location.href = '/auth/signout';
         } catch (err) {
             console.error('Logout error:', err);
             // Even if error, force clear token
             localStorage.removeItem('sb-auth-token');
-            window.location.href = '/login';
+            window.location.href = '/auth/signout';
         }
     };
 
