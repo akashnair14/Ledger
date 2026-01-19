@@ -23,7 +23,16 @@ function LoginContent() {
         if (error) {
             setMessage({ text: 'Authentication failed. Please try again.', type: 'error' })
         }
-    }, [searchParams])
+
+        // Auto-check for existing session (e.g. from LocalStorage in PWA)
+        const checkSession = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+                router.replace('/dashboard');
+            }
+        };
+        checkSession();
+    }, [searchParams, supabase.auth, router])
 
     const handleGoogleLogin = async () => {
         if (loading) return
