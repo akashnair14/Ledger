@@ -147,7 +147,8 @@ export default function SettingsPage() {
             const supabase = createClient();
 
             // 1. Sign out from Supabase
-            await supabase.auth.signOut();
+            await supabase.auth.signOut({ scope: 'local' }); // Ensure local session is killed
+            await supabase.auth.signOut(); // Global signout
 
             // 2. Clear local database
             await Promise.all([
@@ -159,15 +160,18 @@ export default function SettingsPage() {
                 db.settings.clear()
             ]);
 
-            // 3. Clear storage
-            localStorage.clear();
+            // 3. Clear storage (CRITICAL for PWA Persistence Fix)
+            localStorage.removeItem('sb-auth-token'); // Explicitly remove auth token
+            sessionStorage.removeItem('app_unlocked'); // Lock the app
+            localStorage.clear(); // Clear everything else
             sessionStorage.clear();
 
             // 4. Redirect
             window.location.href = '/login';
         } catch (err) {
             console.error('Logout error:', err);
-            showToast('Logout failed, but session cleared', 'error');
+            // Even if error, force clear token
+            localStorage.removeItem('sb-auth-token');
             window.location.href = '/login';
         }
     };
