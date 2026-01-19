@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Download, Calendar, FileText, RefreshCw, X, ChevronRight, PieChart } from 'lucide-react';
+import { Download, Calendar, FileText, RefreshCw, ChevronRight } from 'lucide-react';
 import { exportToPDF, ReportType } from '@/lib/export/generate';
 import { Transaction } from '@/lib/db';
 import { Modal } from '@/components/ui/Modal';

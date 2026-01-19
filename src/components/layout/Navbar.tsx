@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
+import { type Book } from '@/lib/db';
 import { useBook } from '@/context/BookContext';
-import { db, now, generateId } from '@/lib/db';
+// unused imports removed
 import {
     ChevronDown,
     Plus,
@@ -26,7 +27,7 @@ export const Navbar = () => {
     const { showToast } = useToast();
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [isBookModalOpen, setIsBookModalOpen] = useState(false);
-    const [bookToEdit, setBookToEdit] = useState<any | null>(null);
+    const [bookToEdit, setBookToEdit] = useState<Book | null>(null);
     const [newBookName, setNewBookName] = useState('');
     const [isChecking, setIsChecking] = useState(false);
 
@@ -54,6 +55,7 @@ export const Navbar = () => {
 
     const handleUpdateBook = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!bookToEdit) return;
         const name = newBookName.trim();
         if (name.length < 3) return alert('Name must be at least 3 characters');
         if (books.some(b => b.name === name && b.id !== bookToEdit.id && b.isDeleted === 0)) return alert('Duplicate book name');

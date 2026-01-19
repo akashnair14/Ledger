@@ -73,11 +73,28 @@ export const GlobalSearch = () => {
         setIsOpen(false);
     }, []);
 
+
+
+
+    const onSelect = useCallback((item: SearchResult) => {
+        if (!item) return;
+        if (item.type === 'CUSTOMER' || item.type === 'SUPPLIER') {
+            router.push(`/customers/${item.id}`);
+        } else if (item.type === 'TRANSACTION') {
+            router.push(`/customers/${item.id}?txn=${item.txnId}`);
+        }
+        handleClose();
+    }, [router, handleClose]);
+
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
                 e.preventDefault();
-                isOpen ? handleClose() : handleOpen();
+                if (isOpen) {
+                    handleClose();
+                } else {
+                    handleOpen();
+                }
             }
             if (e.key === 'Escape') handleClose();
             if (isOpen) {
@@ -96,17 +113,9 @@ export const GlobalSearch = () => {
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [isOpen, handleOpen, handleClose, results, selectedIndex]);
+    }, [isOpen, handleOpen, handleClose, results, selectedIndex, onSelect]);
 
-    const onSelect = (item: SearchResult) => {
-        if (!item) return;
-        if (item.type === 'CUSTOMER' || item.type === 'SUPPLIER') {
-            router.push(`/customers/${item.id}`);
-        } else if (item.type === 'TRANSACTION') {
-            router.push(`/customers/${item.id}?txn=${item.txnId}`);
-        }
-        handleClose();
-    };
+
 
     return (
         <AnimatePresence>

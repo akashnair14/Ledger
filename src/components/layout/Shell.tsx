@@ -5,6 +5,7 @@ import { BottomNav } from './BottomNav';
 import { Sidebar } from './Sidebar';
 import { GlobalSearch } from '../ui/GlobalSearch';
 import { usePathname } from 'next/navigation';
+import { PullToRefresh } from './PullToRefresh';
 import styles from './Shell.module.css';
 
 export const Shell = ({ children }: { children: React.ReactNode }) => {
@@ -27,7 +28,9 @@ export const Shell = ({ children }: { children: React.ReactNode }) => {
 
             <main className={isPublic ? styles.publicMain : styles.main}>
                 <div className={isPublic ? styles.publicContent : styles.content}>
-                    {children}
+                    <PullToRefresh>
+                        {children}
+                    </PullToRefresh>
                 </div>
             </main>
 

@@ -2,7 +2,7 @@
 
 import { db } from '@/lib/db';
 import { useCustomers, useTransactions } from '@/hooks/useSupabase';
-import { FileUp, Trash2, Database, Shield, Building2, Upload, ToggleLeft, ToggleRight, Download, RefreshCw, LogOut } from 'lucide-react';
+import { FileUp, Trash2, Database, Building2, Upload, ToggleLeft, ToggleRight, Download, RefreshCw, LogOut } from 'lucide-react';
 import { exportToCSV, exportToExcel, exportToJSON } from '@/lib/export/generate';
 import { importFromCSV } from '@/lib/import/csv';
 import { bioAuth } from '@/lib/auth/biometrics';
@@ -33,6 +33,7 @@ export default function SettingsPage() {
     const [businessName, setBusinessName] = useState('');
     const [businessAddress, setBusinessAddress] = useState('');
     const [businessLogo, setBusinessLogo] = useState('');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [user, setUser] = useState<any>(null);
 
     useEffect(() => {
@@ -143,12 +144,11 @@ export default function SettingsPage() {
         showToast('Signing out and clearing data...');
 
         try {
-            const { createClient } = await import('@/lib/supabase/client');
-            const supabase = createClient();
-
+            await import('@/lib/supabase/client');
             // 1. Sign out from Supabase
-            await supabase.auth.signOut({ scope: 'local' }); // Ensure local session is killed
-            await supabase.auth.signOut(); // Global signout
+            // 1. Sign out from Supabase
+            // We SKIP client-side signOut to prevent AuthStateListener from triggering a race condition.
+            // Instead, we let the server route (/auth/signout) handle the cookie clearing 100%.
 
             // 2. Clear local database
             await Promise.all([
@@ -241,6 +241,7 @@ export default function SettingsPage() {
                                 <div className={styles.logoSection}>
                                     <div className={styles.logoPreview}>
                                         {businessLogo ? (
+                                            // eslint-disable-next-line @next/next/no-img-element
                                             <img src={businessLogo} alt="Business Logo" />
                                         ) : (
                                             <Building2 size={40} />

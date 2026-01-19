@@ -23,6 +23,7 @@ import {
 } from 'recharts';
 
 export default function AnalyticsPage() {
+    const [today] = useState(() => Date.now());
     const { activeBook } = useBook();
     const [timeframe, setTimeframe] = useState<30 | 90>(30);
 
@@ -53,9 +54,9 @@ export default function AnalyticsPage() {
         });
 
         // 2. Trend Data Calculation
-        const now = Date.now();
+        const now = today;
         const startTimestamp = now - timeframe * 24 * 60 * 60 * 1000;
-        const trendData: any[] = [];
+        const trendData: { date: string; balance: number; fullDate: string }[] = [];
 
         // Pre-group transactions by date string for O(1) lookup in loop
         const txnsByDay: Record<string, typeof bookTransactions> = {};
@@ -102,7 +103,7 @@ export default function AnalyticsPage() {
                 .filter(c => c.balance > 0 && c.lastTxnDate < now - (30 * 24 * 60 * 60 * 1000))
                 .sort((a, b) => a.lastTxnDate - b.lastTxnDate)
         };
-    }, [customers, transactions, activeBook?.id, timeframe]);
+    }, [customers, transactions, activeBook, timeframe, today]);
 
     if (loadingCustomers || loadingTxns) return <div className={styles.loading}>Analyzing Ledger...</div>;
     if (!stats) return <div className={styles.loading}>No data available for analysis.</div>;
@@ -158,7 +159,7 @@ export default function AnalyticsPage() {
                             <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: 'var(--text-dim)' }} tickFormatter={(val) => `₹${val / 1000}k`} />
                             <Tooltip
                                 contentStyle={{ background: 'var(--surface)', border: '1px solid var(--border-thick)', borderRadius: '8px', fontSize: '12px' }}
-                                formatter={(value: any) => [`₹${(Number(value) || 0).toLocaleString()}`, 'Balance']}
+                                formatter={(value: number | string | undefined) => [`₹${(Number(value) || 0).toLocaleString()}`, 'Balance']}
                             />
                             <Area type="monotone" dataKey="balance" stroke="#3b82f6" strokeWidth={3} fillOpacity={1} fill="url(#colorBalance)" />
                         </AreaChart>
@@ -179,7 +180,7 @@ export default function AnalyticsPage() {
                                 <span>Last Transacted: {new Date(debtor.lastTxnDate).toLocaleDateString()}</span>
                             </div>
                             <div className={styles.debtorBalance}>
-                                <span className={styles.agedDays}>{Math.round((Date.now() - debtor.lastTxnDate) / (1000 * 60 * 60 * 24))} Days Pending</span>
+                                <span className={styles.agedDays}>{Math.round((today - debtor.lastTxnDate) / (1000 * 60 * 60 * 24))} Days Pending</span>
                                 <span className={styles.negative}>₹{debtor.balance.toLocaleString()}</span>
                             </div>
                         </Link>

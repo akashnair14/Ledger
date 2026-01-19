@@ -13,17 +13,17 @@ import {
     Plus,
     Edit3,
     Trash2,
-    Loader2,
     Moon,
-    Sun,
-    LogOut
+    Sun
 } from 'lucide-react';
 import { useBook } from '@/context/BookContext';
+import { type Book as BookType } from '@/lib/db';
 import { useTheme } from '@/context/ThemeContext';
 import { useToast } from '@/context/ToastContext';
 import { hasCustomersInBook, addBook, updateBook, deleteBook } from '@/hooks/useSupabase';
 import { Modal } from '@/components/ui/Modal';
 import { VoiceCommandButton } from '../features/VoiceCommandButton';
+import { useHaptic } from '@/hooks/useHaptic';
 import styles from './Sidebar.module.css';
 
 export const Sidebar = () => {
@@ -31,11 +31,12 @@ export const Sidebar = () => {
     const { activeBook, setActiveBook, books } = useBook();
     const { theme, toggleTheme } = useTheme();
     const { showToast } = useToast();
+    const { triggerSuccess, triggerError } = useHaptic();
 
     // Book Management State
     const [isBookDropdownOpen, setIsBookDropdownOpen] = useState(false);
     const [isBookModalOpen, setIsBookModalOpen] = useState(false);
-    const [bookToEdit, setBookToEdit] = useState<any | null>(null);
+    const [bookToEdit, setBookToEdit] = useState<BookType | null>(null);
     const [newBookName, setNewBookName] = useState('');
     const [isChecking, setIsChecking] = useState(false);
 
@@ -76,6 +77,7 @@ export const Sidebar = () => {
         try {
             setIsChecking(true);
             const book = await addBook(name);
+            triggerSuccess();
             showToast('Ledger created successfully!');
             setNewBookName('');
             setIsBookModalOpen(false);
@@ -83,6 +85,7 @@ export const Sidebar = () => {
             setActiveBook(book);
         } catch (err: unknown) {
             console.error(err);
+            triggerError();
             showToast('Failed to create ledger: ' + (err instanceof Error ? err.message : 'Unknown error'), 'error');
         } finally {
             setIsChecking(false);
@@ -93,17 +96,20 @@ export const Sidebar = () => {
         e.preventDefault();
         const name = newBookName.trim();
         if (name.length < 3) return alert('Name must be at least 3 characters');
+        if (!bookToEdit) return;
         if (books.some(b => b.name === name && b.id !== bookToEdit.id && b.isDeleted === 0)) return alert('Duplicate book name');
 
         try {
             setIsChecking(true);
             await updateBook(bookToEdit.id, name);
+            triggerSuccess();
             showToast('Ledger name updated!');
             setBookToEdit(null);
             setNewBookName('');
             setIsBookDropdownOpen(false);
         } catch (err: unknown) {
             console.error(err);
+            triggerError();
             showToast('Failed to update ledger: ' + (err instanceof Error ? err.message : 'Unknown error'), 'error');
         } finally {
             setIsChecking(false);
@@ -126,11 +132,13 @@ export const Sidebar = () => {
                     const nextBook = books.find(b => b.id !== id && b.isDeleted === 0);
                     if (nextBook) setActiveBook(nextBook);
                 }
+                triggerSuccess();
                 showToast('Ledger deleted successfully!');
                 setIsBookDropdownOpen(false);
             }
         } catch (error) {
             setIsChecking(false);
+            triggerError();
             console.error('Delete book failed:', error);
             showToast('Failed to delete ledger', 'error');
         }

@@ -51,7 +51,7 @@ function parseReceiptText(text: string): ReceiptData {
             // 1. DD/MM/YYYY or DD-MM-YYYY
             const dmyMatch = line.match(/\b(\d{1,2})[-/](\d{1,2})[-/](\d{2,4})\b/);
             if (dmyMatch) {
-                const [_, d, m, y] = dmyMatch;
+                const [, d, m, y] = dmyMatch;
                 const fullYear = y.length === 2 ? `20${y}` : y;
                 if (parseInt(m) <= 12 && parseInt(d) <= 31) {
                     date = new Date(`${fullYear}-${m}-${d}`).toISOString();
@@ -62,7 +62,7 @@ function parseReceiptText(text: string): ReceiptData {
             if (!date) {
                 const ymdMatch = line.match(/\b(\d{4})[-/](\d{1,2})[-/](\d{1,2})\b/);
                 if (ymdMatch) {
-                    const [_, y, m, d] = ymdMatch;
+                    const [, y, m, d] = ymdMatch;
                     if (parseInt(m) <= 12 && parseInt(d) <= 31) {
                         date = new Date(`${y}-${m}-${d}`).toISOString();
                     }
@@ -81,7 +81,7 @@ function parseReceiptText(text: string): ReceiptData {
                         if (!isNaN(parsed.getTime())) {
                             date = parsed.toISOString();
                         }
-                    } catch (e) { }
+                    } catch { } // _e is unused
                 }
             }
         }

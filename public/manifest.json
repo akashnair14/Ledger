@@ -4,14 +4,44 @@
   "description": "Secure, offline-first personal ledger management with Google Drive sync.",
   "start_url": "/dashboard",
   "display": "standalone",
-  "background_color": "#ffffff",
+  "orientation": "portrait",
+  "background_color": "#0f172a",
   "theme_color": "#0f172a",
+  "categories": [
+    "finance",
+    "productivity",
+    "utilities"
+  ],
   "icons": [
     {
       "src": "/app_logo.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Home",
+      "url": "/dashboard",
+      "icons": [
+        {
+          "src": "/app_logo.png",
+          "sizes": "512x512"
+        }
+      ]
+    },
+    {
+      "name": "New Transaction",
+      "short_name": "New Txn",
+      "url": "/customers/new",
+      "icons": [
+        {
+          "src": "/app_logo.png",
+          "sizes": "512x512"
+        }
+      ]
     }
   ]
 }

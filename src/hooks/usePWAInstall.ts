@@ -1,20 +1,34 @@
 import { useState, useEffect } from 'react';
 
+interface BeforeInstallPromptEvent extends Event {
+    readonly platforms: string[];
+    readonly userChoice: Promise<{
+        outcome: 'accepted' | 'dismissed';
+        platform: string;
+    }>;
+    prompt(): Promise<void>;
+}
+
+interface NavigatorWithStandalone extends Navigator {
+    standalone?: boolean;
+}
+
 export const usePWAInstall = () => {
-    const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
-    const [isInstalled, setIsInstalled] = useState(false);
+    const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+    const [isInstalled, setIsInstalled] = useState(() => {
+        if (typeof window !== 'undefined') {
+            const nav = window.navigator as NavigatorWithStandalone;
+            const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
+                (nav.standalone === true);
+            return isStandalone;
+        }
+        return false;
+    });
 
     useEffect(() => {
-        // Check if already installed
-        if (typeof window !== 'undefined') {
-            if (window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone === true) {
-                setIsInstalled(true);
-            }
-        }
-
-        const handleBeforeInstallPrompt = (e: any) => {
+        const handleBeforeInstallPrompt = (e: Event) => {
             e.preventDefault();
-            setDeferredPrompt(e);
+            setDeferredPrompt(e as BeforeInstallPromptEvent);
         };
 
         window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);

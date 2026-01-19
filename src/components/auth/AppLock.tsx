@@ -18,6 +18,19 @@ export const AppLock: React.FC<AppLockProps> = ({ children }) => {
 
     const isPublic = pathname === '/' || pathname === '/login' || pathname === '/forgot-password' || pathname === '/reset-password' || pathname?.startsWith('/auth') || pathname?.startsWith('/docs');
 
+    const handleUnlock = async () => {
+        setIsChecking(true);
+        setError(null);
+        const success = await bioAuth.authenticate();
+        if (success) {
+            setIsLocked(false);
+            sessionStorage.setItem('app_unlocked', 'true');
+        } else {
+            setError('Biometric authentication failed. Please try again.');
+        }
+        setIsChecking(false);
+    };
+
     useEffect(() => {
         const checkLock = async () => {
             if (isPublic) {
@@ -42,18 +55,9 @@ export const AppLock: React.FC<AppLockProps> = ({ children }) => {
         checkLock();
     }, [isPublic]);
 
-    const handleUnlock = async () => {
-        setIsChecking(true);
-        setError(null);
-        const success = await bioAuth.authenticate();
-        if (success) {
-            setIsLocked(false);
-            sessionStorage.setItem('app_unlocked', 'true');
-        } else {
-            setError('Biometric authentication failed. Please try again.');
-        }
-        setIsChecking(false);
-    };
+
+
+
 
     if (isChecking && !isLocked) return null;
 

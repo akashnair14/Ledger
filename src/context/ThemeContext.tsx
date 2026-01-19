@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useState } from 'react';
 
 type Theme = 'light' | 'dark';
 type LayoutMode = 'standard' | 'focus';
@@ -17,9 +17,40 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [theme, setTheme] = useState<Theme>('light');
-    const [layoutMode, setLayoutMode] = useState<LayoutMode>('standard');
-    const [primaryColor, setPrimaryColorState] = useState<string>('#6366f1');
+    const [theme, setTheme] = useState<Theme>(() => {
+        if (typeof window === 'undefined') return 'light';
+        const saved = localStorage.getItem('theme') as Theme;
+        if (saved) {
+            document.documentElement.setAttribute('data-theme', saved);
+            return saved;
+        }
+        if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            return 'dark';
+        }
+        return 'light';
+    });
+
+    const [layoutMode, setLayoutMode] = useState<LayoutMode>(() => {
+        if (typeof window === 'undefined') return 'standard';
+        const saved = localStorage.getItem('layoutMode') as LayoutMode;
+        if (saved) {
+            document.documentElement.setAttribute('data-layout', saved);
+            return saved;
+        }
+        return 'standard';
+    });
+
+    const [primaryColor, setPrimaryColorState] = useState<string>(() => {
+        if (typeof window === 'undefined') return '#6366f1';
+        const saved = localStorage.getItem('primaryColor');
+        if (saved) {
+            document.documentElement.style.setProperty('--primary', saved);
+            document.documentElement.style.setProperty('--primary-light', `${saved}25`);
+            return saved;
+        }
+        return '#6366f1';
+    });
 
     const setPrimaryColor = (color: string) => {
         setPrimaryColorState(color);
@@ -27,28 +58,6 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         document.documentElement.style.setProperty('--primary', color);
         document.documentElement.style.setProperty('--primary-light', `${color}25`);
     };
-
-    useEffect(() => {
-        const savedTheme = localStorage.getItem('theme') as Theme;
-        if (savedTheme) {
-            setTheme(savedTheme);
-            document.documentElement.setAttribute('data-theme', savedTheme);
-        } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-            setTheme('dark');
-            document.documentElement.setAttribute('data-theme', 'dark');
-        }
-
-        const savedLayout = localStorage.getItem('layoutMode') as LayoutMode;
-        if (savedLayout) {
-            setLayoutMode(savedLayout);
-            document.documentElement.setAttribute('data-layout', savedLayout);
-        }
-
-        const savedColor = localStorage.getItem('primaryColor');
-        if (savedColor) {
-            setPrimaryColor(savedColor);
-        }
-    }, []);
 
     const toggleTheme = () => {
         const newTheme = theme === 'light' ? 'dark' : 'light';

@@ -43,10 +43,10 @@ export default function DocsPage() {
                         <p>3. We will send a magic link to your email. Click it, and you are in! No passwords to remember.</p>
 
                         <h3>Selecting a Ledger Book</h3>
-                        <p>Think of a <strong>Ledger Book</strong> as a physical notebook. You can have separate books for "Shop Accounts", "Personal Expenses", etc.</p>
+                        <p>Think of a <strong>Ledger Book</strong> as a physical notebook. You can have separate books for &quot;Shop Accounts&quot;, &quot;Personal Expenses&quot;, etc.</p>
                         <ul>
                             <li>Look at the Sidebar (Desktop) or top Menu (Mobile).</li>
-                            <li>Click the book name or <strong>"New Ledger"</strong> to create a one.</li>
+                            <li>Click the book name or <strong>&quot;New Ledger&quot;</strong> to create a one.</li>
                         </ul>
                     </section>
 
@@ -59,8 +59,8 @@ export default function DocsPage() {
                             <div className={styles.card}>
                                 <h4>Add Customer (They owe you)</h4>
                                 <ol>
-                                    <li>Go to <strong>"Customers"</strong> tab.</li>
-                                    <li>Click <strong>"Add Customer"</strong>.</li>
+                                    <li>Go to <strong>&quot;Customers&quot;</strong> tab.</li>
+                                    <li>Click <strong>&quot;Add Customer&quot;</strong>.</li>
                                     <li>Enter Name & Phone.</li>
                                     <li>Click Save.</li>
                                 </ol>
@@ -68,8 +68,8 @@ export default function DocsPage() {
                             <div className={styles.card}>
                                 <h4>Add Supplier (You owe them)</h4>
                                 <ol>
-                                    <li>Go to <strong>"Suppliers"</strong> tab.</li>
-                                    <li>Click <strong>"Add Supplier"</strong>.</li>
+                                    <li>Go to <strong>&quot;Suppliers&quot;</strong> tab.</li>
+                                    <li>Click <strong>&quot;Add Supplier&quot;</strong>.</li>
                                     <li>Fill details & Save.</li>
                                 </ol>
                             </div>
@@ -85,12 +85,12 @@ export default function DocsPage() {
                             <div className={`${styles.actionCard} ${styles.give}`}>
                                 <h5>🔴 GIVE CREDIT</h5>
                                 <p>Use when you give money/goods on credit.</p>
-                                <span>"You Gave"</span>
+                                <span>&quot;You Gave&quot;</span>
                             </div>
                             <div className={`${styles.actionCard} ${styles.receive}`}>
                                 <h5>🟢 RECEIVE PAYMENT</h5>
                                 <p>Use when they pay you back.</p>
-                                <span>"You Got"</span>
+                                <span>&quot;You Got&quot;</span>
                             </div>
                         </div>
                         <p style={{ marginTop: '1rem' }}>Enter Amount &rarr; Add optional Note &rarr; Click Save. Balance updates instantly!</p>
@@ -107,7 +107,7 @@ export default function DocsPage() {
                         <p>Instantly find anyone by Name or Phone Number using the top search bar.</p>
 
                         <h3>Voice Assistant 🎙️</h3>
-                        <p>Tap the Mic icon and say <em>"Received 500 from Rahul"</em> to auto-fill forms.</p>
+                        <p>Tap the Mic icon and say <em>&quot;Received 500 from Rahul&quot;</em> to auto-fill forms.</p>
 
                         <h3>Offline Mode <WifiOff size={16} style={{ display: 'inline' }} /></h3>
                         <p>Works without internet! Data syncs automatically when you reconnect.</p>
@@ -119,7 +119,7 @@ export default function DocsPage() {
 
                         <div className={styles.faqItem}>
                             <strong>Q: Can I delete a wrong entry?</strong>
-                            <p>A: Yes! Go to the customer's page and click the Trash Icon next to the transaction.</p>
+                            <p>A: Yes! Go to the customer&apos;s page and click the Trash Icon next to the transaction.</p>
                         </div>
                         <div className={styles.faqItem}>
                             <strong>Q: Is my data safe?</strong>

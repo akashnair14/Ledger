@@ -47,7 +47,7 @@ export default function ForgotPasswordPage() {
                 setMessage({ text: 'Check your email for the password reset link!', type: 'success' })
                 setEmail('')
             }
-        } catch (_err) {
+        } catch {
             setMessage({ text: 'An unexpected error occurred.', type: 'error' })
         }
         setLoading(false)

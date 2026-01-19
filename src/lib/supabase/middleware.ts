@@ -1,8 +1,9 @@
 
-import { createServerClient, type CookieOptions } from '@supabase/ssr'
+import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
-export async function updateSession(request: NextRequest) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function updateSession(request: NextRequest, _options?: any) {
     let response = NextResponse.next({
         request: {
             headers: request.headers,

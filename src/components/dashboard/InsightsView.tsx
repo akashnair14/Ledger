@@ -3,7 +3,7 @@
 import { useCustomers, useTransactions } from '@/hooks/useSupabase';
 import { useMemo } from 'react';
 import styles from './InsightsView.module.css';
-import { ArrowUpRight, ArrowDownLeft, TrendingUp, TrendingDown, Users, AlertCircle } from 'lucide-react';
+import { ArrowUpRight, ArrowDownLeft, AlertCircle } from 'lucide-react';
 
 export const InsightsView = () => {
     const { customers } = useCustomers();

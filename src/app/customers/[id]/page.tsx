@@ -1,7 +1,7 @@
 'use client';
 
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
-import { Transaction, PaymentMode, Customer } from '@/lib/db';
+import { Transaction, PaymentMode } from '@/lib/db';
 import {
     ArrowLeft,
     Plus,
@@ -10,17 +10,13 @@ import {
     Edit2,
     Phone,
     MapPin,
-    Camera,
-    Tag,
     X,
     Paperclip,
     Receipt,
-    Wallet,
     Calendar,
     ArrowUpRight,
     ArrowDownLeft,
     MessageSquare,
-    Download,
     Check,
     Calculator,
     FileText,
@@ -37,7 +33,6 @@ import { StatementDownloader } from '@/components/ui/StatementDownloader';
 import styles from './CustomerDetail.module.css';
 import { useCustomers, useTransactions, addTransaction, deleteTransaction, updateTransaction } from '@/hooks/useSupabase';
 import { useToast } from '@/context/ToastContext';
-import { generateVoucher } from '@/lib/export/generate';
 import { motion, AnimatePresence } from 'framer-motion';
 import { EmptyState } from '@/components/ui/EmptyState';
 
@@ -74,7 +69,6 @@ export default function CustomerDetailPage() {
     const [invoiceNumber, setInvoiceNumber] = useState('');
     const [invoiceDate, setInvoiceDate] = useState<string>(new Date().toISOString().split('T')[0]);
     const [tags, setTags] = useState<string[]>([]);
-    const [tagInput, setTagInput] = useState('');
     const [attachment, setAttachment] = useState<File | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -184,7 +178,6 @@ export default function CustomerDetailPage() {
     if (!customer) return <div className={styles.loading}>Customer not found.</div>;
 
     // Filter Logic
-    const availableTags = Array.from(new Set(allTransactions?.flatMap(t => t.tags || []) || []));
 
     const filteredTransactions = allTransactions?.filter(t => {
         if (activeFilters.type !== 'ALL' && t.type !== activeFilters.type) return false;
@@ -210,6 +203,7 @@ export default function CustomerDetailPage() {
     const isSupplier = customer.type === 'SUPPLIER';
 
     const validateForm = async () => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const errors: any = {};
         if (!amount || evaluatedAmount <= 0) errors.amount = 'Valid amount required';
         if (paymentMode === 'OTHER' && !customPaymentMode.trim()) errors.customPaymentMode = 'Specify mode';
@@ -271,7 +265,7 @@ export default function CustomerDetailPage() {
                 showToast(`${selectedTxns.length} entries deleted`);
                 setSelectedTxns([]);
                 setIsSelectMode(false);
-            } catch (err: unknown) { showToast('Bulk delete failed', 'error'); }
+            } catch { showToast('Bulk delete failed', 'error'); }
         }
     };
 
@@ -285,7 +279,7 @@ export default function CustomerDetailPage() {
                 await deleteTransaction(txn.id, customerId);
                 showToast('Entry deleted');
             }
-            catch (err: unknown) { showToast('Delete failed', 'error'); }
+            catch { showToast('Delete failed', 'error'); }
         }
     };
 
@@ -393,7 +387,7 @@ export default function CustomerDetailPage() {
                     </button>
                 </div>
 
-                <TransactionFilters filters={activeFilters} onFilterChange={setActiveFilters} availableTags={availableTags} />
+                <TransactionFilters filters={activeFilters} onFilterChange={setActiveFilters} />
 
                 <div className={styles.list}>
                     {filteredTransactions.length === 0 ? (

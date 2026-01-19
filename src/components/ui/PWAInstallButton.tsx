@@ -4,54 +4,25 @@ import { useState, useEffect } from 'react';
 import { Download, Smartphone, Laptop } from 'lucide-react';
 import { Modal } from './Modal';
 import styles from './PWAInstallButton.module.css';
+import { usePWAInstall } from '@/hooks/usePWAInstall';
 
 export const PWAInstallButton = () => {
-    const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+    const { isInstalled, promptInstall, canInstall } = usePWAInstall();
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [isInstalled, setIsInstalled] = useState(false);
 
     useEffect(() => {
-        // Check if already installed
-        if (typeof window !== 'undefined') {
-            if (window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone === true) {
-                setIsInstalled(true);
-            }
-        }
-
-        const handleBeforeInstallPrompt = (e: any) => {
-            e.preventDefault();
-            setDeferredPrompt(e);
-
-            // Show modal automatically if not installed and hasn't been dismissed this session
+        // Show modal automatically if can install and hasn't been dismissed this session
+        if (canInstall) {
             const dismissed = sessionStorage.getItem('pwa_prompt_dismissed');
             if (!dismissed) {
+                // eslint-disable-next-line react-hooks/set-state-in-effect
                 setIsModalOpen(true);
             }
-        };
-
-        window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-
-        window.addEventListener('appinstalled', () => {
-            setIsInstalled(true);
-            setIsModalOpen(false);
-            setDeferredPrompt(null);
-        });
-
-        return () => {
-            window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-        };
-    }, []);
+        }
+    }, [canInstall]);
 
     const handleInstallClick = async () => {
-        if (!deferredPrompt) return;
-        deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
-        if (outcome === 'accepted') {
-            console.log('User accepted the A2HS prompt');
-        } else {
-            console.log('User dismissed the A2HS prompt');
-        }
-        setDeferredPrompt(null);
+        await promptInstall();
         setIsModalOpen(false);
     };
 
@@ -61,6 +32,7 @@ export const PWAInstallButton = () => {
     };
 
     if (isInstalled) return null;
+    if (!canInstall && !isModalOpen) return null; // Only show if installable or modal already open
 
     return (
         <Modal

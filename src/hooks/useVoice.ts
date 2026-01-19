@@ -3,9 +3,29 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 // Extend window interface for WebKit prefix
 declare global {
     interface Window {
-        SpeechRecognition: any;
-        webkitSpeechRecognition: any;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        SpeechRecognition: new () => any;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        webkitSpeechRecognition: new () => any;
     }
+}
+
+// Add strict types for Speech Recognition
+interface SpeechRecognitionEvent {
+    resultIndex: number;
+    results: {
+        [key: number]: {
+            0: {
+                transcript: string;
+            };
+            isFinal: boolean;
+        };
+        length: number;
+    };
+}
+
+interface SpeechRecognitionErrorEvent {
+    error: string;
 }
 
 export type VoiceState = {
@@ -23,6 +43,7 @@ export function useVoice() {
         isSupported: false
     });
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const recognitionRef = useRef<any>(null);
 
     useEffect(() => {
@@ -36,7 +57,7 @@ export function useVoice() {
 
                 recognition.onstart = () => setState(s => ({ ...s, isListening: true, error: null }));
 
-                recognition.onresult = (event: any) => {
+                recognition.onresult = (event: SpeechRecognitionEvent) => {
                     let finalTranscript = '';
                     for (let i = event.resultIndex; i < event.results.length; ++i) {
                         if (event.results[i].isFinal) {
@@ -51,7 +72,7 @@ export function useVoice() {
                     }
                 };
 
-                recognition.onerror = (event: any) => {
+                recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
                     console.error('Speech Error:', event.error);
                     setState(s => ({ ...s, isListening: false, error: event.error }));
                 };

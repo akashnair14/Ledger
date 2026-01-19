@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Mic, X, Loader2, Sparkles } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Mic, X } from 'lucide-react';
 import { useVoice } from '@/hooks/useVoice';
-import { parseVoiceCommand, VoiceIntent } from '@/lib/ai/voice-parser';
+import { parseVoiceCommand } from '@/lib/ai/voice-parser';
 import { useCustomers } from '@/hooks/useSupabase'; // To find customer by name
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/context/ToastContext';
+import { useHaptic } from '@/hooks/useHaptic';
 import styles from './VoiceCommandButton.module.css';
 
 export const VoiceCommandButton = () => {
@@ -14,67 +15,71 @@ export const VoiceCommandButton = () => {
     const { customers } = useCustomers();
     const router = useRouter();
     const { showToast } = useToast();
+    const { vibrate, triggerSuccess, triggerError } = useHaptic();
     const [showOverlay, setShowOverlay] = useState(false);
     const [processing, setProcessing] = useState(false);
+
+    const handleStart = useCallback(() => {
+        vibrate(20);
+        setShowOverlay(true);
+        startListening();
+    }, [startListening, vibrate]);
+
+    const handleClose = useCallback(() => {
+        stopListening();
+        setShowOverlay(false);
+        setProcessing(false);
+    }, [stopListening]);
 
     // Auto-process when listening stops and we have a transcript
     useEffect(() => {
         if (!isListening && showOverlay && transcript && !processing) {
-            handleProcess();
+            const processTranscript = async () => {
+                setProcessing(true);
+                // Short delay to let user see the final transcript
+                await new Promise(r => setTimeout(r, 500));
+
+                const intent = parseVoiceCommand(transcript);
+                if (!intent) {
+                    showToast('Could not understand command', 'error');
+                    triggerError();
+                    handleClose();
+                    return;
+                }
+
+                // Find Customer
+                // Fuzzy match: simple 'includes' for now
+                if (intent.name === 'Unknown') {
+                    showToast('Please say a customer name', 'error');
+                    triggerError();
+                    handleClose();
+                    return;
+                }
+
+                const target = customers?.find(c => c.name.toLowerCase().includes(intent.name.toLowerCase()));
+
+                if (target) {
+                    // Found! Navigate
+                    // We'll pass params via URL
+                    const params = new URLSearchParams();
+                    params.set('quickAdd', 'true');
+                    params.set('amount', intent.amount.toString());
+                    params.set('type', intent.type); // 'CREDIT' or 'PAYMENT'
+                    params.set('note', 'Voice Entry');
+
+                    triggerSuccess();
+                    router.push(`/customers/${target.id}?${params.toString()}`);
+                    showToast(`Opening ${target.name}...`);
+                } else {
+                    showToast(`Customer "${intent.name}" not found`, 'error');
+                    triggerError();
+                }
+
+                handleClose();
+            };
+            processTranscript();
         }
-    }, [isListening, transcript, showOverlay]);
-
-    const handleStart = () => {
-        setShowOverlay(true);
-        startListening();
-    };
-
-    const handleClose = () => {
-        stopListening();
-        setShowOverlay(false);
-        setProcessing(false);
-    };
-
-    const handleProcess = async () => {
-        setProcessing(true);
-        // Short delay to let user see the final transcript
-        await new Promise(r => setTimeout(r, 500));
-
-        const intent = parseVoiceCommand(transcript);
-        if (!intent) {
-            showToast('Could not understand command', 'error');
-            handleClose();
-            return;
-        }
-
-        // Find Customer
-        // Fuzzy match: simple 'includes' for now
-        // "Rahul" -> matches "Rahul Sharma"
-        if (intent.name === 'Unknown') {
-            showToast('Please say a customer name', 'error');
-            handleClose();
-            return;
-        }
-
-        const target = customers?.find(c => c.name.toLowerCase().includes(intent.name.toLowerCase()));
-
-        if (target) {
-            // Found! Navigate
-            // We'll pass params via URL to be picked up by the page
-            const params = new URLSearchParams();
-            params.set('quickAdd', 'true');
-            params.set('amount', intent.amount.toString());
-            params.set('type', intent.type); // 'CREDIT' or 'PAYMENT'
-            params.set('note', 'Voice Entry');
-
-            router.push(`/customers/${target.id}?${params.toString()}`);
-            showToast(`Opening ${target.name}...`);
-        } else {
-            showToast(`Customer "${intent.name}" not found`, 'error');
-        }
-
-        handleClose();
-    };
+    }, [isListening, transcript, showOverlay, processing, customers, router, showToast, handleClose, triggerError, triggerSuccess]);
 
     if (!isSupported) return null;
 

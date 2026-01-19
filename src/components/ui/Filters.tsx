@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { SlidersHorizontal, ChevronDown, ChevronUp, X } from 'lucide-react';
+import { SlidersHorizontal, X } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import styles from './Filters.module.css';
 
@@ -18,10 +18,9 @@ export type FilterState = {
 interface FiltersProps {
     filters: FilterState;
     onFilterChange: (filters: FilterState) => void;
-    availableTags: string[];
 }
 
-export const TransactionFilters = ({ filters, onFilterChange, availableTags }: FiltersProps) => {
+export const TransactionFilters = ({ filters, onFilterChange }: FiltersProps) => {
     const [isExpanded, setIsExpanded] = useState(false);
 
     const modes = ['CASH', 'UPI', 'NEFT', 'IMPS', 'CHEQUE', 'BANK_TRANSFER', 'OTHER'];
@@ -36,13 +35,6 @@ export const TransactionFilters = ({ filters, onFilterChange, availableTags }: F
             ? filters.paymentModes.filter(m => m !== mode)
             : [...filters.paymentModes, mode];
         updateFilter({ paymentModes: updatedModes });
-    };
-
-    const toggleTag = (tag: string) => {
-        const updatedTags = filters.tags.includes(tag)
-            ? filters.tags.filter(t => t !== tag)
-            : [...filters.tags, tag];
-        updateFilter({ tags: updatedTags });
     };
 
     const reset = () => {
@@ -133,7 +125,7 @@ export const TransactionFilters = ({ filters, onFilterChange, availableTags }: F
                                 <button
                                     key={t}
                                     className={filters.type === t ? styles.activePill : ''}
-                                    onClick={() => updateFilter({ type: t as any })}
+                                    onClick={() => updateFilter({ type: t as 'ALL' | 'CREDIT' | 'PAYMENT' })}
                                 >
                                     {t.charAt(0) + t.slice(1).toLowerCase()}
                                 </button>

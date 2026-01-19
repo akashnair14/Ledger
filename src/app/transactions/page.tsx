@@ -114,7 +114,7 @@ export default function TransactionsPage() {
                         </div>
                         <div className={styles.filterGroup}>
                             <label>Entry Type</label>
-                            <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value as any)}>
+                            <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value as 'ALL' | 'CREDIT' | 'PAYMENT')}>
                                 <option value="ALL">All Transactions</option>
                                 <option value="CREDIT">Only Credit (Given)</option>
                                 <option value="PAYMENT">Only Payment (Received)</option>
@@ -122,7 +122,7 @@ export default function TransactionsPage() {
                         </div>
                         <div className={styles.filterGroup}>
                             <label>Payment Mode</label>
-                            <select value={modeFilter} onChange={(e) => setModeFilter(e.target.value as any)}>
+                            <select value={modeFilter} onChange={(e) => setModeFilter(e.target.value as 'ALL' | PaymentMode)}>
                                 <option value="ALL">All Modes</option>
                                 <option value="CASH">Cash</option>
                                 <option value="UPI">UPI</option>
@@ -186,7 +186,7 @@ export default function TransactionsPage() {
                                         </p>
                                         <div className={styles.metaRow}>
                                             <span>{new Date(t.date).toLocaleDateString()}</span>
-                                            <span className={styles.modeBadge}>{t.paymentMode === 'OTHER' && (t as any).customPaymentMode ? (t as any).customPaymentMode : t.paymentMode}</span>
+                                            <span className={styles.modeBadge}>{t.paymentMode === 'OTHER' && t.customPaymentMode ? t.customPaymentMode : t.paymentMode}</span>
                                             {t.hasAttachment && <Paperclip size={12} />}
                                         </div>
                                     </div>

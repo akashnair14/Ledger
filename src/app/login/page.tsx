@@ -21,6 +21,7 @@ function LoginContent() {
     useEffect(() => {
         const error = searchParams.get('error')
         if (error) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setMessage({ text: 'Authentication failed. Please try again.', type: 'error' })
         }
 
@@ -50,7 +51,7 @@ function LoginContent() {
                 setMessage({ text: error.message, type: 'error' })
                 setLoading(false)
             }
-        } catch (_err) {
+        } catch {
             setMessage({ text: 'An unexpected error occurred.', type: 'error' })
             setLoading(false)
         }
@@ -108,7 +109,7 @@ function LoginContent() {
                     else router.replace('/dashboard')
                 }
             }
-        } catch (_err) {
+        } catch {
             setMessage({ text: 'An unexpected error occurred.', type: 'error' })
         }
         setLoading(false)

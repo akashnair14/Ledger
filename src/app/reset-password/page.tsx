@@ -43,7 +43,7 @@ export default function ResetPasswordPage() {
                     router.push('/dashboard')
                 }, 2000)
             }
-        } catch (_err) {
+        } catch {
             setMessage({ text: 'An unexpected error occurred.', type: 'error' })
         }
         setLoading(false)

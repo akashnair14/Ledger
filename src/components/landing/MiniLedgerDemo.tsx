@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Minus, ArrowRight } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import styles from './MiniLedgerDemo.module.css';
 
 interface Transaction {

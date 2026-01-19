@@ -43,11 +43,16 @@ export function BookProvider({ children }: { children: React.ReactNode }) {
         syncLocalBooks();
     }, [isLoading, books]);
 
+    const initialized = React.useRef(false);
+
     useEffect(() => {
-        if (!isLoading && books.length > 0) {
+        if (!isLoading && books.length > 0 && !initialized.current) {
             const savedBookId = localStorage.getItem('activeBookId');
             const book = books.find(b => b.id === savedBookId) || books[0];
+
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setActiveBookState(book);
+            initialized.current = true;
         }
     }, [isLoading, books]);
 

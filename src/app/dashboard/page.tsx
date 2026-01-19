@@ -144,7 +144,7 @@ export default function CustomersPage() {
       closeModal();
     } catch (err: unknown) {
       console.error(err);
-      const msg = (err as any)?.message || (err instanceof Error ? err.message : 'Unknown error');
+      const msg = err instanceof Error ? err.message : 'Unknown error';
       alert('Failed to save: ' + msg);
     } finally {
       setIsSaving(false);

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useBook } from '@/context/BookContext';
 import { db, generateId, now } from '@/lib/db';
-import { Book as BookIcon, ChevronDown, Plus, Check, Settings } from 'lucide-react';
+import { Book as BookIcon, ChevronDown, Plus, Check } from 'lucide-react';
 import styles from './BookSwitcher.module.css';
 
 export function BookSwitcher() {

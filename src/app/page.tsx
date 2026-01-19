@@ -13,7 +13,9 @@ import {
     ArrowRight,
     Smartphone,
     CheckCircle2,
-    Lock
+    Lock,
+    Menu,
+    X
 } from 'lucide-react'; // Assuming lucide-react for icons
 import styles from './landing.module.css';
 import { usePWAInstall } from '@/hooks/usePWAInstall';
@@ -21,7 +23,7 @@ import { SpotlightCard } from '@/components/landing/SpotlightCard';
 import { MiniLedgerDemo } from '@/components/landing/MiniLedgerDemo';
 
 export default function LandingPage() {
-    const { promptInstall, canInstall, isInstalled } = usePWAInstall();
+    const { promptInstall, canInstall } = usePWAInstall();
     const features = [
         {
             icon: <Users size={24} />,
@@ -60,6 +62,8 @@ export default function LandingPage() {
         }
     ];
 
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
+
     return (
         <div className={styles.container}>
             {/* Navigation Header */}
@@ -69,17 +73,42 @@ export default function LandingPage() {
                         <div className={styles.logoIcon}>L</div>
                         <span>LedgerManager</span>
                     </div>
+
+                    {/* Desktop Links */}
                     <div className={styles.navLinks}>
                         <Link href="/docs" className={styles.loginLink}>User Guide</Link>
                         <Link href="/login" className={styles.loginLink}>Log In</Link>
                         <Link href="/login" className={styles.signupBtn}>Get Started Free</Link>
                     </div>
+
+                    {/* Mobile Menu Toggle */}
+                    <button
+                        className={styles.mobileMenuBtn}
+                        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                        aria-label="Toggle menu"
+                    >
+                        {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                    </button>
                 </div>
+
+                {/* Mobile Menu Dropdown */}
+                {isMobileMenuOpen && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className={styles.mobileMenu}
+                    >
+                        <Link href="/docs" className={styles.mobileLink}>User Guide</Link>
+                        <Link href="/login" className={styles.mobileLink}>Log In</Link>
+                        <Link href="/login" className={styles.mobileSignupBtn}>Get Started Free</Link>
+                    </motion.div>
+                )}
             </nav>
 
             {/* Hero Section */}
             <section className={styles.hero}>
                 <div className={styles.gridBackground} />
+                <div className={styles.auroraBackground} />
                 <div className={styles.heroContent}>
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
@@ -87,7 +116,7 @@ export default function LandingPage() {
                         transition={{ duration: 0.6 }}
                         className={styles.badge}
                     >
-                        <SparkleIcon /> Trusted by 10,000+ businesses
+                        <SparkleIcon /> The Simplest Ledger App
                     </motion.div>
 
                     <motion.h1
@@ -103,8 +132,7 @@ export default function LandingPage() {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.6, delay: 0.2 }}
                     >
-                        Replace your old diaries with a powerful, secure, and offline-first digital ledger.
-                        Track every penny, generate reports, and grow your business with confidence.
+                        Stop using paper diaries. Switch to a secure, offline-first digital ledger that helps you track payments, manage customers, and stay organized.
                     </motion.p>
 
                     <motion.div
@@ -114,10 +142,10 @@ export default function LandingPage() {
                         className={styles.heroActions}
                     >
                         <Link href="/login" className={styles.primaryBtn}>
-                            Start for Free <ArrowRight size={20} />
+                            Start Using for Free <ArrowRight size={20} />
                         </Link>
                         <a href="#features" className={styles.secondaryBtn}>
-                            Explore Features
+                            See How It Works
                         </a>
                     </motion.div>
                 </div>
@@ -141,23 +169,23 @@ export default function LandingPage() {
                 </motion.div>
             </section>
 
-            {/* Stats Section */}
+            {/* Stats Section / Key Benefits */}
             <section className={styles.stats}>
                 <div className={styles.statItem}>
-                    <h3>99.9%</h3>
-                    <p>Sync Uptime</p>
+                    <h3>Offline</h3>
+                    <p>Works without Internet</p>
                 </div>
                 <div className={styles.statItem}>
-                    <h3>1M+</h3>
-                    <p>Monthly Entries</p>
+                    <h3>Unlimited</h3>
+                    <p>Entries & Customers</p>
                 </div>
                 <div className={styles.statItem}>
-                    <h3>256-bit</h3>
-                    <p>Secure Encryption</p>
+                    <h3>Secure</h3>
+                    <p>Local & Could Sync</p>
                 </div>
                 <div className={styles.statItem}>
-                    <h3>0ms</h3>
-                    <p>Instant Offline Access</p>
+                    <h3>Free</h3>
+                    <p>Forever for Everyone</p>
                 </div>
             </section>
 
