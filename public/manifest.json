@@ -2,7 +2,7 @@
   "name": "Personal Ledger Manager",
   "short_name": "Ledger",
   "description": "Secure, offline-first personal ledger management with Google Drive sync.",
-  "start_url": "/",
+  "start_url": "/dashboard",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#0f172a",
