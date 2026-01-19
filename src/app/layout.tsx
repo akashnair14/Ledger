@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { BookProvider } from "@/context/BookContext";
 import { AppLock } from "@/components/auth/AppLock";
+import { AuthStateListener } from "@/components/auth/AuthStateListener";
 import { Shell } from "@/components/layout/Shell";
 import { ToastProvider } from "@/context/ToastContext";
 import { SettingsSync } from "@/components/layout/SettingsSync";
@@ -60,6 +61,7 @@ export default function RootLayout({
             <ToastProvider>
               <AppLock>
                 <SettingsSync />
+                <AuthStateListener />
                 <Shell>{children}</Shell>
               </AppLock>
             </ToastProvider>
