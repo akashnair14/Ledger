@@ -66,6 +66,7 @@ export default function CustomerDetailPage() {
     const { transactions: allTransactions } = useTransactions(customerId);
 
     const customer = customers?.find(c => c.id === id);
+    const isSupplier = customer?.type === 'SUPPLIER';
 
     // Customer Management States
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -218,7 +219,6 @@ export default function CustomerDetailPage() {
     const totalCredit = allTransactions?.filter(t => t.type === 'CREDIT').reduce((sum, t) => sum + t.amount, 0) || 0;
     const totalPayment = allTransactions?.filter(t => t.type === 'PAYMENT').reduce((sum, t) => sum + t.amount, 0) || 0;
     const balance = totalCredit - totalPayment;
-    const isSupplier = customer.type === 'SUPPLIER';
 
     const validateForm = async () => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -392,125 +392,130 @@ export default function CustomerDetailPage() {
     };
 
     return (
-        <div className={styles.container}>
-            <header className={styles.header}>
-                <Link href="/dashboard" className={styles.backButton}><ArrowLeft size={24} /></Link>
-                <div className={styles.customerSummary}>
-                    <h1>{customer.name}</h1>
-                    <div className={styles.quickInfo}>
-                        <span><Phone size={14} /> {customer.phone}</span>
-                        {customer.address && <span><MapPin size={14} /> {customer.address}</span>}
+        <>
+            <div className={styles.container}>
+                <header className={styles.header}>
+                    <div className={styles.headerTop}>
+                        <Link href="/dashboard" className={styles.backButton} style={{ marginTop: '4px' }}><ArrowLeft size={24} /></Link>
+                        <div className={styles.nameSection}>
+                            <h1>{customer.name}</h1>
+                            <div className={styles.quickInfo}>
+                                <span><Phone size={14} /> {customer.phone}</span>
+                                {customer.address && <span><MapPin size={14} /> {customer.address}</span>}
+                            </div>
+                        </div>
+                        <div className={styles.mgmtActions}>
+                            <button
+                                className={styles.editBtn}
+                                onClick={() => {
+                                    setEditName(customer.name);
+                                    setEditPhone(customer.phone);
+                                    setEditEmail(customer.email || '');
+                                    setEditAddress(customer.address || '');
+                                    setIsEditModalOpen(true);
+                                }}
+                            >
+                                <Edit2 size={18} />
+                            </button>
+                            <button className={styles.deleteBtn} onClick={() => handleDeleteCustomer()}>
+                                <Trash2 size={18} />
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className={styles.mainActions}>
+                        <StatementDownloader customerName={customer.name} transactions={allTransactions || []} />
+                        <button className={styles.miniReminderBtn} onClick={handleSendReminder}>
+                            <MessageSquare size={18} />
+                            <span>Remind</span>
+                        </button>
+                    </div>
+                </header>
+
+                <div className={styles.balanceCard}>
+                    <div className={styles.balanceInfo}>
+                        <span className={styles.balanceLabel}>Current Balance</span>
+                        <h2 className={`${styles.balanceValue} ${balance >= 0 ? (isSupplier ? styles.negative : styles.positive) : (isSupplier ? styles.positive : styles.negative)}`}>
+                            ₹{Math.abs(balance).toLocaleString('en-IN')}
+                        </h2>
+                        <span className={styles.balanceSub}>
+                            {balance === 0 ? 'Settled' : (balance > 0 ? (isSupplier ? 'You will pay' : 'You will collect') : (isSupplier ? 'You Collected' : 'You Paid'))}
+                        </span>
+                    </div>
+                    <div className={styles.divider} />
+                    <div className={styles.balanceStats}>
+                        <div className={styles.stat}>
+                            <span className={styles.statLabel}>{isSupplier ? 'Purchases' : 'Total Credit'}</span>
+                            <span className={`${styles.statValue} ${styles.positive}`}>₹{totalCredit.toLocaleString('en-IN')}</span>
+                        </div>
+                        <div className={styles.stat}>
+                            <span className={styles.statLabel}>{isSupplier ? 'Payments' : 'Total Payment'}</span>
+                            <span className={`${styles.statValue} ${styles.negative}`}>₹{totalPayment.toLocaleString('en-IN')}</span>
+                        </div>
                     </div>
                 </div>
-                <div className={styles.headerActions}>
-                    <button
-                        className={styles.editBtn}
-                        onClick={() => {
-                            setEditName(customer.name);
-                            setEditPhone(customer.phone);
-                            setEditEmail(customer.email || '');
-                            setEditAddress(customer.address || '');
-                            setIsEditModalOpen(true);
-                        }}
-                        title="Edit Details"
-                    >
-                        <Edit2 size={18} />
-                    </button>
-                    <button
-                        className={styles.deleteBtn}
-                        onClick={() => handleDeleteCustomer()}
-                        title="Delete Account"
-                    >
-                        <Trash2 size={18} />
-                    </button>
-                    <StatementDownloader customerName={customer.name} transactions={allTransactions || []} />
-                    <button className={styles.reminderBtn} onClick={handleSendReminder}><MessageSquare size={18} /><span>Remind</span></button>
-                </div>
-            </header>
 
-            <div className={styles.balanceCard}>
-                <div className={styles.balanceInfo}>
-                    <span className={styles.balanceLabel}>Current Balance</span>
-                    <h2 className={`${styles.balanceValue} ${balance >= 0 ? (isSupplier ? styles.negative : styles.positive) : (isSupplier ? styles.positive : styles.negative)}`}>
-                        ₹{Math.abs(balance).toLocaleString('en-IN')}
-                    </h2>
-                    <span className={styles.balanceSub}>
-                        {balance === 0 ? 'Settled' : (balance > 0 ? (isSupplier ? 'You will pay' : 'You will collect') : (isSupplier ? 'You Collected' : 'You Paid'))}
-                    </span>
-                </div>
-                <div className={styles.divider} />
-                <div className={styles.balanceStats}>
-                    <div className={styles.stat}>
-                        <span className={styles.statLabel}>{isSupplier ? 'Purchases' : 'Total Credit'}</span>
-                        <span className={`${styles.statValue} ${styles.positive}`}>₹{totalCredit.toLocaleString('en-IN')}</span>
+                <div className={styles.txnList}>
+                    <div className={styles.listHeader}>
+                        <h3>Ledger History</h3>
+                        <button className={`${styles.selectBtn} ${isSelectMode ? styles.activeSelect : ''}`} onClick={() => { setIsSelectMode(!isSelectMode); setSelectedTxns([]); }}>
+                            {isSelectMode ? 'Cancel' : 'Select'}
+                        </button>
                     </div>
-                    <div className={styles.stat}>
-                        <span className={styles.statLabel}>{isSupplier ? 'Payments' : 'Total Payment'}</span>
-                        <span className={`${styles.statValue} ${styles.negative}`}>₹{totalPayment.toLocaleString('en-IN')}</span>
+
+                    <TransactionFilters filters={activeFilters} onFilterChange={setActiveFilters} />
+
+                    <div className={styles.list}>
+                        {filteredTransactions.length === 0 ? (
+                            <EmptyState
+                                icon={Receipt}
+                                title="No Transactions"
+                                description={activeFilters.type === 'ALL'
+                                    ? "No entries found. Start by recording a transaction."
+                                    : "No transactions match your current filters."}
+                            />
+                        ) : (
+                            <AnimatePresence>
+                                {filteredTransactions.map((t, index) => (
+                                    <motion.div
+                                        key={t.id}
+                                        id={t.id}
+                                        layout
+                                        initial={{ opacity: 0, x: -20 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        exit={{ opacity: 0, x: 20 }}
+                                        transition={{ delay: index * 0.03 }}
+                                        className={`${styles.txnCard} ${isSelectMode ? styles.clickableCard : ''}`}
+                                        onClick={() => isSelectMode && toggleTxnSelection(t.id)}
+                                    >
+                                        {isSelectMode && <div className={`${styles.checkbox} ${selectedTxns.includes(t.id) ? styles.checked : ''}`}>{selectedTxns.includes(t.id) && <Check size={12} />}</div>}
+                                        <div className={styles.txnDate}>{new Date(t.date).toLocaleDateString(undefined, { day: '2-digit', month: 'short' })}</div>
+                                        <div className={styles.txnMain}>
+                                            <div className={styles.txnNote}>
+                                                {t.type === 'CREDIT'
+                                                    ? <ArrowUpRight size={14} className={styles.negative} />
+                                                    : <ArrowDownLeft size={14} className={styles.positive} />
+                                                }
+                                                {t.note || (t.type === 'CREDIT' ? (isSupplier ? 'Purchased' : 'Given') : (isSupplier ? 'Paid' : 'Received'))}
+                                            </div>
+                                            <div className={styles.txnTags}>
+                                                <span className={styles.tagLabel}>{t.paymentMode}</span>
+                                                {t.invoiceNumber && <span className={styles.tagLabel}>#{t.invoiceNumber}</span>}
+                                                {t.hasAttachment && <Paperclip size={10} />}
+                                            </div>
+                                        </div>
+                                        <div className={`${styles.txnAmount} ${t.type === 'CREDIT' ? styles.negative : styles.positive}`}>₹{t.amount.toLocaleString('en-IN')}</div>
+                                        {!isSelectMode && (
+                                            <div className={styles.cardActions}>
+                                                <button onClick={(e) => { e.stopPropagation(); handleEdit(t); }}><Edit2 size={16} /></button>
+                                                <button onClick={(e) => { e.stopPropagation(); handleDelete(t); }}><Trash2 size={16} /></button>
+                                            </div>
+                                        )}
+                                    </motion.div>
+                                ))}
+                            </AnimatePresence>
+                        )}
                     </div>
-                </div>
-            </div>
-
-            <div className={styles.txnList}>
-                <div className={styles.listHeader}>
-                    <h3>Ledger History</h3>
-                    <button className={`${styles.selectBtn} ${isSelectMode ? styles.activeSelect : ''}`} onClick={() => { setIsSelectMode(!isSelectMode); setSelectedTxns([]); }}>
-                        {isSelectMode ? 'Cancel' : 'Select'}
-                    </button>
-                </div>
-
-                <TransactionFilters filters={activeFilters} onFilterChange={setActiveFilters} />
-
-                <div className={styles.list}>
-                    {filteredTransactions.length === 0 ? (
-                        <EmptyState
-                            icon={Receipt}
-                            title="No Transactions"
-                            description={activeFilters.type === 'ALL'
-                                ? "No entries found. Start by recording a transaction."
-                                : "No transactions match your current filters."}
-                        />
-                    ) : (
-                        <AnimatePresence>
-                            {filteredTransactions.map((t, index) => (
-                                <motion.div
-                                    key={t.id}
-                                    id={t.id}
-                                    layout
-                                    initial={{ opacity: 0, x: -20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    exit={{ opacity: 0, x: 20 }}
-                                    transition={{ delay: index * 0.03 }}
-                                    className={`${styles.txnCard} ${isSelectMode ? styles.clickableCard : ''}`}
-                                    onClick={() => isSelectMode && toggleTxnSelection(t.id)}
-                                >
-                                    {isSelectMode && <div className={`${styles.checkbox} ${selectedTxns.includes(t.id) ? styles.checked : ''}`}>{selectedTxns.includes(t.id) && <Check size={12} />}</div>}
-                                    <div className={styles.txnDate}>{new Date(t.date).toLocaleDateString(undefined, { day: '2-digit', month: 'short' })}</div>
-                                    <div className={styles.txnMain}>
-                                        <div className={styles.txnNote}>
-                                            {t.type === 'CREDIT'
-                                                ? <ArrowUpRight size={14} className={styles.negative} />
-                                                : <ArrowDownLeft size={14} className={styles.positive} />
-                                            }
-                                            {t.note || (t.type === 'CREDIT' ? (isSupplier ? 'Purchased' : 'Given') : (isSupplier ? 'Paid' : 'Received'))}
-                                        </div>
-                                        <div className={styles.txnTags}>
-                                            <span className={styles.tagLabel}>{t.paymentMode}</span>
-                                            {t.invoiceNumber && <span className={styles.tagLabel}>#{t.invoiceNumber}</span>}
-                                            {t.hasAttachment && <Paperclip size={10} />}
-                                        </div>
-                                    </div>
-                                    <div className={`${styles.txnAmount} ${t.type === 'CREDIT' ? styles.negative : styles.positive}`}>₹{t.amount.toLocaleString('en-IN')}</div>
-                                    {!isSelectMode && (
-                                        <div className={styles.cardActions}>
-                                            <button onClick={(e) => { e.stopPropagation(); handleEdit(t); }}><Edit2 size={16} /></button>
-                                            <button onClick={(e) => { e.stopPropagation(); handleDelete(t); }}><Trash2 size={16} /></button>
-                                        </div>
-                                    )}
-                                </motion.div>
-                            ))}
-                        </AnimatePresence>
-                    )}
                 </div>
             </div>
 
@@ -714,6 +719,6 @@ export default function CustomerDetailPage() {
                     </button>
                 </form>
             </Modal>
-        </div>
+        </>
     );
 }

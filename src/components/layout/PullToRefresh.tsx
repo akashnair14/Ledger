@@ -110,7 +110,7 @@ export const PullToRefresh: React.FC<PullToRefreshProps> = ({ children }) => {
 
             {/* Content */}
             <div style={{
-                transform: `translateY(${isRefreshing ? 0 : pullDistance}px)`,
+                transform: (isRefreshing || pullDistance > 0) ? `translateY(${isRefreshing ? 60 : pullDistance}px)` : 'none',
                 transition: isRefreshing ? 'transform 0.2s' : 'none'
             }}>
                 {children}

@@ -358,20 +358,20 @@
 
 .positiveSummary {
   color: var(--success);
-  font-size: 2.5rem;
-  font-weight: 900;
-  letter-spacing: -0.04em;
+  font-size: 2.2rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
   font-family: var(--font-fraunces), serif;
-  line-height: 1;
+  line-height: 1.2;
 }
 
 .negativeSummary {
   color: var(--danger);
-  font-size: 2.5rem;
-  font-weight: 900;
-  letter-spacing: -0.04em;
+  font-size: 2.2rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
   font-family: var(--font-fraunces), serif;
-  line-height: 1;
+  line-height: 1.2;
 }
 
 /* Deleted .avatar */
