@@ -185,9 +185,12 @@ export default function CustomersPage() {
     setAddress('');
   };
 
+  const totalAmount = customers?.reduce((sum, c) => sum + (c.balance || 0), 0) || 0;
+
   return (
     <div className={styles.container}>
       <header className={styles.header}>
+        {/* ... existing header content ... */}
         <div className={styles.topBar}>
           <h1>Ledger Manager</h1>
           <div className={styles.headerActions}>
@@ -257,7 +260,17 @@ export default function CustomersPage() {
           <InsightsView />
         ) : (
           <>
+            <div className={styles.totalSummary}>
+              <div className={styles.summaryInfo}>
+                <span className={styles.summaryLabel}>Total {activeTab === 'CUSTOMER' ? 'To Collect' : 'To Pay'}</span>
+                <h2 className={totalAmount >= 0 ? styles.positiveSummary : styles.negativeSummary}>
+                  ₹{Math.abs(totalAmount).toLocaleString('en-IN')}
+                </h2>
+              </div>
+            </div>
+
             <div className={styles.searchBar}>
+              {/* ... existing search content ... */}
               <div className={styles.searchContainer}>
                 <Search size={20} className={styles.searchIcon} />
                 <input
@@ -343,32 +356,23 @@ export default function CustomersPage() {
                         href={`/customers/${customer.id}`}
                         className={styles.customerCard}
                       >
-                        <div className={styles.avatar}>
-                          {customer.name.charAt(0).toUpperCase()}
-                        </div>
                         <div className={styles.info}>
-                          <div className={styles.nameRow}>
-                            <h3>{customer.name}</h3>
-                            <span className={`${styles.balanceBadge} ${customer.balance === 0
-                              ? styles.neutralVar
-                              : (activeTab === 'CUSTOMER'
-                                ? (customer.balance > 0 ? styles.positiveVar : styles.negativeVar)
-                                : (customer.balance > 0 ? styles.negativeVar : styles.positiveVar)
-                              )
-                              }`}>
-                              {customer.balance === 0 ? '₹0' : (customer.balance > 0 ? '₹' + customer.balance.toLocaleString() : '₹' + Math.abs(customer.balance).toLocaleString())}
-                            </span>
-                          </div>
+                          <h3>{customer.name}</h3>
                           <p>{customer.phone}</p>
                         </div>
-                        <div className={styles.customerMeta}>
-                          <ChevronRight size={20} className={styles.chevron} />
+                        <div className={styles.balanceContainer}>
+                          <span className={`${styles.balanceBadge} ${customer.balance === 0
+                            ? styles.neutralVar
+                            : (activeTab === 'CUSTOMER'
+                              ? (customer.balance > 0 ? styles.positiveVar : styles.negativeVar)
+                              : (customer.balance > 0 ? styles.negativeVar : styles.positiveVar)
+                            )
+                            }`}>
+                            {customer.balance === 0 ? '₹0' : (customer.balance > 0 ? '₹' + customer.balance.toLocaleString('en-IN') : '₹' + Math.abs(customer.balance).toLocaleString('en-IN'))}
+                          </span>
+                          <ChevronRight size={18} className={styles.chevron} />
                         </div>
                       </Link>
-                      <div className={styles.cardActions}>
-                        <button onClick={() => openEdit(customer)}><Edit2 size={16} /></button>
-                        <button onClick={() => handleDeleteCustomer(customer.id)}><Trash2 size={16} /></button>
-                      </div>
                     </motion.div>
                   ))}
                 </AnimatePresence>

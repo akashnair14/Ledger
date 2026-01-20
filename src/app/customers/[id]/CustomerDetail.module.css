@@ -15,9 +15,9 @@
 }
 
 .headerActions {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.75rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
     width: 100%;
 }
 
@@ -32,7 +32,34 @@
     .headerActions {
         display: flex;
         width: auto;
+        gap: 0.75rem;
     }
+}
+
+.editBtn,
+.deleteBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    border: 1px solid var(--border-thick);
+    color: var(--text-dim);
+    transition: var(--transition-smooth);
+}
+
+.editBtn:hover {
+    color: var(--primary);
+    border-color: var(--primary);
+    background: var(--surface-header);
+}
+
+.deleteBtn:hover {
+    color: var(--danger);
+    border-color: var(--danger);
+    background: var(--surface-header);
 }
 
 .reminderBtn {

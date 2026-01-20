@@ -31,7 +31,16 @@ import { TransactionFilters, FilterState } from '@/components/ui/Filters';
 import { SuccessAnimation } from '@/components/ui/SuccessAnimation';
 import { StatementDownloader } from '@/components/ui/StatementDownloader';
 import styles from './CustomerDetail.module.css';
-import { useCustomers, useTransactions, addTransaction, deleteTransaction, updateTransaction } from '@/hooks/useSupabase';
+import {
+    useCustomers,
+    useTransactions,
+    addTransaction,
+    deleteTransaction,
+    updateTransaction,
+    updateCustomer,
+    deleteCustomer,
+    getTransactionCount
+} from '@/hooks/useSupabase';
 import { useToast } from '@/context/ToastContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -50,17 +59,27 @@ export default function CustomerDetailPage() {
     const { id } = useParams();
     const customerId = id as string;
     const { showToast } = useToast();
+    const router = useRouter();
 
     // Data Fetching
     const { customers, isLoading: customersLoading } = useCustomers();
     const { transactions: allTransactions } = useTransactions(customerId);
 
-    const customer = customers?.find(c => c.id === customerId);
+    const customer = customers?.find(c => c.id === id);
+
+    // Customer Management States
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [editName, setEditName] = useState('');
+    const [editPhone, setEditPhone] = useState('');
+    const [editEmail, setEditEmail] = useState('');
+    const [editAddress, setEditAddress] = useState('');
+    const [isUpdatingCustomer, setIsUpdatingCustomer] = useState(false);
 
     // Transaction Form States
     const [isTxnModalOpen, setTxnModalOpen] = useState(false);
     const [editingTxn, setEditingTxn] = useState<Transaction | null>(null);
     const [txnType, setTxnType] = useState<'CREDIT' | 'PAYMENT'>('CREDIT');
+    // ... rest of form states ... (kept)
     const [amount, setAmount] = useState('');
     const [evaluatedAmount, setEvaluatedAmount] = useState(0);
     const [note, setNote] = useState('');
@@ -132,7 +151,6 @@ export default function CustomerDetailPage() {
 
     // Handle Voice Command / Quick Add Params
     const searchParams = useSearchParams();
-    const router = useRouter();
 
     useEffect(() => {
         const quickAdd = searchParams.get('quickAdd');
@@ -310,6 +328,45 @@ export default function CustomerDetailPage() {
         window.open(`https://wa.me/91${customer.phone.replace(/\D/g, '')}?text=${msg}`, '_blank');
     };
 
+    const handleDeleteCustomer = async () => {
+        try {
+            const txnCount = await getTransactionCount(customerId);
+            const msg = txnCount > 0
+                ? `This ${isSupplier ? 'supplier' : 'customer'} has ${txnCount} transactions. Deleting will remove them ALL permanently. Continue?`
+                : `Are you sure you want to delete this ${isSupplier ? 'supplier' : 'customer'}?`;
+
+            if (confirm(msg)) {
+                await deleteCustomer(customerId);
+                showToast(`${isSupplier ? 'Supplier' : 'Customer'} deleted`);
+                router.push('/dashboard');
+            }
+        } catch (err: unknown) {
+            alert('Delete failed: ' + (err instanceof Error ? err.message : 'Unknown error'));
+        }
+    };
+
+    const handleSaveCustomer = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (editName.trim().length < 3) return alert('Name must be at least 3 characters');
+
+        setIsUpdatingCustomer(true);
+        try {
+            await updateCustomer(customerId, {
+                name: editName.trim(),
+                phone: editPhone.trim(),
+                email: editEmail.trim(),
+                address: editAddress.trim()
+            });
+            showToast('Details updated successfully');
+            setIsEditModalOpen(false);
+        } catch (err: unknown) {
+            console.error(err);
+            alert('Failed to update: ' + (err instanceof Error ? err.message : 'Unknown error'));
+        } finally {
+            setIsUpdatingCustomer(false);
+        }
+    };
+
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
@@ -346,6 +403,26 @@ export default function CustomerDetailPage() {
                     </div>
                 </div>
                 <div className={styles.headerActions}>
+                    <button
+                        className={styles.editBtn}
+                        onClick={() => {
+                            setEditName(customer.name);
+                            setEditPhone(customer.phone);
+                            setEditEmail(customer.email || '');
+                            setEditAddress(customer.address || '');
+                            setIsEditModalOpen(true);
+                        }}
+                        title="Edit Details"
+                    >
+                        <Edit2 size={18} />
+                    </button>
+                    <button
+                        className={styles.deleteBtn}
+                        onClick={() => handleDeleteCustomer()}
+                        title="Delete Account"
+                    >
+                        <Trash2 size={18} />
+                    </button>
                     <StatementDownloader customerName={customer.name} transactions={allTransactions || []} />
                     <button className={styles.reminderBtn} onClick={handleSendReminder}><MessageSquare size={18} /><span>Remind</span></button>
                 </div>
@@ -354,27 +431,22 @@ export default function CustomerDetailPage() {
             <div className={styles.balanceCard}>
                 <div className={styles.balanceInfo}>
                     <span className={styles.balanceLabel}>Current Balance</span>
-                    <h2 className={(balance === 0 || (isSupplier ? balance < 0 : balance > 0)) ? styles.positive : styles.negative}>
-                        ₹{Math.abs(balance).toLocaleString()}
-                        <small>
-                            {balance === 0 ? ' (Settled)' :
-                                (isSupplier
-                                    ? (balance > 0 ? ' (You Owe)' : ' (Advance Paid)')
-                                    : (balance > 0 ? ' (To Collect)' : ' (Advance Received)')
-                                )
-                            }
-                        </small>
+                    <h2 className={`${styles.balanceValue} ${balance >= 0 ? (isSupplier ? styles.negative : styles.positive) : (isSupplier ? styles.positive : styles.negative)}`}>
+                        ₹{Math.abs(balance).toLocaleString('en-IN')}
                     </h2>
+                    <span className={styles.balanceSub}>
+                        {balance === 0 ? 'Settled' : (balance > 0 ? (isSupplier ? 'You will pay' : 'You will collect') : (isSupplier ? 'You Collected' : 'You Paid'))}
+                    </span>
                 </div>
                 <div className={styles.divider} />
                 <div className={styles.balanceStats}>
                     <div className={styles.stat}>
-                        <span className={styles.statLabel}>{isSupplier ? 'Total Purchased' : 'Total Given'}</span>
-                        <span className={`${styles.statValue} ${styles.negative}`}>₹{totalCredit.toLocaleString()}</span>
+                        <span className={styles.statLabel}>{isSupplier ? 'Purchases' : 'Total Credit'}</span>
+                        <span className={`${styles.statValue} ${styles.positive}`}>₹{totalCredit.toLocaleString('en-IN')}</span>
                     </div>
                     <div className={styles.stat}>
-                        <span className={styles.statLabel}>{isSupplier ? 'Total Paid' : 'Total Received'}</span>
-                        <span className={`${styles.statValue} ${styles.positive}`}>₹{totalPayment.toLocaleString()}</span>
+                        <span className={styles.statLabel}>{isSupplier ? 'Payments' : 'Total Payment'}</span>
+                        <span className={`${styles.statValue} ${styles.negative}`}>₹{totalPayment.toLocaleString('en-IN')}</span>
                     </div>
                 </div>
             </div>
@@ -428,7 +500,7 @@ export default function CustomerDetailPage() {
                                             {t.hasAttachment && <Paperclip size={10} />}
                                         </div>
                                     </div>
-                                    <div className={`${styles.txnAmount} ${t.type === 'CREDIT' ? styles.negative : styles.positive}`}>₹{t.amount.toLocaleString()}</div>
+                                    <div className={`${styles.txnAmount} ${t.type === 'CREDIT' ? styles.negative : styles.positive}`}>₹{t.amount.toLocaleString('en-IN')}</div>
                                     {!isSelectMode && (
                                         <div className={styles.cardActions}>
                                             <button onClick={(e) => { e.stopPropagation(); handleEdit(t); }}><Edit2 size={16} /></button>
@@ -484,7 +556,7 @@ export default function CustomerDetailPage() {
                                 autoFocus
                             />
                             {amount && evaluatedAmount > 0 && (
-                                <p className={styles.totalPreview}>Total: ₹{evaluatedAmount.toLocaleString()}</p>
+                                <p className={styles.totalPreview}>Total: ₹{evaluatedAmount.toLocaleString('en-IN')}</p>
                             )}
                         </div>
 
@@ -569,7 +641,7 @@ export default function CustomerDetailPage() {
                             </div>
                             <div className={styles.confirmMain}>
                                 <h2 className={txnType === 'CREDIT' ? styles.negative : styles.positive}>
-                                    ₹{evaluatedAmount.toLocaleString()}
+                                    ₹{evaluatedAmount.toLocaleString('en-IN')}
                                 </h2>
                                 <p className={styles.confirmNote}>{note || 'No special note'}</p>
                             </div>
@@ -590,6 +662,58 @@ export default function CustomerDetailPage() {
                 )}
             </Modal>
             <SuccessAnimation isVisible={showSuccess} onComplete={() => setShowSuccess(false)} />
+
+            {/* Customer Edit Modal */}
+            <Modal
+                isOpen={isEditModalOpen}
+                onClose={() => !isUpdatingCustomer && setIsEditModalOpen(false)}
+                title={`Edit ${isSupplier ? 'Supplier' : 'Customer'} Details`}
+            >
+                <form onSubmit={handleSaveCustomer} className={styles.form}>
+                    <div className={styles.inputGroup}>
+                        <label>Full Name *</label>
+                        <input
+                            type="text"
+                            value={editName}
+                            onChange={(e) => setEditName(e.target.value)}
+                            placeholder="e.g. John Doe"
+                            required
+                            autoFocus
+                        />
+                    </div>
+                    <div className={styles.inputGroup}>
+                        <label>Phone Number</label>
+                        <input
+                            type="tel"
+                            value={editPhone}
+                            onChange={(e) => setEditPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                            placeholder="e.g. 9876543210"
+                            maxLength={10}
+                        />
+                    </div>
+                    <div className={styles.inputGroup}>
+                        <label>Email Address</label>
+                        <input
+                            type="email"
+                            value={editEmail}
+                            onChange={(e) => setEditEmail(e.target.value)}
+                            placeholder="e.g. john@example.com"
+                        />
+                    </div>
+                    <div className={styles.inputGroup}>
+                        <label>Address</label>
+                        <textarea
+                            value={editAddress}
+                            onChange={(e) => setEditAddress(e.target.value)}
+                            placeholder="Full address..."
+                            rows={3}
+                        />
+                    </div>
+                    <button type="submit" className={styles.submitBtn} disabled={isUpdatingCustomer}>
+                        {isUpdatingCustomer ? 'Saving...' : 'Update Details'}
+                    </button>
+                </form>
+            </Modal>
         </div>
     );
 }
