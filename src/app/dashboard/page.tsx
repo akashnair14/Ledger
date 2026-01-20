@@ -15,6 +15,7 @@ import { useToast } from '@/context/ToastContext';
 import { InsightsView } from '@/components/dashboard/InsightsView';
 import { motion, AnimatePresence } from 'framer-motion';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { BiometricPrompt } from '@/components/ui/BiometricPrompt';
 
 export default function CustomersPage() {
   const { showToast } = useToast();
@@ -459,6 +460,8 @@ export default function CustomersPage() {
           </div>
         </div>
       </Modal>
+
+      <BiometricPrompt />
     </div >
   );
 }

@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { bioAuth } from '@/lib/auth/biometrics';
-import { Fingerprint, Lock, ShieldCheck } from 'lucide-react';
+import { Fingerprint, Lock, ShieldAlert, Loader2 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
 import styles from './AppLock.module.css';
 
 interface AppLockProps {
@@ -14,21 +15,28 @@ export const AppLock: React.FC<AppLockProps> = ({ children }) => {
     const pathname = usePathname();
     const [isLocked, setIsLocked] = useState<boolean>(false);
     const [isChecking, setIsChecking] = useState<boolean>(true);
+    const [isAuthenticating, setIsAuthenticating] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
 
     const isPublic = pathname === '/' || pathname === '/login' || pathname === '/forgot-password' || pathname === '/reset-password' || pathname?.startsWith('/auth') || pathname?.startsWith('/docs');
 
     const handleUnlock = async () => {
-        setIsChecking(true);
+        setIsAuthenticating(true);
         setError(null);
-        const success = await bioAuth.authenticate();
-        if (success) {
-            setIsLocked(false);
-            sessionStorage.setItem('app_unlocked', 'true');
-        } else {
-            setError('Biometric authentication failed. Please try again.');
+        try {
+            const success = await bioAuth.authenticate();
+            if (success) {
+                setIsLocked(false);
+                sessionStorage.setItem('app_unlocked', 'true');
+            } else {
+                setError('Biometric authentication failed. Please try again.');
+            }
+        } catch (err) {
+            setError('An error occurred. Please try again.');
+            console.error(err);
+        } finally {
+            setIsAuthenticating(false);
         }
-        setIsChecking(false);
     };
 
     useEffect(() => {
@@ -46,6 +54,7 @@ export const AppLock: React.FC<AppLockProps> = ({ children }) => {
                     setIsLocked(false);
                 } else {
                     setIsLocked(true);
+                    // Trigger auth automatically on mount if enabled
                     handleUnlock();
                 }
             }
@@ -55,42 +64,67 @@ export const AppLock: React.FC<AppLockProps> = ({ children }) => {
         checkLock();
     }, [isPublic]);
 
-
-
-
-
     if (isChecking && !isLocked) return null;
 
-    if (isLocked) {
-        return (
-            <div className={styles.overlay}>
-                <div className={styles.lockCard}>
-                    <div className={styles.iconContainer}>
-                        <Lock className={styles.lockIcon} size={48} />
-                    </div>
-                    <h2>Ledger Locked</h2>
-                    <p>Verification required to access your financial records.</p>
-                    {error && <p className={styles.error}>{error}</p>}
-                    <button
-                        className={styles.unlockBtn}
-                        onClick={handleUnlock}
-                        disabled={isChecking}
+    return (
+        <>
+            <AnimatePresence>
+                {isLocked && (
+                    <motion.div
+                        className={styles.overlay}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
                     >
-                        {isChecking ? 'Verifying...' : (
-                            <>
-                                <Fingerprint size={24} />
-                                <span>Unlock with Biometrics</span>
-                            </>
-                        )}
-                    </button>
-                    <div className={styles.footer}>
-                        <ShieldCheck size={16} />
-                        <span>Secure Device Encryption Active</span>
-                    </div>
-                </div>
-            </div>
-        );
-    }
+                        <div className={styles.lockCard}>
+                            <div className={styles.iconContainer}>
+                                <div className={styles.iconCircle}>
+                                    <Lock size={32} className={styles.lockIcon} />
+                                </div>
+                            </div>
 
-    return <>{children}</>;
+                            <div className={styles.textSection}>
+                                <h1>Ledger Secured</h1>
+                                <p>Unlock with your biometric credentials to access your financial records.</p>
+                            </div>
+
+                            <button
+                                className={styles.unlockBtn}
+                                onClick={handleUnlock}
+                                disabled={isAuthenticating}
+                            >
+                                {isAuthenticating ? (
+                                    <>
+                                        <Loader2 size={24} className={styles.spin} />
+                                        <span>Authenticating...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Fingerprint size={24} />
+                                        <span>Unlock Ledger</span>
+                                    </>
+                                )}
+                            </button>
+
+                            {error && (
+                                <motion.div
+                                    className={styles.errorBox}
+                                    initial={{ scale: 0.9, opacity: 0 }}
+                                    animate={{ scale: 1, opacity: 1 }}
+                                >
+                                    <ShieldAlert size={16} />
+                                    <span>{error}</span>
+                                </motion.div>
+                            )}
+
+                            <div className={styles.footer}>
+                                <p>Your data is encrypted and secure.</p>
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+            {!isLocked && children}
+        </>
+    );
 };
