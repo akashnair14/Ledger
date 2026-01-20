@@ -4,6 +4,7 @@ import { useCustomers, useTransactions } from '@/hooks/useSupabase';
 import { useMemo } from 'react';
 import styles from './InsightsView.module.css';
 import { ArrowUpRight, ArrowDownLeft, AlertCircle } from 'lucide-react';
+import { InsightsSkeleton } from '@/components/ui/LayoutSkeletons';
 
 export const InsightsView = () => {
     const { customers } = useCustomers();
@@ -60,7 +61,7 @@ export const InsightsView = () => {
 
     }, [customers, transactions]);
 
-    if (!stats) return <div className={styles.loading}>Analyzing Ledger...</div>;
+    if (!stats) return <InsightsSkeleton />;
 
     return (
         <div className={styles.container}>

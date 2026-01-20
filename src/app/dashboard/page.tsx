@@ -16,6 +16,7 @@ import { InsightsView } from '@/components/dashboard/InsightsView';
 import { motion, AnimatePresence } from 'framer-motion';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { BiometricPrompt } from '@/components/ui/BiometricPrompt';
+import { DashboardSkeleton } from '@/components/ui/LayoutSkeletons';
 
 export default function CustomersPage() {
   const { showToast } = useToast();
@@ -324,7 +325,7 @@ export default function CustomersPage() {
 
             <div className={styles.list}>
               {isLoading ? (
-                <div className={styles.loading}>Loading...</div>
+                <DashboardSkeleton />
               ) : !customers || !customers.length ? (
                 <EmptyState
                   icon={activeTab === 'CUSTOMER' ? User : UserPlus}

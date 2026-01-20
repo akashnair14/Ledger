@@ -44,6 +44,7 @@ import {
 import { useToast } from '@/context/ToastContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { CustomerDetailSkeleton } from '@/components/ui/LayoutSkeletons';
 
 const PAYMENT_MODES: { value: PaymentMode; label: string }[] = [
     { value: 'CASH', label: 'Cash' },
@@ -193,7 +194,7 @@ export default function CustomerDetailPage() {
         }
     }, [searchParams, customersLoading, allTransactions]);
 
-    if (customersLoading) return <div className={styles.loading}>Loading customer...</div>;
+    if (customersLoading) return <CustomerDetailSkeleton />;
     if (!customer) return <div className={styles.loading}>Customer not found.</div>;
 
     // Filter Logic
