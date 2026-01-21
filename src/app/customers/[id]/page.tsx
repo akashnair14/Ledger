@@ -1,7 +1,7 @@
 'use client';
 
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
-import { Transaction, PaymentMode } from '@/lib/db';
+import { Transaction, PaymentMode, Customer } from '@/lib/db';
 import {
     ArrowLeft,
     Plus,
@@ -66,7 +66,7 @@ export default function CustomerDetailPage() {
     const { customers, isLoading: customersLoading } = useCustomers();
     const { transactions: allTransactions } = useTransactions(customerId);
 
-    const customer = customers?.find(c => c.id === id);
+    const customer = customers?.find((c: Customer) => c.id === id);
     const isSupplier = customer?.type === 'SUPPLIER';
 
     // Customer Management States
@@ -199,7 +199,7 @@ export default function CustomerDetailPage() {
 
     // Filter Logic
 
-    const filteredTransactions = allTransactions?.filter(t => {
+    const filteredTransactions = allTransactions?.filter((t: Transaction) => {
         if (activeFilters.type !== 'ALL' && t.type !== activeFilters.type) return false;
         if (activeFilters.minAmount && t.amount < Number(activeFilters.minAmount)) return false;
         if (activeFilters.maxAmount && t.amount > Number(activeFilters.maxAmount)) return false;
@@ -208,7 +208,7 @@ export default function CustomerDetailPage() {
         }
         if (activeFilters.tags.length > 0 && !activeFilters.tags.some(tag => t.tags?.includes(tag))) return false;
         return true;
-    }).sort((a, b) => {
+    }).sort((a: Transaction, b: Transaction) => {
         const order = activeFilters.sortOrder === 'ASC' ? 1 : -1;
         if (activeFilters.sortBy === 'DATE') {
             return (a.date - b.date) * order;
@@ -217,8 +217,8 @@ export default function CustomerDetailPage() {
         }
     }) || [];
 
-    const totalCredit = allTransactions?.filter(t => t.type === 'CREDIT').reduce((sum, t) => sum + t.amount, 0) || 0;
-    const totalPayment = allTransactions?.filter(t => t.type === 'PAYMENT').reduce((sum, t) => sum + t.amount, 0) || 0;
+    const totalCredit = allTransactions?.filter((t: Transaction) => t.type === 'CREDIT').reduce((sum: number, t: Transaction) => sum + t.amount, 0) || 0;
+    const totalPayment = allTransactions?.filter((t: Transaction) => t.type === 'PAYMENT').reduce((sum: number, t: Transaction) => sum + t.amount, 0) || 0;
     const balance = totalCredit - totalPayment;
 
     const validateForm = async () => {
@@ -280,7 +280,7 @@ export default function CustomerDetailPage() {
         if (!selectedTxns.length) return;
         if (confirm(`Delete ${selectedTxns.length} entries?`)) {
             try {
-                await Promise.all(selectedTxns.map(id => deleteTransaction(id, customerId)));
+                await Promise.all(selectedTxns.map((id: string) => deleteTransaction(id, customerId)));
                 showToast(`${selectedTxns.length} entries deleted`);
                 setSelectedTxns([]);
                 setIsSelectMode(false);
@@ -289,7 +289,7 @@ export default function CustomerDetailPage() {
     };
 
     const toggleTxnSelection = (id: string) => {
-        setSelectedTxns(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+        setSelectedTxns((prev: string[]) => prev.includes(id) ? prev.filter((x: string) => x !== id) : [...prev, id]);
     };
 
     const handleDelete = async (txn: Transaction) => {
@@ -477,7 +477,7 @@ export default function CustomerDetailPage() {
                             />
                         ) : (
                             <AnimatePresence>
-                                {filteredTransactions.map((t, index) => (
+                                {filteredTransactions.map((t: Transaction, index: number) => (
                                     <motion.div
                                         key={t.id}
                                         id={t.id}

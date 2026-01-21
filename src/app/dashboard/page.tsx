@@ -9,6 +9,7 @@ import Link from 'next/link';
 import { Modal } from '@/components/ui/Modal';
 import { useCustomersWithBalance } from '@/hooks/useDashboard';
 import { addCustomer, updateCustomer, deleteCustomer, getTransactionCount } from '@/hooks/useSupabase';
+import { CustomerWithBalance } from '@/hooks/useDashboard';
 import { createClient } from '@/lib/supabase/client';
 import { useBook } from '@/context/BookContext';
 import { useToast } from '@/context/ToastContext';
@@ -63,7 +64,7 @@ export default function CustomersPage() {
   const [sortType, setSortType] = useState<'NAME_ASC' | 'AMOUNT_DESC' | 'AMOUNT_ASC'>('NAME_ASC');
 
   // Client-side search & Book filtering
-  const filteredCustomers = allCustomers?.filter(c => {
+  const filteredCustomers = allCustomers?.filter((c: CustomerWithBalance) => {
     // Book Filter - must match active book
     if (!activeBook) return false;
     if (c.bookId !== activeBook.id) return false;
@@ -86,7 +87,7 @@ export default function CustomersPage() {
   });
 
   // Sorting Logic (Abs for amount to show biggest balances first)
-  const customers = filteredCustomers?.sort((a, b) => {
+  const customers = filteredCustomers?.sort((a: CustomerWithBalance, b: CustomerWithBalance) => {
     if (sortType === 'NAME_ASC') return a.name.localeCompare(b.name);
     if (sortType === 'AMOUNT_DESC') return Math.abs(b.balance) - Math.abs(a.balance);
     if (sortType === 'AMOUNT_ASC') return Math.abs(a.balance) - Math.abs(b.balance);
@@ -99,7 +100,7 @@ export default function CustomersPage() {
 
     // Check for duplicates
     if (allCustomers) {
-      const duplicate = allCustomers.find(c =>
+      const duplicate = allCustomers.find((c: CustomerWithBalance) =>
         c.name.toLowerCase() === name.trim().toLowerCase() &&
         c.phone === phone.trim() &&
         c.id !== customerToEdit?.id &&
@@ -187,7 +188,7 @@ export default function CustomersPage() {
     setAddress('');
   };
 
-  const totalAmount = customers?.reduce((sum, c) => sum + (c.balance || 0), 0) || 0;
+  const totalAmount = customers?.reduce((sum: number, c: CustomerWithBalance) => sum + (c.balance || 0), 0) || 0;
 
   return (
     <div className={styles.container}>
@@ -344,7 +345,7 @@ export default function CustomersPage() {
                 />
               ) : (
                 <AnimatePresence>
-                  {customers.map((customer, index) => (
+                  {customers.map((customer: CustomerWithBalance, index: number) => (
                     <motion.div
                       key={customer.id}
                       layout

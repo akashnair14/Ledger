@@ -1,6 +1,7 @@
 'use client';
 
 import { useCustomers, useTransactions } from '@/hooks/useSupabase';
+import { Customer, Transaction } from '@/lib/db';
 import { useMemo } from 'react';
 import styles from './InsightsView.module.css';
 import { ArrowUpRight, ArrowDownLeft, AlertCircle } from 'lucide-react';
@@ -16,10 +17,10 @@ export const InsightsView = () => {
         const customerBalances: Record<string, number> = {};
 
         // Initialize balances
-        customers.forEach(c => customerBalances[c.id] = 0);
+        customers.forEach((c: Customer) => customerBalances[c.id] = 0);
 
         // Calculate balances
-        transactions.forEach(t => {
+        transactions.forEach((t: Transaction) => {
             if (!customerBalances[t.customerId] && customerBalances[t.customerId] !== 0) return;
 
             // Logic:
@@ -38,17 +39,17 @@ export const InsightsView = () => {
         });
 
         const receivables = customers
-            .filter(c => c.type === 'CUSTOMER' && customerBalances[c.id] > 0)
-            .map(c => ({ ...c, balance: customerBalances[c.id] }))
-            .sort((a, b) => b.balance - a.balance);
+            .filter((c: Customer) => c.type === 'CUSTOMER' && customerBalances[c.id] > 0)
+            .map((c: Customer) => ({ ...c, balance: customerBalances[c.id] }))
+            .sort((a: any, b: any) => b.balance - a.balance);
 
         const payables = customers
-            .filter(c => c.type === 'SUPPLIER' && customerBalances[c.id] > 0)
-            .map(c => ({ ...c, balance: customerBalances[c.id] }))
-            .sort((a, b) => b.balance - a.balance);
+            .filter((c: Customer) => c.type === 'SUPPLIER' && customerBalances[c.id] > 0)
+            .map((c: Customer) => ({ ...c, balance: customerBalances[c.id] }))
+            .sort((a: any, b: any) => b.balance - a.balance);
 
-        const totalReceivable = receivables.reduce((sum, c) => sum + c.balance, 0);
-        const totalPayable = payables.reduce((sum, c) => sum + c.balance, 0);
+        const totalReceivable = receivables.reduce((sum: number, c: any) => sum + c.balance, 0);
+        const totalPayable = payables.reduce((sum: number, c: any) => sum + c.balance, 0);
         const netPosition = totalReceivable - totalPayable;
 
         return {
@@ -81,7 +82,7 @@ export const InsightsView = () => {
                     </div>
                     <div className={styles.amount}>₹{stats.totalReceivable.toLocaleString()}</div>
                     <div className={styles.list}>
-                        {stats.topDebtors.map(c => (
+                        {stats.topDebtors.map((c: any) => (
                             <div key={c.id} className={styles.listItem}>
                                 <span>{c.name}</span>
                                 <strong>₹{c.balance.toLocaleString()}</strong>
@@ -98,7 +99,7 @@ export const InsightsView = () => {
                     </div>
                     <div className={styles.amount}>₹{stats.totalPayable.toLocaleString()}</div>
                     <div className={styles.list}>
-                        {stats.topCreditors.map(c => (
+                        {stats.topCreditors.map((c: any) => (
                             <div key={c.id} className={styles.listItem}>
                                 <span>{c.name}</span>
                                 <strong>₹{c.balance.toLocaleString()}</strong>
