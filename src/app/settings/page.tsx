@@ -38,16 +38,32 @@ export default function SettingsPage() {
 
     useEffect(() => {
         const initSecurity = async () => {
-            setIsSupported(await bioAuth.isSupported());
-            setLockEnabled(await bioAuth.isEnabled());
+            try {
+                setIsSupported(await bioAuth.isSupported());
+                setLockEnabled(await bioAuth.isEnabled());
+            } catch (e) { console.error('Security init error:', e); }
         };
-        const getUser = async () => {
+        const fetchUser = async () => {
             const supabase = createClient();
-            const { data: { user } } = await supabase.auth.getUser();
-            setUser(user);
+            try {
+                // Try to get session first (fast, local)
+                const { data: { session } } = await supabase.auth.getSession();
+                if (session?.user) {
+                    setUser(session.user);
+                }
+
+                // Then verify with getUser (network call)
+                // We don't block on this if we already have the session user
+                const { data: { user } } = await supabase.auth.getUser();
+                if (user) setUser(user);
+                else if (!session?.user) setUser(undefined); // Explicitly no user
+            } catch (err) {
+                console.error('Fetch user error:', err);
+                setUser(undefined);
+            }
         };
         initSecurity();
-        getUser();
+        fetchUser();
     }, []);
 
     useEffect(() => {
@@ -139,33 +155,36 @@ export default function SettingsPage() {
     };
 
     const handleSignOut = async () => {
-        // Remove confirm for testing and better UX (handled by previous flow/button)
-        // if (!confirm('Are you sure you want to log out?')) return;
-
         showToast('Signing out...');
 
         try {
             const supabase = createClient();
 
-            // 1. Sign out on client (clears LocalStorage)
+            // 1. Sign out on client (clears LocalStorage and notifies server)
             await supabase.auth.signOut();
 
-            // 2. Clear local database and all storage
-            await Promise.all([
-                db.customers.clear(),
-                db.transactions.clear(),
-                db.books.clear(),
-                db.syncMetadata.clear(),
-                db.settings.clear()
-            ]);
-
+            // 2. Clear all storage types
             localStorage.clear();
             sessionStorage.clear();
 
-            // 3. Redirect to Server Logout (Clears Cookies)
+            // 3. Clear all IndexedDB databases (Critical for PWA)
+            try {
+                const databases = await window.indexedDB.databases();
+                for (const dbInfo of databases) {
+                    if (dbInfo.name) {
+                        window.indexedDB.deleteDatabase(dbInfo.name);
+                    }
+                }
+            } catch (e) {
+                console.error('Failed to clear IndexedDB:', e);
+            }
+
+            // 4. Force a hard redirect to the server logout route
+            // This ensures cookies are cleared and middleware sees the clean state
             window.location.href = '/auth/signout';
         } catch (err) {
             console.error('Logout error:', err);
+            // Fallback: Still try to go to the server logout
             window.location.href = '/auth/signout';
         }
     };

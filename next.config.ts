@@ -5,6 +5,8 @@ const withPWA = require('next-pwa')({
   disable: process.env.NODE_ENV === 'development',
   register: true,
   skipWaiting: true,
+  publicExcludes: ['!dashboard/**/*', '!settings/**/*', '!customers/**/*', '!transactions/**/*', '!analytics/**/*'],
+  buildExcludes: [/middleware-manifest\.json$/],
 });
 
 const nextConfig: NextConfig = {
