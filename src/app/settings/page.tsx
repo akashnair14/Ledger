@@ -9,7 +9,7 @@ import { bioAuth } from '@/lib/auth/biometrics';
 import { useBook } from '@/context/BookContext';
 import { useToast } from '@/context/ToastContext';
 import { useSettings, saveSetting } from '@/hooks/useSupabase';
-import { createClient } from '@/lib/supabase/client';
+import { createClient, resetClient } from '@/lib/supabase/client';
 import { useState, useEffect } from 'react';
 import styles from './SettingsPage.module.css';
 
@@ -179,12 +179,26 @@ export default function SettingsPage() {
                 console.error('Failed to clear IndexedDB:', e);
             }
 
-            // 4. Force a hard redirect to the server logout route
+            // 4. Clear Service Worker caches (Critical for PWA auth state)
+            try {
+                if ('caches' in window) {
+                    const cacheNames = await caches.keys();
+                    await Promise.all(cacheNames.map(name => caches.delete(name)));
+                }
+            } catch (e) {
+                console.error('Failed to clear caches:', e);
+            }
+
+            // 5. Reset the singleton Supabase client to destroy stale state
+            resetClient();
+
+            // 6. Force a hard redirect to the server logout route
             // This ensures cookies are cleared and middleware sees the clean state
             window.location.href = '/auth/signout';
         } catch (err) {
             console.error('Logout error:', err);
-            // Fallback: Still try to go to the server logout
+            // Fallback: Still try to reset and redirect
+            resetClient();
             window.location.href = '/auth/signout';
         }
     };

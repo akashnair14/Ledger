@@ -11,12 +11,11 @@ export function createClient() {
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
         {
             auth: {
-                persistSession: true, // Backup: Save to LocalStorage (PWA friendly)
+                persistSession: true,
                 autoRefreshToken: true,
                 detectSessionInUrl: true,
-                storageKey: 'sb-auth-token', // Explicit key for LocalStorage
+                storageKey: 'sb-auth-token',
             },
-            // Primary: Save to Cookies (Middleware friendly)
             cookieOptions: {
                 path: '/',
                 sameSite: 'lax',
@@ -25,4 +24,12 @@ export function createClient() {
         }
     )
     return client;
+}
+
+/**
+ * Reset the singleton client instance.
+ * MUST be called during logout to prevent stale session resurrection.
+ */
+export function resetClient() {
+    client = undefined;
 }

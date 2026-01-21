@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
+import { createClient, resetClient } from '@/lib/supabase/client'
 import { AuthChangeEvent, Session } from '@supabase/supabase-js'
 
 export function AuthStateListener() {
@@ -20,6 +20,9 @@ export function AuthStateListener() {
                 localStorage.clear();
                 sessionStorage.clear();
 
+                // Reset the singleton client to destroy stale session state
+                resetClient();
+
                 // Use window.location for a hard reset to clear all in-memory state
                 window.location.href = '/login';
             }
@@ -32,3 +35,4 @@ export function AuthStateListener() {
 
     return null
 }
+
