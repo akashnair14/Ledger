@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { useCustomers, useTransactions } from '@/hooks/useSupabase';
+import { Customer, Transaction } from '@/lib/db';
 import { useBook } from '@/context/BookContext';
 import {
     TrendingUp,
@@ -35,19 +36,19 @@ export default function AnalyticsPage() {
 
         // Filter by book if needed (though Supabase might already be filtered by policy)
         const bookTransactions = activeBook
-            ? transactions.filter(t => t.bookId === activeBook.id)
+            ? transactions.filter((t: Transaction) => t.bookId === activeBook.id)
             : transactions;
 
         const bookCustomers = activeBook
-            ? customers.filter(c => c.bookId === activeBook.id)
+            ? customers.filter((c: Customer) => c.bookId === activeBook.id)
             : customers;
 
         // 1. Basic Stats & Customer Balances
         let totalReceivable = 0;
         let totalPayable = 0;
-        const customerBalances = bookCustomers.map(c => {
-            const customerTxns = bookTransactions.filter(t => t.customerId === c.id);
-            const balance = customerTxns.reduce((sum, t) => sum + (t.type === 'CREDIT' ? t.amount : -t.amount), 0);
+        const customerBalances = bookCustomers.map((c: Customer) => {
+            const customerTxns = bookTransactions.filter((t: Transaction) => t.customerId === c.id);
+            const balance = customerTxns.reduce((sum: number, t: Transaction) => sum + (t.type === 'CREDIT' ? t.amount : -t.amount), 0);
             if (balance > 0) totalReceivable += balance;
             else if (balance < 0) totalPayable += Math.abs(balance);
             return { ...c, balance, lastTxnDate: customerTxns[0]?.date || c.updatedAt }; // transactions are sorted by date desc
@@ -59,8 +60,8 @@ export default function AnalyticsPage() {
         const trendData: { date: string; balance: number; fullDate: string }[] = [];
 
         // Pre-group transactions by date string for O(1) lookup in loop
-        const txnsByDay: Record<string, typeof bookTransactions> = {};
-        bookTransactions.forEach(t => {
+        const txnsByDay: Record<string, Transaction[]> = {};
+        bookTransactions.forEach((t: Transaction) => {
             const d = new Date(t.date).toISOString().split('T')[0];
             if (!txnsByDay[d]) txnsByDay[d] = [];
             txnsByDay[d].push(t);
@@ -68,7 +69,7 @@ export default function AnalyticsPage() {
 
         let runningBalance = 0;
         // Calculate initial balance at start point
-        bookTransactions.forEach(t => {
+        bookTransactions.forEach((t: Transaction) => {
             if (t.date < startTimestamp) {
                 runningBalance += (t.type === 'CREDIT' ? t.amount : -t.amount);
             }
@@ -80,7 +81,7 @@ export default function AnalyticsPage() {
             const dateStr = date.toISOString().split('T')[0];
 
             const dayTxns = txnsByDay[dateStr] || [];
-            dayTxns.forEach(t => {
+            dayTxns.forEach((t: Transaction) => {
                 if (t.date >= startTimestamp) { // Only add if it wasn't in initial balance
                     runningBalance += (t.type === 'CREDIT' ? t.amount : -t.amount);
                 }
@@ -100,8 +101,8 @@ export default function AnalyticsPage() {
             transactionCount: bookTransactions.length,
             trendData,
             agedDebts: customerBalances
-                .filter(c => c.balance > 0 && c.lastTxnDate < now - (30 * 24 * 60 * 60 * 1000))
-                .sort((a, b) => a.lastTxnDate - b.lastTxnDate)
+                .filter((c: any) => c.balance > 0 && c.lastTxnDate < now - (30 * 24 * 60 * 60 * 1000))
+                .sort((a: any, b: any) => a.lastTxnDate - b.lastTxnDate)
         };
     }, [customers, transactions, activeBook, timeframe, today]);
 
@@ -173,7 +174,7 @@ export default function AnalyticsPage() {
                     <h3>Critical Collections (30+ Days)</h3>
                 </div>
                 <div className={styles.debtorList}>
-                    {stats.agedDebts.map((debtor) => (
+                    {stats.agedDebts.map((debtor: any) => (
                         <Link key={debtor.id} href={`/customers/${debtor.id}`} className={styles.debtorRow}>
                             <div className={styles.debtorInfo}>
                                 <strong>{debtor.name}</strong>
