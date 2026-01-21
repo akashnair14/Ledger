@@ -1,5 +1,5 @@
 import { useCustomers, useTransactions } from './useSupabase';
-import { Customer } from '@/lib/db';
+import { Customer, Transaction } from '@/lib/db';
 
 export type CustomerWithBalance = Customer & {
     balance: number;
@@ -22,7 +22,7 @@ export function useCustomersWithBalance() {
     // Aggregate Balances
     const balanceMap = new Map<string, { credit: number, payment: number, lastDate: number }>();
 
-    transactions.forEach(t => {
+    transactions.forEach((t: Transaction) => {
         if (!balanceMap.has(t.customerId)) {
             balanceMap.set(t.customerId, { credit: 0, payment: 0, lastDate: 0 });
         }
@@ -34,7 +34,7 @@ export function useCustomersWithBalance() {
         if (t.date > entry.lastDate) entry.lastDate = t.date;
     });
 
-    const enrichedCustomers: CustomerWithBalance[] = customers.map(c => {
+    const enrichedCustomers: CustomerWithBalance[] = customers.map((c: Customer) => {
         const stats = balanceMap.get(c.id) || { credit: 0, payment: 0, lastDate: 0 };
         // Balance Logic:
         // Customer: Credit (Given) - Payment (Received). Positive = They Owe.

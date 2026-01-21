@@ -26,7 +26,7 @@ export function BookProvider({ children }: { children: React.ReactNode }) {
             if (localBooks.length === 0) return;
 
             // 2. Identify books that are NOT in Supabase yet
-            const missingInCloud = localBooks.filter(lb => !books.some(cb => cb.id === lb.id));
+            const missingInCloud = localBooks.filter((lb: Book) => !books.some((cb: Book) => cb.id === lb.id));
 
             if (missingInCloud.length > 0) {
                 console.log(`Migrating ${missingInCloud.length} local books to cloud...`);
@@ -48,7 +48,7 @@ export function BookProvider({ children }: { children: React.ReactNode }) {
     useEffect(() => {
         if (!isLoading && books.length > 0 && !initialized.current) {
             const savedBookId = localStorage.getItem('activeBookId');
-            const book = books.find(b => b.id === savedBookId) || books[0];
+            const book = books.find((b: Book) => b.id === savedBookId) || books[0];
 
             // eslint-disable-next-line react-hooks/set-state-in-effect
             setActiveBookState(book);

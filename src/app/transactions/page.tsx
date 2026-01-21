@@ -1,6 +1,6 @@
 'use client';
 
-import { PaymentMode } from '@/lib/db';
+import { PaymentMode, Transaction, Customer } from '@/lib/db';
 import { useCustomers, useTransactions } from '@/hooks/useSupabase';
 import { useBook } from '@/context/BookContext';
 import {
@@ -34,12 +34,12 @@ export default function TransactionsPage() {
         if (!transactions || !customers) return [];
 
         return transactions
-            .filter(t => {
+            .filter((t: Transaction) => {
                 // Book Filter
                 if (activeBook && t.bookId !== activeBook.id) return false;
 
                 // Search Match
-                const customer = customers.find(c => c.id === t.customerId);
+                const customer = customers.find((c: Customer) => c.id === t.customerId);
                 const customerName = customer?.name || 'Deleted Customer';
 
                 const q = searchQuery.toLowerCase();
@@ -47,7 +47,7 @@ export default function TransactionsPage() {
                     customerName.toLowerCase().includes(q) ||
                     (t.note && t.note.toLowerCase().includes(q)) ||
                     (t.invoiceNumber && t.invoiceNumber.toLowerCase().includes(q)) ||
-                    (t.tags && t.tags.some(tag => tag.toLowerCase().includes(q)));
+                    (t.tags && t.tags.some((tag: string) => tag.toLowerCase().includes(q)));
 
                 if (!searchMatch) return false;
 
@@ -69,9 +69,9 @@ export default function TransactionsPage() {
 
                 return true;
             })
-            .map(t => ({
+            .map((t: Transaction) => ({
                 ...t,
-                customerName: customers.find(c => c.id === t.customerId)?.name || 'Deleted Customer'
+                customerName: customers.find((c: Customer) => c.id === t.customerId)?.name || 'Deleted Customer'
             }));
     }, [transactions, customers, activeBook, searchQuery, typeFilter, modeFilter, startDate, endDate]);
 
@@ -161,7 +161,7 @@ export default function TransactionsPage() {
                         <button onClick={resetFilters} className={styles.textBtn}>Clear All Filters</button>
                     </div>
                 ) : (
-                    filtered.map((t, index) => (
+                    filtered.map((t: any, index: number) => (
                         <Link
                             href={`/customers/${t.customerId}`}
                             key={t.id}
@@ -192,7 +192,7 @@ export default function TransactionsPage() {
                                     </div>
                                     {t.tags && t.tags.length > 0 && (
                                         <div className={styles.tagStrip}>
-                                            {t.tags.slice(0, 2).map(tag => (
+                                            {t.tags.slice(0, 2).map((tag: string) => (
                                                 <span key={tag}>#{tag}</span>
                                             ))}
                                         </div>

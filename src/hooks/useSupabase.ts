@@ -109,7 +109,7 @@ const fetchSettings = async () => {
 
     if (error) throw error
     const settings: Record<string, string> = {}
-    data.forEach(s => {
+    data.forEach((s: { key: string; value: string }) => {
         settings[s.key] = s.value
     })
     return settings

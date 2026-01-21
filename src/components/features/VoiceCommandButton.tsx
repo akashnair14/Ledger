@@ -5,6 +5,7 @@ import { Mic, X } from 'lucide-react';
 import { useVoice } from '@/hooks/useVoice';
 import { parseVoiceCommand } from '@/lib/ai/voice-parser';
 import { useCustomers } from '@/hooks/useSupabase'; // To find customer by name
+import { Customer } from '@/lib/db';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/context/ToastContext';
 import { useHaptic } from '@/hooks/useHaptic';
@@ -56,7 +57,7 @@ export const VoiceCommandButton = () => {
                     return;
                 }
 
-                const target = customers?.find(c => c.name.toLowerCase().includes(intent.name.toLowerCase()));
+                const target = customers?.find((c: Customer) => c.name.toLowerCase().includes(intent.name.toLowerCase()));
 
                 if (target) {
                     // Found! Navigate

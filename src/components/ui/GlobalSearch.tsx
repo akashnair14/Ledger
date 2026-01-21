@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCustomers, useTransactions } from '@/hooks/useSupabase';
+import { Customer, Transaction } from '@/lib/db';
 import { Search, User, ReceiptText, Command, X, ArrowRight, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import styles from './GlobalSearch.module.css';
@@ -29,9 +30,9 @@ export const GlobalSearch = () => {
 
         // 1. Search Customers
         const matchedCustomers = customers
-            .filter(c => c.name.toLowerCase().includes(q) || c.phone.includes(q))
+            .filter((c: Customer) => c.name.toLowerCase().includes(q) || c.phone.includes(q))
             .slice(0, MAX_PER_CATEGORY)
-            .map(c => ({
+            .map((c: Customer) => ({
                 type: (c.type || 'CUSTOMER') as 'CUSTOMER' | 'SUPPLIER',
                 id: c.id,
                 name: c.name,
@@ -41,16 +42,16 @@ export const GlobalSearch = () => {
 
         // 2. Search Transactions
         // Join with customer name for better context
-        const customerMap = new Map(customers.map(c => [c.id, c.name]));
+        const customerMap = new Map(customers.map((c: Customer) => [c.id, c.name]));
 
         const matchedTxns = transactions
-            .filter(t =>
+            .filter((t: Transaction) =>
                 (t.note && t.note.toLowerCase().includes(q)) ||
                 t.amount.toString().includes(q) ||
                 (t.invoiceNumber && t.invoiceNumber.toLowerCase().includes(q))
             )
             .slice(0, MAX_PER_CATEGORY)
-            .map(t => ({
+            .map((t: Transaction) => ({
                 type: 'TRANSACTION',
                 id: t.customerId, // Navigate to customer
                 name: `₹${t.amount.toLocaleString()}`,
@@ -144,7 +145,7 @@ export const GlobalSearch = () => {
                         </div>
 
                         <div className={styles.results}>
-                            {results.map((item, idx) => (
+                            {results.map((item: SearchResult, idx: number) => (
                                 <div
                                     key={`${item.type}-${item.id}-${item.type === 'TRANSACTION' ? item.txnId : idx}`}
                                     className={`${styles.resultItem} ${idx === selectedIndex ? styles.selected : ''}`}
