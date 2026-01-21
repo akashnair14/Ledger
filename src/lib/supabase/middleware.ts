@@ -20,22 +20,12 @@ export async function updateSession(request: NextRequest, _options?: any) {
                     return request.cookies.getAll()
                 },
                 setAll(cookiesToSet) {
-                    cookiesToSet.forEach(({ name, value, options }) => {
-                        request.cookies.set(name, value)
-                    })
-
+                    cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value))
                     response = NextResponse.next({
-                        request: {
-                            headers: request.headers,
-                        },
+                        request,
                     })
-
                     cookiesToSet.forEach(({ name, value, options }) =>
-                        response.cookies.set(name, value, {
-                            ...options,
-                            maxAge: 60 * 60 * 24 * 365, // Force 1 year persistence
-                            path: '/',
-                        })
+                        response.cookies.set(name, value, options)
                     )
                 },
             },
@@ -47,23 +37,33 @@ export async function updateSession(request: NextRequest, _options?: any) {
         data: { user },
     } = await supabase.auth.getUser()
 
-    // 3. Protected Routes Logic
-    // Routes that require authentication
+    // 4. Protected Routes Logic
     const protectedRoutes = ['/dashboard', '/analytics', '/transactions', '/settings', '/customers'];
     const isProtectedRoute = protectedRoutes.some(path => request.nextUrl.pathname.startsWith(path));
 
     if (!user && isProtectedRoute) {
         const url = request.nextUrl.clone()
         url.pathname = '/login'
-        return NextResponse.redirect(url)
+        const redirectResponse = NextResponse.redirect(url)
+        // Copy cookies from the primary response (which contains signOut/refresh deletions) to the redirect
+        response.cookies.getAll().forEach(cookie => {
+            const { name, value, ...options } = cookie
+            redirectResponse.cookies.set(name, value, options)
+        })
+        return redirectResponse
     }
 
-    // 4. Auth Route Logic
-    // If user IS signed in and attempts to go to /login OR / (landing page), redirect to /dashboard
+    // 5. Auth Route Logic
     if (user && (request.nextUrl.pathname === '/' || request.nextUrl.pathname.startsWith('/login'))) {
         const url = request.nextUrl.clone()
         url.pathname = '/dashboard'
-        return NextResponse.redirect(url)
+        const redirectResponse = NextResponse.redirect(url)
+        // Copy cookies
+        response.cookies.getAll().forEach(cookie => {
+            const { name, value, ...options } = cookie
+            redirectResponse.cookies.set(name, value, options)
+        })
+        return redirectResponse
     }
 
     return response

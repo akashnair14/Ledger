@@ -55,7 +55,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${fraunces.variable} ${hanken.variable} ${spaceMono.variable}`}>
+      <body className={`${fraunces.variable} ${hanken.variable} ${spaceMono.variable}`} suppressHydrationWarning>
         <ThemeProvider>
           <BookProvider>
             <ToastProvider>

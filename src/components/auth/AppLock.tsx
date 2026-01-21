@@ -54,20 +54,26 @@ export const AppLock: React.FC<AppLockProps> = ({ children }) => {
                     setIsLocked(false);
                 } else {
                     setIsLocked(true);
-                    // Trigger auth automatically on mount if enabled
-                    handleUnlock();
+                    // Only trigger auto-unlock if we are definitely on a protected page
+                    // and not already authenticating
+                    if (!isAuthenticating && !isPublic) {
+                        handleUnlock();
+                    }
                 }
+            } else {
+                setIsLocked(false);
             }
             setIsChecking(false);
         };
 
         checkLock();
-    }, [isPublic]);
+    }, [isPublic, pathname]);
 
-    if (isChecking && !isLocked) return null;
-
+    // We must always render children to avoid hydration mismatches that break event listeners (like logout button)
+    // The lock overlay will appear on top if isLocked is true.
     return (
         <>
+            {children}
             <AnimatePresence>
                 {isLocked && (
                     <motion.div
@@ -119,12 +125,26 @@ export const AppLock: React.FC<AppLockProps> = ({ children }) => {
 
                             <div className={styles.footer}>
                                 <p>Your data is encrypted and secure.</p>
+                                {/* EMERGENCY LOGOUT if biometric fails */}
+                                <button
+                                    onClick={() => window.location.href = '/auth/signout'}
+                                    style={{
+                                        marginTop: '1rem',
+                                        background: 'none',
+                                        border: 'none',
+                                        color: 'var(--text-dim)',
+                                        textDecoration: 'underline',
+                                        fontSize: '0.8rem',
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    Log out from this device
+                                </button>
                             </div>
                         </div>
                     </motion.div>
                 )}
             </AnimatePresence>
-            {!isLocked && children}
         </>
     );
 };

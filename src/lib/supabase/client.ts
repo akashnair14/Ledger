@@ -14,7 +14,6 @@ export function createClient() {
             },
             // Primary: Save to Cookies (Middleware friendly)
             cookieOptions: {
-                maxAge: 60 * 60 * 24 * 365, // 1 year
                 path: '/',
                 sameSite: 'lax',
                 secure: process.env.NODE_ENV === 'production',

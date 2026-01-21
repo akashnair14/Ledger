@@ -139,39 +139,33 @@ export default function SettingsPage() {
     };
 
     const handleSignOut = async () => {
-        if (!confirm('Are you sure you want to log out? This will also clear local cache for security.')) return;
+        // Remove confirm for testing and better UX (handled by previous flow/button)
+        // if (!confirm('Are you sure you want to log out?')) return;
 
-        showToast('Signing out and clearing data...');
+        showToast('Signing out...');
 
         try {
-            await import('@/lib/supabase/client');
-            // 1. Sign out from Supabase
-            // 1. Sign out from Supabase
-            // We SKIP client-side signOut to prevent AuthStateListener from triggering a race condition.
-            // Instead, we let the server route (/auth/signout) handle the cookie clearing 100%.
+            const supabase = createClient();
 
-            // 2. Clear local database
+            // 1. Sign out on client (clears LocalStorage)
+            await supabase.auth.signOut();
+
+            // 2. Clear local database and all storage
             await Promise.all([
                 db.customers.clear(),
                 db.transactions.clear(),
                 db.books.clear(),
-                db.attachments.clear(),
                 db.syncMetadata.clear(),
                 db.settings.clear()
             ]);
 
-            // 3. Clear storage (CRITICAL for PWA Persistence Fix)
-            localStorage.removeItem('sb-auth-token'); // Explicitly remove auth token
-            sessionStorage.removeItem('app_unlocked'); // Lock the app
-            localStorage.clear(); // Clear everything else
+            localStorage.clear();
             sessionStorage.clear();
 
-            // 4. Redirect to Server Logout (Clears Cookies)
+            // 3. Redirect to Server Logout (Clears Cookies)
             window.location.href = '/auth/signout';
         } catch (err) {
             console.error('Logout error:', err);
-            // Even if error, force clear token
-            localStorage.removeItem('sb-auth-token');
             window.location.href = '/auth/signout';
         }
     };

@@ -12,8 +12,11 @@ export class BioAuthService {
     }
 
     async isEnabled(): Promise<boolean> {
-        const meta = await db.syncMetadata.get(LOCK_ENABLED_KEY);
-        return !!meta?.value;
+        const [meta, credId] = await Promise.all([
+            db.syncMetadata.get(LOCK_ENABLED_KEY),
+            db.syncMetadata.get(CREDENTIAL_ID_KEY)
+        ]);
+        return !!meta?.value && !!credId?.value;
     }
 
     async setEnabled(enabled: boolean): Promise<void> {
