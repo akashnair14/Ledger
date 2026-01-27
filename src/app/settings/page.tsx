@@ -1,10 +1,14 @@
 'use client';
 
-import { db } from '@/lib/db';
+import { db, Customer, Transaction } from '@/lib/db';
+
 import { useCustomers, useTransactions } from '@/hooks/useSupabase';
 import { FileUp, Trash2, Database, Building2, Upload, ToggleLeft, ToggleRight, Download, RefreshCw, LogOut } from 'lucide-react';
-import { exportToCSV, exportToExcel, exportToJSON } from '@/lib/export/generate';
-import { importFromCSV } from '@/lib/import/csv';
+import { exportToCSV, exportToExcel, BackupVariant } from '@/lib/export/generate';
+
+import { importFromCSV, importFromExcel } from '@/lib/import/csv';
+
+
 import { bioAuth } from '@/lib/auth/biometrics';
 import { useBook } from '@/context/BookContext';
 import { useToast } from '@/context/ToastContext';
@@ -17,14 +21,16 @@ type Tab = 'PROFILE' | 'DATA' | 'SECURITY';
 
 export default function SettingsPage() {
     const { showToast } = useToast();
-    const { activeBook } = useBook();
+    const { activeBook, books } = useBook();
     const { customers, isLoading: customersLoading } = useCustomers();
     const { transactions, isLoading: txnsLoading } = useTransactions();
 
     // UI State
     const [activeTab, setActiveTab] = useState<Tab>('PROFILE');
+    const [selectedExportBookId, setSelectedExportBookId] = useState<string>('ACTIVE');
 
     // Security State
+
     const [lockEnabled, setLockEnabled] = useState(false);
     const [isSupported, setIsSupported] = useState(false);
 
@@ -117,15 +123,42 @@ export default function SettingsPage() {
         }
     };
 
-    const handleExport = (type: 'CSV' | 'JSON' | 'EXCEL') => {
+    const handleExport = (type: 'CSV' | 'EXCEL', variant: BackupVariant = 'FULL') => {
         if (!customers || !transactions) {
             alert('Data is still loading or unavailable.');
             return;
         }
-        if (type === 'CSV') exportToCSV(customers, transactions);
-        if (type === 'JSON') exportToJSON(customers, transactions);
-        if (type === 'EXCEL') exportToExcel(customers, transactions);
+
+        const bookId = selectedExportBookId === 'ACTIVE' ? activeBook?.id : selectedExportBookId;
+
+        if (selectedExportBookId === 'ACTIVE' && !activeBook) {
+            alert('No active ledger selected.');
+            return;
+        }
+
+        // Filter data based on selection
+        let filteredCustomers = (customers as Customer[]).filter(c => c.isDeleted === 0);
+        let filteredTransactions = (transactions as Transaction[]).filter(t => t.isDeleted === 0);
+
+        if (bookId !== 'ALL') {
+            filteredCustomers = filteredCustomers.filter(c => c.bookId === (bookId === 'ACTIVE' ? activeBook?.id : bookId));
+            filteredTransactions = filteredTransactions.filter(t => t.bookId === (bookId === 'ACTIVE' ? activeBook?.id : bookId));
+        }
+
+        if (filteredCustomers.length === 0 && filteredTransactions.length === 0) {
+            alert('No data available for the selected ledger.');
+            return;
+        }
+
+        const selectedBookName = bookId === 'ALL' ? 'All Ledgers' : (books.find(b => b.id === bookId)?.name || activeBook?.name || 'Ledger');
+
+        if (type === 'CSV') exportToCSV(filteredCustomers, filteredTransactions);
+        if (type === 'EXCEL') exportToExcel(filteredCustomers, filteredTransactions, variant);
+        showToast(`${variant.replace('_', ' ')} backup started for ${selectedBookName}!`);
     };
+
+
+
 
     const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -136,7 +169,15 @@ export default function SettingsPage() {
                 alert('Please select or create a ledger book first.');
                 return;
             }
-            await importFromCSV(file, activeBook.id);
+
+            if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+                await importFromExcel(file, activeBook.id);
+            } else {
+                await importFromCSV(file, activeBook.id);
+            }
+
+
+
             showToast('Import successful!');
             setTimeout(() => window.location.reload(), 1500);
         } catch (err) {
@@ -144,6 +185,7 @@ export default function SettingsPage() {
             showToast('Import failed', 'error');
         }
     };
+
 
     const clearData = async () => {
         if (!confirm('This will delete ALL local data. Cloud data in Supabase will NOT be affected. Continue?')) return;
@@ -317,39 +359,105 @@ export default function SettingsPage() {
                 {activeTab === 'DATA' && (
                     <section className={styles.section}>
                         <div className={styles.card}>
-                            <div className={styles.row}>
-                                <div className={styles.info}>
-                                    <h3>Export Backup (Supabase)</h3>
-                                    <p>Download all your cloud data securely.</p>
+                            <div className={styles.cardHeader}>
+                                <Database size={18} />
+                                <h2>Backup & Export</h2>
+                            </div>
+
+                            {books.length > 0 ? (
+                                <div className={styles.exportControls}>
+                                    <div className={styles.inputGroup}>
+                                        <label>Select Source Ledger:</label>
+                                        <select
+                                            value={selectedExportBookId}
+                                            onChange={(e) => setSelectedExportBookId(e.target.value)}
+                                            className={styles.bookSelect}
+                                        >
+                                            <option value="ACTIVE">Current: {activeBook?.name || 'None'}</option>
+                                            <optgroup label="Other Ledgers">
+                                                {books.filter(b => b.id !== activeBook?.id).map(b => (
+                                                    <option key={b.id} value={b.id}>{b.name}</option>
+                                                ))}
+                                            </optgroup>
+                                            <option value="ALL">Entire Account (All Ledgers)</option>
+                                        </select>
+                                    </div>
                                 </div>
-                                <div className={styles.btnGroup}>
-                                    <button className={styles.importBtn} onClick={() => handleExport('CSV')} disabled={isDataLoading}>
-                                        {isDataLoading ? <RefreshCw className="spin" size={16} /> : <Download size={16} />} CSV
-                                    </button>
-                                    <button className={styles.importBtn} onClick={() => handleExport('EXCEL')} disabled={isDataLoading}>
-                                        {isDataLoading ? <RefreshCw className="spin" size={16} /> : <Download size={16} />} Excel
-                                    </button>
-                                    <button className={styles.importBtn} onClick={() => handleExport('JSON')} disabled={isDataLoading}>
-                                        {isDataLoading ? <RefreshCw className="spin" size={16} /> : <Database size={16} />} JSON
-                                    </button>
+                            ) : (
+                                <div className={styles.noBooksMessage}>
+                                    <p>Create a ledger book to enable backup options.</p>
                                 </div>
+                            )}
+
+                            <div className={`${styles.backupGrid} ${books.length === 0 ? styles.disabled : ''}`}>
+                                <div className={styles.backupItem}>
+
+                                    <div className={styles.info}>
+                                        <h3>Full Ledger Backup</h3>
+                                        <p>Comprehensive backup of all customers, suppliers, and transactions.</p>
+                                    </div>
+                                    <div className={styles.btnGroup}>
+                                        <button className={styles.importBtn} onClick={() => handleExport('EXCEL', 'FULL')} disabled={isDataLoading}>
+                                            <Download size={16} /> Export Excel (Full)
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div className={styles.backupItem}>
+                                    <div className={styles.info}>
+                                        <h3>Customers Only</h3>
+                                        <p>Export only your customer list and their respective transactions.</p>
+                                    </div>
+                                    <div className={styles.btnGroup}>
+                                        <button className={styles.importBtn} onClick={() => handleExport('EXCEL', 'CUSTOMERS_ALL')} disabled={isDataLoading}>
+                                            With Txns
+                                        </button>
+                                        <button className={styles.importBtn} onClick={() => handleExport('EXCEL', 'CUSTOMERS_ONLY')} disabled={isDataLoading}>
+                                            List Only
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div className={styles.backupItem}>
+                                    <div className={styles.info}>
+                                        <h3>Suppliers Only</h3>
+                                        <p>Export only your supplier list and their respective transactions.</p>
+                                    </div>
+                                    <div className={styles.btnGroup}>
+                                        <button className={styles.importBtn} onClick={() => handleExport('EXCEL', 'SUPPLIERS_ALL')} disabled={isDataLoading}>
+                                            With Txns
+                                        </button>
+                                        <button className={styles.importBtn} onClick={() => handleExport('EXCEL', 'SUPPLIERS_ONLY')} disabled={isDataLoading}>
+                                            List Only
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <div className={styles.card}>
+                            <div className={styles.cardHeader}>
+                                <Upload size={18} />
+                                <h2>Restore & Maintenance</h2>
                             </div>
 
                             <div className={styles.row}>
                                 <div className={styles.info}>
                                     <h3>Import Data</h3>
-                                    <p>Restore to local cache from a CSV backup.</p>
+                                    <p>Restore from an Excel (.xlsx) or CSV backup file.</p>
                                 </div>
                                 <label className={styles.importBtn}>
-                                    <FileUp size={16} /> Import CSV
-                                    <input type="file" accept=".csv" onChange={handleImport} hidden />
+                                    <FileUp size={16} /> Select Excel/CSV
+                                    <input type="file" accept=".csv,.xlsx,.xls" onChange={handleImport} hidden />
                                 </label>
+
                             </div>
 
                             <div className={styles.row}>
                                 <div className={styles.info}>
-                                    <h3 style={{ color: 'var(--danger)' }}>Reset Local Storage</h3>
-                                    <p>Erase local cache. Cloud data will remain safe.</p>
+                                    <h3 style={{ color: 'var(--danger)' }}>Reset Local Cache</h3>
+                                    <p>Safety erase local data. Cloud data remains safe.</p>
                                 </div>
                                 <button className={styles.dangerBtn} onClick={clearData}>
                                     <Trash2 size={16} /> Clear Cache
@@ -358,6 +466,7 @@ export default function SettingsPage() {
                         </div>
                     </section>
                 )}
+
 
                 {activeTab === 'SECURITY' && (
                     <section className={styles.section}>

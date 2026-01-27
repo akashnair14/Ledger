@@ -68,9 +68,11 @@ export default function CustomersPage() {
 
   // Client-side search & Book filtering
   const filteredCustomers = allCustomers?.filter((c: CustomerWithBalance) => {
-    // Book Filter - must match active book
+    // Book Filter - must match active book and NOT be deleted
     if (!activeBook) return false;
     if (c.bookId !== activeBook.id) return false;
+    if (c.isDeleted !== 0) return false;
+
 
     // Type Filter
     const cType = c.type || 'CUSTOMER'; // Default for old data

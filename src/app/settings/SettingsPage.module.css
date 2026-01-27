@@ -167,6 +167,34 @@
     border-bottom: none;
 }
 
+.backupGrid {
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.backupItem {
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+    gap: 1.5rem;
+}
+
+.backupItem:last-child {
+    border-bottom: none;
+}
+
+@media (max-width: 600px) {
+    .backupItem {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+}
+
+
 /* Branding Styles */
 .brandingGrid {
     display: flex;
@@ -344,4 +372,33 @@
     color: var(--text-dim);
     font-size: 0.8rem;
     opacity: 0.6;
+}
+
+.exportControls {
+    padding: 1.25rem 1.5rem;
+    background: rgba(var(--primary-rgb), 0.03);
+    border-bottom: 1px solid var(--border);
+}
+
+.bookSelect {
+    padding: 0.75rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-thick);
+    background: var(--surface);
+    color: var(--text-main);
+    font-weight: 600;
+    width: 100%;
+}
+
+.noBooksMessage {
+    padding: 2rem;
+    text-align: center;
+    color: var(--text-dim);
+    font-style: italic;
+}
+
+.backupGrid.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+    filter: grayscale(1);
 }

@@ -28,8 +28,9 @@ const mapCustomer = (row: Record<string, unknown>): Customer => ({
     createdAt: new Date(row.created_at as string).getTime(),
     updatedAt: new Date((row.updated_at as string) || (row.created_at as string)).getTime(),
     type: (row.type as 'CUSTOMER' | 'SUPPLIER') || 'CUSTOMER',
-    isDeleted: 0
+    isDeleted: row.is_deleted ? 1 : 0
 })
+
 
 // Map Supabase 'transactions' row to App 'Transaction'
 const mapTransaction = (row: Record<string, unknown>): Transaction => ({
@@ -48,10 +49,11 @@ const mapTransaction = (row: Record<string, unknown>): Transaction => ({
     attachmentUrl: row.attachment_url as string,
     createdAt: new Date(row.created_at as string).getTime(),
     updatedAt: new Date(row.created_at as string).getTime(),
-    isDeleted: 0,
+    isDeleted: row.is_deleted ? 1 : 0,
     deviceId: 'web',
     imported: false
 })
+
 
 // --- Fetchers ---
 
@@ -72,6 +74,8 @@ const fetchCustomers = async () => {
         .select('*')
         .order('name')
 
+
+
     if (error) throw error
     return data.map(mapCustomer)
 }
@@ -81,6 +85,8 @@ const fetchTransactions = async (customerId?: string) => {
         .from('transactions')
         .select('*')
         .order('date', { ascending: false })
+
+
 
     if (customerId) {
         query = query.eq('customer_id', customerId)
@@ -97,6 +103,8 @@ const fetchAllTransactions = async () => {
         .from('transactions')
         .select('*')
         .order('date', { ascending: false })
+
+
 
     if (error) throw error
     return data.map(mapTransaction)

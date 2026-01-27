@@ -4,24 +4,50 @@ import { useCustomers, useTransactions } from '@/hooks/useSupabase';
 import { Customer, Transaction } from '@/lib/db';
 import { useMemo } from 'react';
 import styles from './InsightsView.module.css';
-import { ArrowUpRight, ArrowDownLeft, AlertCircle } from 'lucide-react';
+import { ArrowUpRight, ArrowDownLeft, AlertCircle, TrendingUp } from 'lucide-react';
 import { InsightsSkeleton } from '@/components/ui/LayoutSkeletons';
+import { useBook } from '@/context/BookContext';
+
 
 export const InsightsView = () => {
     const { customers } = useCustomers();
     const { transactions } = useTransactions();
+    const { activeBook } = useBook();
 
     const stats = useMemo(() => {
         if (!customers || !transactions) return null;
 
+        if (!activeBook) return {
+            totalReceivable: 0,
+            totalPayable: 0,
+            netPosition: 0,
+            topDebtors: [],
+            topCreditors: []
+        };
+
+        const bookTransactions = transactions.filter((t: Transaction) => t.bookId === activeBook.id);
+        const bookCustomers = customers.filter((c: Customer) => c.bookId === activeBook.id);
+
+
+        if (bookCustomers.length === 0) return {
+            totalReceivable: 0,
+            totalPayable: 0,
+            netPosition: 0,
+            topDebtors: [],
+            topCreditors: []
+        };
+
+
         const customerBalances: Record<string, number> = {};
 
+
         // Initialize balances
-        customers.forEach((c: Customer) => customerBalances[c.id] = 0);
+        bookCustomers.forEach((c: Customer) => customerBalances[c.id] = 0);
 
         // Calculate balances
-        transactions.forEach((t: Transaction) => {
-            if (!customerBalances[t.customerId] && customerBalances[t.customerId] !== 0) return;
+        bookTransactions.forEach((t: Transaction) => {
+            if (customerBalances[t.customerId] === undefined) return;
+
 
             // Logic:
             // Customer: CREDIT (Positive Debt), PAYMENT (Negative Debt)
@@ -38,15 +64,16 @@ export const InsightsView = () => {
             }
         });
 
-        const receivables = customers
+        const receivables = bookCustomers
             .filter((c: Customer) => c.type === 'CUSTOMER' && customerBalances[c.id] > 0)
             .map((c: Customer) => ({ ...c, balance: customerBalances[c.id] }))
             .sort((a: any, b: any) => b.balance - a.balance);
 
-        const payables = customers
+        const payables = bookCustomers
             .filter((c: Customer) => c.type === 'SUPPLIER' && customerBalances[c.id] > 0)
             .map((c: Customer) => ({ ...c, balance: customerBalances[c.id] }))
             .sort((a: any, b: any) => b.balance - a.balance);
+
 
         const totalReceivable = receivables.reduce((sum: number, c: any) => sum + c.balance, 0);
         const totalPayable = payables.reduce((sum: number, c: any) => sum + c.balance, 0);
@@ -60,7 +87,8 @@ export const InsightsView = () => {
             topCreditors: payables.slice(0, 3)
         };
 
-    }, [customers, transactions]);
+    }, [customers, transactions, activeBook]);
+
 
     if (!stats) return <InsightsSkeleton />;
 

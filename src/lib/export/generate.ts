@@ -44,30 +44,87 @@ export async function exportToCSV(customers: Customer[], transactions: Transacti
     downloadFile(csv, `ledger_export_${variant.toLowerCase()}.csv`, 'text/csv');
 }
 
-export async function exportToJSON(customers: Customer[], transactions: Transaction[]) {
-    const data = { customers, transactions, exportedAt: new Date().toISOString() };
-    downloadFile(JSON.stringify(data, null, 2), 'ledger_backup.json', 'application/json');
+export type BackupVariant = 'FULL' | 'CUSTOMERS_ALL' | 'CUSTOMERS_ONLY' | 'SUPPLIERS_ALL' | 'SUPPLIERS_ONLY';
+
+export async function exportToJSON(customers: Customer[], transactions: Transaction[], variant: BackupVariant = 'FULL') {
+    let filteredCustomers = customers;
+    let filteredTransactions = transactions;
+
+    if (variant === 'CUSTOMERS_ALL' || variant === 'CUSTOMERS_ONLY') {
+        filteredCustomers = customers.filter(c => (c.type || 'CUSTOMER') === 'CUSTOMER');
+        const ids = new Set(filteredCustomers.map(c => c.id));
+        filteredTransactions = transactions.filter(t => ids.has(t.customerId));
+    } else if (variant === 'SUPPLIERS_ALL' || variant === 'SUPPLIERS_ONLY') {
+        filteredCustomers = customers.filter(c => c.type === 'SUPPLIER');
+        const ids = new Set(filteredCustomers.map(c => c.id));
+        filteredTransactions = transactions.filter(t => ids.has(t.customerId));
+    }
+
+    if (variant.includes('_ONLY')) {
+        filteredTransactions = [];
+    }
+
+    const data = {
+        customers: filteredCustomers,
+        transactions: filteredTransactions,
+        variant,
+        exportedAt: new Date().toISOString()
+    };
+
+    const filename = `ledger_backup_${variant.toLowerCase()}.json`;
+    downloadFile(JSON.stringify(data, null, 2), filename, 'application/json');
 }
 
-export async function exportToExcel(customers: Customer[], transactions: Transaction[]) {
-    const data = transactions.map(t => {
-        const customer = customers.find(c => c.id === t.customerId);
-        return {
-            Date: formatDate(t.date),
-            Customer: customer?.name || 'Unknown',
-            Type: t.type,
-            Amount: t.amount,
-            Tags: (t.tags || []).join(', '),
-            Note: t.note || '',
-            Attachment: t.attachmentUrl || ''
-        };
-    });
+export async function exportToExcel(customers: Customer[], transactions: Transaction[], variant: BackupVariant = 'FULL') {
+    let filteredCustomers = customers;
+    let filteredTransactions = transactions;
 
-    const ws = XLSX.utils.json_to_sheet(data);
+    if (variant === 'CUSTOMERS_ALL' || variant === 'CUSTOMERS_ONLY') {
+        filteredCustomers = customers.filter(c => (c.type || 'CUSTOMER') === 'CUSTOMER');
+        const ids = new Set(filteredCustomers.map(c => c.id));
+        filteredTransactions = transactions.filter(t => ids.has(t.customerId));
+    } else if (variant === 'SUPPLIERS_ALL' || variant === 'SUPPLIERS_ONLY') {
+        filteredCustomers = customers.filter(c => c.type === 'SUPPLIER');
+        const ids = new Set(filteredCustomers.map(c => c.id));
+        filteredTransactions = transactions.filter(t => ids.has(t.customerId));
+    }
+
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Transactions");
-    XLSX.writeFile(wb, "ledger_export.xlsx");
+
+    // Sheet 1: Customers
+    const custData = filteredCustomers.map(c => ({
+        Name: c.name,
+        Phone: c.phone || '',
+        Email: c.email || '',
+        Address: c.address || '',
+        Type: c.type || 'CUSTOMER',
+        ID: c.id
+    }));
+    const wsCust = XLSX.utils.json_to_sheet(custData);
+    XLSX.utils.book_append_sheet(wb, wsCust, "Customers");
+
+    // Sheet 2: Transactions
+    if (!variant.includes('_ONLY')) {
+        const txnData = filteredTransactions.map(t => {
+            const customer = customers.find(c => c.id === t.customerId);
+            return {
+                Date: formatDate(t.date),
+                Customer: customer?.name || 'Unknown',
+                Type: t.type,
+                Amount: t.amount,
+                Note: t.note || '',
+                CustomerID: t.customerId,
+                ID: t.id
+            };
+
+        });
+        const wsTxn = XLSX.utils.json_to_sheet(txnData);
+        XLSX.utils.book_append_sheet(wb, wsTxn, "Transactions");
+    }
+
+    XLSX.writeFile(wb, `ledger_export_${variant.toLowerCase()}.xlsx`);
 }
+
 
 export async function generateVoucher(customer: Customer, t: Transaction, balance: number) {
     const doc = new jsPDF();

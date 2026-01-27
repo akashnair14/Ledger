@@ -34,14 +34,15 @@ export default function AnalyticsPage() {
     const stats = useMemo(() => {
         if (!customers || !transactions) return null;
 
-        // Filter by book if needed (though Supabase might already be filtered by policy)
+        // Filter by book and ensure only active (non-deleted) records are included
         const bookTransactions = activeBook
-            ? transactions.filter((t: Transaction) => t.bookId === activeBook.id)
-            : transactions;
+            ? transactions.filter((t: Transaction) => t.bookId === activeBook.id && t.isDeleted === 0)
+            : transactions.filter((t: Transaction) => t.isDeleted === 0);
 
         const bookCustomers = activeBook
-            ? customers.filter((c: Customer) => c.bookId === activeBook.id)
-            : customers;
+            ? customers.filter((c: Customer) => c.bookId === activeBook.id && c.isDeleted === 0)
+            : customers.filter((c: Customer) => c.isDeleted === 0);
+
 
         // 1. Basic Stats & Customer Balances
         let totalReceivable = 0;
