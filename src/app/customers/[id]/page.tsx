@@ -45,6 +45,9 @@ import { useToast } from '@/context/ToastContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { CustomerDetailSkeleton } from '@/components/ui/LayoutSkeletons';
+import { normalizePhoneNumber, isValidPhone, formatPhoneDisplay } from '@/lib/phoneUtils';
+
+
 
 const PAYMENT_MODES: { value: PaymentMode; label: string }[] = [
     { value: 'CASH', label: 'Cash' },
@@ -326,8 +329,16 @@ export default function CustomerDetailPage() {
     const handleSendReminder = () => {
         if (!customer.phone) return alert('No phone');
         const msg = encodeURIComponent(`Hi ${customer.name}, your balance is ₹${Math.abs(balance).toLocaleString()}. Please check. Thanks!`);
-        window.open(`https://wa.me/91${customer.phone.replace(/\D/g, '')}?text=${msg}`, '_blank');
+        // Remove all non-digits for WhatsApp. If it doesn't start with a country code, we can't be sure, 
+        // but normalizePhoneNumber ensures we have a consistent format.
+        let phoneDigits = customer.phone.replace(/\D/g, '');
+        // If it's 10 digits, assume Indian (+91)
+        if (phoneDigits.length === 10) {
+            phoneDigits = '91' + phoneDigits;
+        }
+        window.open(`https://wa.me/${phoneDigits}?text=${msg}`, '_blank');
     };
+
 
     const handleDeleteCustomer = async () => {
         try {
@@ -349,12 +360,14 @@ export default function CustomerDetailPage() {
     const handleSaveCustomer = async (e: React.FormEvent) => {
         e.preventDefault();
         if (editName.trim().length < 3) return alert('Name must be at least 3 characters');
+        if (editPhone && !isValidPhone(editPhone)) return alert('Please enter a valid phone number');
 
         setIsUpdatingCustomer(true);
+        const normalizedPhone = normalizePhoneNumber(editPhone);
         try {
             await updateCustomer(customerId, {
                 name: editName.trim(),
-                phone: editPhone.trim(),
+                phone: normalizedPhone,
                 email: editEmail.trim(),
                 address: editAddress.trim()
             });
@@ -367,6 +380,7 @@ export default function CustomerDetailPage() {
             setIsUpdatingCustomer(false);
         }
     };
+
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -401,7 +415,8 @@ export default function CustomerDetailPage() {
                         <div className={styles.nameSection}>
                             <h1>{customer.name}</h1>
                             <div className={styles.quickInfo}>
-                                <span><Phone size={14} /> {customer.phone}</span>
+                                <span><Phone size={14} /> {formatPhoneDisplay(customer.phone)}</span>
+
                                 {customer.address && <span><MapPin size={14} /> {customer.address}</span>}
                             </div>
                         </div>
@@ -688,15 +703,16 @@ export default function CustomerDetailPage() {
                         />
                     </div>
                     <div className={styles.inputGroup}>
-                        <label>Phone Number</label>
+                        <label>Phone Number (Optional - allows country code & spaces)</label>
                         <input
                             type="tel"
                             value={editPhone}
-                            onChange={(e) => setEditPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                            placeholder="e.g. 9876543210"
-                            maxLength={10}
+                            onChange={(e) => setEditPhone(e.target.value.replace(/[^\d+ ]/g, ''))}
+                            placeholder="e.g. +91 98765 43210"
+                            maxLength={20}
                         />
                     </div>
+
                     <div className={styles.inputGroup}>
                         <label>Email Address</label>
                         <input

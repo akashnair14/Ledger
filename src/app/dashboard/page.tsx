@@ -18,6 +18,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { BiometricPrompt } from '@/components/ui/BiometricPrompt';
 import { DashboardSkeleton } from '@/components/ui/LayoutSkeletons';
+import { normalizePhoneNumber, isValidPhone, formatPhoneDisplay } from '@/lib/phoneUtils';
+
+
 
 export default function CustomersPage() {
   const { showToast } = useToast();
@@ -76,8 +79,11 @@ export default function CustomersPage() {
     // Search Match
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
-      if (!c.name.toLowerCase().includes(q) && !c.phone.includes(q)) return false;
+      const normalizedQ = normalizePhoneNumber(q);
+      const normalizedCPhone = normalizePhoneNumber(c.phone);
+      if (!c.name.toLowerCase().includes(q) && !normalizedCPhone.includes(normalizedQ || q)) return false;
     }
+
 
     // Balance Filter
     if (filterType === 'HAS_BALANCE') return c.balance !== 0;
@@ -96,19 +102,22 @@ export default function CustomersPage() {
 
   const validateForm = async () => {
     if (name.trim().length < 3) return 'Name must be at least 3 characters';
-    if (phone && !/^\d{0,10}$/.test(phone)) return 'Phone number must be digits only and max 10 characters';
+    if (phone && !isValidPhone(phone)) return 'Please enter a valid phone number (10 digits or with country code)';
+
 
     // Check for duplicates
     if (allCustomers) {
+      const normalizedPhone = normalizePhoneNumber(phone);
       const duplicate = allCustomers.find((c: CustomerWithBalance) =>
         c.name.toLowerCase() === name.trim().toLowerCase() &&
-        c.phone === phone.trim() &&
+        normalizePhoneNumber(c.phone) === normalizedPhone &&
         c.id !== customerToEdit?.id &&
         (c.type || 'CUSTOMER') === activeTab
       );
       if (duplicate) return `A ${activeTab.toLowerCase()} with this name and phone already exists`;
     }
     return null;
+
   };
 
   const handleSaveCustomer = async (e: React.FormEvent) => {
@@ -119,11 +128,12 @@ export default function CustomersPage() {
     if (activeTab === 'INSIGHTS') return;
 
     setIsSaving(true);
+    const normalizedPhone = normalizePhoneNumber(phone);
     try {
       if (customerToEdit) {
         await updateCustomer(customerToEdit.id, {
           name: name.trim(),
-          phone: phone.trim(),
+          phone: normalizedPhone,
           email: email.trim(),
           address: address.trim()
         });
@@ -136,7 +146,7 @@ export default function CustomersPage() {
         }
         await addCustomer({
           name: name.trim(),
-          phone: phone.trim(),
+          phone: normalizedPhone,
           email: email.trim(),
           address: address.trim(),
           bookId: activeBook.id,
@@ -145,6 +155,7 @@ export default function CustomersPage() {
         showToast(`${activeTab === 'CUSTOMER' ? 'Customer' : 'Supplier'} added successfully`);
       }
       closeModal();
+
     } catch (err: unknown) {
       console.error(err);
       const msg = err instanceof Error ? err.message : 'Unknown error';
@@ -361,7 +372,8 @@ export default function CustomersPage() {
                       >
                         <div className={styles.info}>
                           <h3>{customer.name}</h3>
-                          <p>{customer.phone}</p>
+                          <p>{formatPhoneDisplay(customer.phone)}</p>
+
                         </div>
                         <div className={styles.balanceContainer}>
                           <span className={`${styles.balanceBadge} ${customer.balance === 0
@@ -404,16 +416,17 @@ export default function CustomersPage() {
             />
           </div>
           <div className={styles.inputGroup}>
-            <label>Phone Number (Optional - Max 10 digits)</label>
+            <label>Phone Number (Optional - allows country code & spaces)</label>
             <input
               type="tel"
               value={phone}
-              onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
-              placeholder="e.g. 9876543210"
-              maxLength={10}
+              onChange={(e) => setPhone(e.target.value.replace(/[^\d+ ]/g, ''))}
+              placeholder="e.g. +91 98765 43210"
+              maxLength={20}
               inputMode="tel"
             />
           </div>
+
           <div className={styles.inputGroup}>
             <label>Email Address (Optional)</label>
             <input
