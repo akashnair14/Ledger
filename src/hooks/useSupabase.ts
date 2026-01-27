@@ -204,6 +204,89 @@ export const deleteBook = async (id: string) => {
     await mutate('books')
 }
 
+export const copyCustomers = async (sourceBookId: string, targetBookId: string, carryForwardBalance: boolean = false) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Authentication required');
+
+    // 1. Fetch source customers
+    const { data: customers, error: fetchError } = await supabase
+        .from('customers')
+        .select('*')
+        .eq('book_id', sourceBookId);
+
+    if (fetchError) throw fetchError;
+    if (!customers || customers.length === 0) return;
+
+    // 2. Prepare new customer entries
+    const newCustomers = customers.map((c: { name: string; mobile: string; email: string; address: string; type: string }) => ({
+
+        name: c.name,
+        mobile: c.mobile,
+        email: c.email,
+        address: c.address,
+        type: c.type || 'CUSTOMER',
+        user_id: user.id,
+        book_id: targetBookId
+    }));
+
+    // 3. Batch insert customers
+    const { data: createdCustomers, error: insertError } = await supabase
+        .from('customers')
+        .insert(newCustomers)
+        .select();
+
+    if (insertError) throw insertError;
+
+    // 4. Carry forward balances if requested
+    if (carryForwardBalance && createdCustomers) {
+        // We need to calculate balances for source customers
+        const { data: txns, error: txnError } = await supabase
+            .from('transactions')
+            .select('customer_id, amount, type')
+            .eq('book_id', sourceBookId);
+
+        if (txnError) throw txnError;
+
+        const balances: Record<string, number> = {};
+        txns?.forEach((t: any) => {
+            const amt = Number(t.amount);
+            const factor = t.type === 'CREDIT' ? 1 : -1;
+            balances[t.customer_id] = (balances[t.customer_id] || 0) + (amt * factor);
+        });
+
+        const initialTxns = createdCustomers.map((nc: any) => {
+            // Find original customer to get their balance
+            const original = (customers as any[]).find((oc: any) => oc.name === nc.name && oc.mobile === nc.mobile);
+            const bal = original ? balances[original.id] : 0;
+
+            if (bal === 0) return null;
+
+            return {
+                customer_id: nc.id,
+                book_id: targetBookId,
+                amount: Math.abs(bal),
+                type: bal > 0 ? 'CREDIT' : 'PAYMENT',
+                mode: 'OTHER',
+                note: 'Opening Balance (Carried Forward)',
+                date: new Date().toISOString(),
+                user_id: user.id
+            };
+        }).filter(Boolean);
+
+
+        if (initialTxns.length > 0) {
+            const { error: balError } = await supabase.from('transactions').insert(initialTxns);
+            if (balError) throw balError;
+        }
+    }
+
+    await Promise.all([
+        mutate('customers'),
+        mutate('all-transactions')
+    ]);
+}
+
+
 export const addCustomer = async (customer: Partial<Customer>) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('Authenticaton required');
@@ -335,6 +418,11 @@ export const updateTransaction = async (id: string, updates: Partial<Transaction
 };
 
 export const deleteCustomer = async (id: string) => {
+    // 1. Delete associated transactions first to avoid orphaned data/FK issues
+    const { error: txnError } = await supabase.from('transactions').delete().eq('customer_id', id);
+    if (txnError) console.warn('[useSupabase] Failed to delete transactions for customer:', id, txnError.message);
+
+    // 2. Delete the customer
     const { error } = await supabase.from('customers').delete().eq('id', id)
     if (error) throw error
 
@@ -344,6 +432,7 @@ export const deleteCustomer = async (id: string) => {
         mutate('all-transactions')
     ])
 }
+
 
 export const getTransactionCount = async (customerId: string) => {
     const { count, error } = await supabase
@@ -381,13 +470,29 @@ export const saveSetting = async (key: string, value: string) => {
     await mutate('settings')
 }
 
-export const hasCustomersInBook = async (bookId: string) => {
-    const { count, error } = await supabase
-        .from('customers')
-        .select('*', { count: 'exact', head: true })
-        .eq('book_id', bookId)
+export const getBookDataStats = async (bookId: string) => {
+    // Check both customers and transactions
+    const [custRes, txnRes] = await Promise.all([
+        supabase.from('customers').select('type', { count: 'exact', head: false }).eq('book_id', bookId),
+        supabase.from('transactions').select('id', { count: 'exact', head: true }).eq('book_id', bookId)
+    ]);
 
-    if (error) throw error
-    return (count || 0) > 0
+    if (custRes.error) throw custRes.error;
+    if (txnRes.error) throw txnRes.error;
+
+    const customers = custRes.data || [];
+    const customerCount = (customers as any[]).filter((c: any) => (c.type || 'CUSTOMER') === 'CUSTOMER').length;
+    const supplierCount = (customers as any[]).filter((c: any) => c.type === 'SUPPLIER').length;
+    const transactionCount = txnRes.count || 0;
+
+
+    return {
+        customerCount,
+        supplierCount,
+        transactionCount,
+        totalEntities: customerCount + supplierCount,
+        hasData: customerCount > 0 || supplierCount > 0 || transactionCount > 0
+    };
 }
+
 

@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+
 import { type Book } from '@/lib/db';
 import { useBook } from '@/context/BookContext';
 // unused imports removed
@@ -16,8 +17,11 @@ import {
 } from 'lucide-react';
 import { useTheme } from '@/context/ThemeContext';
 import { useToast } from '@/context/ToastContext';
-import { hasCustomersInBook, addBook, updateBook, deleteBook } from '@/hooks/useSupabase';
+import { getBookDataStats, addBook, updateBook, deleteBook, copyCustomers } from '@/hooks/useSupabase';
+
+import { Copy, ChevronRight, Check } from 'lucide-react';
 import Link from 'next/link';
+
 import { Modal } from '@/components/ui/Modal';
 import styles from './Navbar.module.css';
 
@@ -31,6 +35,16 @@ export const Navbar = () => {
     const [newBookName, setNewBookName] = useState('');
     const [isChecking, setIsChecking] = useState(false);
 
+    const [sourceBookId, setSourceBookId] = useState<string>('');
+    const [carryForwardBalance, setCarryForwardBalance] = useState(false);
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+
+
     const handleCreateBook = async (e: React.FormEvent) => {
         e.preventDefault();
         const name = newBookName.trim();
@@ -40,11 +54,20 @@ export const Navbar = () => {
         try {
             setIsChecking(true);
             const book = await addBook(name);
-            showToast('Ledger created successfully!');
+
+            if (sourceBookId) {
+                showToast('Carrying forward customers...');
+                await copyCustomers(sourceBookId, book.id, carryForwardBalance);
+            }
+
+            showToast(sourceBookId ? 'Ledger created with customers!' : 'Ledger created successfully!');
             setNewBookName('');
+            setSourceBookId('');
+            setCarryForwardBalance(false);
             setIsBookModalOpen(false);
             setIsDropdownOpen(false);
             setActiveBook(book); // Switch to the new book
+
         } catch (err) {
             console.error(err);
             showToast('Failed to create ledger: ' + (err instanceof Error ? err.message : 'Unknown error'), 'error');
@@ -78,11 +101,18 @@ export const Navbar = () => {
     const handleDeleteBook = async (id: string) => {
         try {
             setIsChecking(true);
-            const hasData = await hasCustomersInBook(id);
+            const stats = await getBookDataStats(id);
             setIsChecking(false);
 
-            if (hasData) {
-                return alert('Cannot delete book with active customers. Delete customers first.');
+            if (stats.hasData) {
+                let errorMsg = 'Cannot delete ledger: ';
+                const parts = [];
+                if (stats.customerCount > 0) parts.push(`${stats.customerCount} customers`);
+                if (stats.supplierCount > 0) parts.push(`${stats.supplierCount} suppliers`);
+                if (stats.transactionCount > 0) parts.push(`${stats.transactionCount} transactions`);
+
+                errorMsg += parts.join(', ') + ' still exist. Please delete them first.';
+                return alert(errorMsg);
             }
 
             if (confirm('Are you sure? This will soft-delete the ledger.')) {
@@ -101,6 +131,7 @@ export const Navbar = () => {
         }
     };
 
+
     return (
         <nav className={styles.navbar}>
             <div className={styles.container}>
@@ -117,10 +148,11 @@ export const Navbar = () => {
                             disabled={isChecking}
                         >
                             <span className={styles.bookName}>
-                                {isChecking ? <Loader2 size={14} className="spin" /> : (activeBook?.name || 'Select Book')}
+                                {!mounted || isChecking ? <Loader2 size={14} className="spin" /> : (activeBook?.name || 'Select Book')}
                             </span>
                             <ChevronDown size={14} />
                         </button>
+
 
                         {isDropdownOpen && (
                             <div className={styles.dropdown}>
@@ -169,8 +201,9 @@ export const Navbar = () => {
 
                 <div className={styles.actions}>
                     <button className={styles.iconButton} onClick={toggleTheme}>
-                        {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+                        {mounted && (theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />)}
                     </button>
+
                     <Link href="/settings" className={styles.iconButton}>
                         <Settings size={20} />
                     </Link>
@@ -192,14 +225,56 @@ export const Navbar = () => {
                             type="text"
                             value={newBookName}
                             onChange={(e) => setNewBookName(e.target.value)}
-                            placeholder="e.g. Personal, Business"
+                            placeholder="e.g. FY 2025-26"
                             required
                             autoFocus
                         />
                     </div>
-                    <button type="submit" className={styles.submitBtn}>
-                        {bookToEdit ? 'Update Name' : 'Create Ledger'}
+
+                    {!bookToEdit && books.length > 0 && (
+                        <div className={styles.copySection}>
+                            <div className={styles.copyHeader} onClick={() => setSourceBookId(sourceBookId ? '' : books[0].id)}>
+                                <div className={styles.copyLabel}>
+                                    <Copy size={16} />
+                                    <span>Carry forward customers from existing ledger?</span>
+                                </div>
+                                <div className={`${styles.toggle} ${sourceBookId ? styles.toggleOn : ''}`}>
+                                    <div className={styles.toggleKnob} />
+                                </div>
+                            </div>
+
+                            {sourceBookId && (
+                                <div className={styles.copyOptions}>
+                                    <div className={styles.inputGroup}>
+                                        <label>Source Ledger</label>
+                                        <select
+                                            value={sourceBookId}
+                                            onChange={(e) => setSourceBookId(e.target.value)}
+                                            className={styles.select}
+                                        >
+                                            {books.filter(b => b.isDeleted === 0).map(b => (
+                                                <option key={b.id} value={b.id}>{b.name}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div className={styles.checkboxGroup} onClick={() => setCarryForwardBalance(!carryForwardBalance)}>
+                                        <div className={`${styles.checkbox} ${carryForwardBalance ? styles.checked : ''}`}>
+                                            {carryForwardBalance && <Check size={12} />}
+                                        </div>
+                                        <span>Also carry forward current balances?</span>
+                                    </div>
+                                    <p className={styles.copyHint}>
+                                        This will copy all customer names, phone numbers, and addresses to your new ledger.
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    <button type="submit" className={styles.submitBtn} disabled={isChecking}>
+                        {isChecking ? 'Processing...' : (bookToEdit ? 'Update Name' : 'Create Ledger')}
                     </button>
+
                 </form>
             </Modal>
         </nav>

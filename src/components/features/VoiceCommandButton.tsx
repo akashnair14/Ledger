@@ -82,7 +82,13 @@ export const VoiceCommandButton = () => {
         }
     }, [isListening, transcript, showOverlay, processing, customers, router, showToast, handleClose, triggerError, triggerSuccess]);
 
-    if (!isSupported) return null;
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    if (!mounted || !isSupported) return null;
 
     return (
         <>
