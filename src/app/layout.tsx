@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Fraunces, Hanken_Grotesk, Space_Mono } from "next/font/google";
+import { Bricolage_Grotesque, Instrument_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { BookProvider } from "@/context/BookContext";
@@ -10,18 +10,18 @@ import { ToastProvider } from "@/context/ToastContext";
 import { SettingsSync } from "@/components/layout/SettingsSync";
 import { AuthGuard } from "@/components/auth/AuthGuard";
 
-const fraunces = Fraunces({
+const displayFont = Bricolage_Grotesque({
   subsets: ["latin"],
-  variable: '--font-fraunces',
+  variable: '--font-display',
   weight: ['400', '600', '700', '800']
 });
 
-const hanken = Hanken_Grotesk({
+const bodyFont = Instrument_Sans({
   subsets: ["latin"],
-  variable: '--font-hanken'
+  variable: '--font-body'
 });
 
-const spaceMono = Space_Mono({
+const monoFont = JetBrains_Mono({
   subsets: ["latin"],
   variable: '--font-mono',
   weight: ['400', '700']
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0a0f1d",
+  themeColor: "#06090A",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -56,7 +56,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${fraunces.variable} ${hanken.variable} ${spaceMono.variable}`} suppressHydrationWarning>
+      <body className={`${displayFont.variable} ${bodyFont.variable} ${monoFont.variable}`} suppressHydrationWarning>
         <ThemeProvider>
           <BookProvider>
             <ToastProvider>

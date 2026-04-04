@@ -84,7 +84,7 @@ export const PullToRefresh: React.FC<PullToRefreshProps> = ({ children }) => {
     };
 
     return (
-        <div ref={wrapperRef} style={{ minHeight: '100vh' }}>
+        <div ref={wrapperRef} style={{ minHeight: '100%' }}>
             {/* Refresh Indicator */}
             <div
                 style={{

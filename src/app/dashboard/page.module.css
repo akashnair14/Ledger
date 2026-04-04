@@ -248,9 +248,17 @@
   gap: 0.5rem;
 }
 
+@media (min-width: 768px) {
+  .list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 1.5rem;
+  }
+}
+
 .main {
   padding: 1rem;
-  max-width: 900px;
+  max-width: 1200px;
   margin: 0 auto;
   width: 100%;
 }
@@ -264,8 +272,10 @@
 .cardContainer {
   position: relative;
   display: flex;
-  align-items: center;
+  align-items: stretch;
   gap: 0.5rem;
+  /* Allow animation variants to work gracefully */
+  height: 100%;
 }
 
 .statCard {
@@ -301,8 +311,29 @@
   background: linear-gradient(90deg, var(--surface-header), transparent);
 }
 
-.cardContainer:last-child .customerCard {
-  border-bottom: none;
+@media (max-width: 767px) {
+  .cardContainer:last-child .customerCard {
+    border-bottom: none;
+  }
+}
+
+@media (min-width: 768px) {
+  .customerCard {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 1.5rem;
+    height: 100%;
+    /* Override hover for desktop cards */
+    background: var(--surface);
+  }
+  
+  .customerCard:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+    border-color: var(--primary);
+    background: var(--surface);
+  }
 }
 
 .cardActions {

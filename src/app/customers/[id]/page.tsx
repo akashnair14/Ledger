@@ -440,6 +440,14 @@ export default function CustomerDetailPage() {
                     </div>
 
                     <div className={styles.mainActions}>
+                        <div className={styles.desktopPrimaryActions}>
+                            <button className={styles.giveBtnDesktop} onClick={() => { setTxnType('CREDIT'); setTxnModalOpen(true); }}>
+                                <Plus size={18} /> {isSupplier ? 'RECORD PURCHASE' : 'GIVE CREDIT'}
+                            </button>
+                            <button className={styles.receiveBtnDesktop} onClick={() => { setTxnType('PAYMENT'); setTxnModalOpen(true); }}>
+                                <Minus size={18} /> {isSupplier ? 'PAY SUPPLIER' : 'RECEIVE PAYMENT'}
+                            </button>
+                        </div>
                         <StatementDownloader customerName={customer.name} transactions={allTransactions || []} />
                         <button className={styles.miniReminderBtn} onClick={handleSendReminder}>
                             <MessageSquare size={18} />
@@ -451,7 +459,7 @@ export default function CustomerDetailPage() {
                 <div className={styles.balanceCard}>
                     <div className={styles.balanceInfo}>
                         <span className={styles.balanceLabel}>Current Balance</span>
-                        <h2 className={`${styles.balanceValue} ${balance >= 0 ? (isSupplier ? styles.negative : styles.positive) : (isSupplier ? styles.positive : styles.negative)}`}>
+                        <h2 className={`${styles.balanceValue} ${balance >= 0 ? (isSupplier ? styles.positive : styles.negative) : (isSupplier ? styles.negative : styles.positive)}`}>
                             ₹{Math.abs(balance).toLocaleString('en-IN')}
                         </h2>
                         <span className={styles.balanceSub}>
@@ -462,11 +470,11 @@ export default function CustomerDetailPage() {
                     <div className={styles.balanceStats}>
                         <div className={styles.stat}>
                             <span className={styles.statLabel}>{isSupplier ? 'Purchases' : 'Total Credit'}</span>
-                            <span className={`${styles.statValue} ${styles.positive}`}>₹{totalCredit.toLocaleString('en-IN')}</span>
+                            <span className={`${styles.statValue} ${styles.negative}`}>₹{totalCredit.toLocaleString('en-IN')}</span>
                         </div>
                         <div className={styles.stat}>
                             <span className={styles.statLabel}>{isSupplier ? 'Payments' : 'Total Payment'}</span>
-                            <span className={`${styles.statValue} ${styles.negative}`}>₹{totalPayment.toLocaleString('en-IN')}</span>
+                            <span className={`${styles.statValue} ${styles.positive}`}>₹{totalPayment.toLocaleString('en-IN')}</span>
                         </div>
                     </div>
                 </div>
@@ -509,8 +517,8 @@ export default function CustomerDetailPage() {
                                         <div className={styles.txnMain}>
                                             <div className={styles.txnNote}>
                                                 {t.type === 'CREDIT'
-                                                    ? <ArrowUpRight size={14} className={styles.negative} />
-                                                    : <ArrowDownLeft size={14} className={styles.positive} />
+                                                    ? <ArrowUpRight size={14} className={styles.positive} />
+                                                    : <ArrowDownLeft size={14} className={styles.negative} />
                                                 }
                                                 {t.note || (t.type === 'CREDIT' ? (isSupplier ? 'Purchased' : 'Given') : (isSupplier ? 'Paid' : 'Received'))}
                                             </div>
@@ -520,7 +528,7 @@ export default function CustomerDetailPage() {
                                                 {t.hasAttachment && <Paperclip size={10} />}
                                             </div>
                                         </div>
-                                        <div className={`${styles.txnAmount} ${t.type === 'CREDIT' ? styles.negative : styles.positive}`}>₹{t.amount.toLocaleString('en-IN')}</div>
+                                        <div className={`${styles.txnAmount} ${t.type === 'CREDIT' ? styles.positive : styles.negative}`}>₹{t.amount.toLocaleString('en-IN')}</div>
                                         {!isSelectMode && (
                                             <div className={styles.cardActions}>
                                                 <button onClick={(e) => { e.stopPropagation(); handleEdit(t); }}><Edit2 size={16} /></button>
@@ -661,7 +669,7 @@ export default function CustomerDetailPage() {
                                 </span>
                             </div>
                             <div className={styles.confirmMain}>
-                                <h2 className={txnType === 'CREDIT' ? styles.negative : styles.positive}>
+                                <h2 className={txnType === 'CREDIT' ? styles.positive : styles.negative}>
                                     ₹{evaluatedAmount.toLocaleString('en-IN')}
                                 </h2>
                                 <p className={styles.confirmNote}>{note || 'No special note'}</p>

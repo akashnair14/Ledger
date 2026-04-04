@@ -26,7 +26,9 @@ import {
 export default function AnalyticsPage() {
     const [today] = useState(() => Date.now());
     const { activeBook } = useBook();
-    const [timeframe, setTimeframe] = useState<30 | 90>(30);
+    const [timeframe, setTimeframe] = useState<number | 'CUSTOM'>(30);
+    const [customStart, setCustomStart] = useState('');
+    const [customEnd, setCustomEnd] = useState('');
 
     const { customers, isLoading: loadingCustomers } = useCustomers();
     const { transactions, isLoading: loadingTxns } = useTransactions();
@@ -57,7 +59,17 @@ export default function AnalyticsPage() {
 
         // 2. Trend Data Calculation
         const now = today;
-        const startTimestamp = now - timeframe * 24 * 60 * 60 * 1000;
+        let startTimestamp: number;
+        let endTimestamp = now;
+
+        if (timeframe === 'CUSTOM') {
+            startTimestamp = customStart ? new Date(customStart).getTime() : now - 30 * 24 * 60 * 60 * 1000;
+            endTimestamp = customEnd ? new Date(customEnd).getTime() : now;
+        } else {
+            startTimestamp = now - timeframe * 24 * 60 * 60 * 1000;
+        }
+
+        const daysDiff = Math.max(0, Math.ceil((endTimestamp - startTimestamp) / (24 * 60 * 60 * 1000)));
         const trendData: { date: string; balance: number; fullDate: string }[] = [];
 
         // Pre-group transactions by date string for O(1) lookup in loop
@@ -77,8 +89,8 @@ export default function AnalyticsPage() {
         });
 
         // Generate daily data points
-        for (let i = timeframe; i >= 0; i--) {
-            const date = new Date(now - i * 24 * 60 * 60 * 1000);
+        for (let i = daysDiff; i >= 0; i--) {
+            const date = new Date(endTimestamp - i * 24 * 60 * 60 * 1000);
             const dateStr = date.toISOString().split('T')[0];
 
             const dayTxns = txnsByDay[dateStr] || [];
@@ -105,7 +117,7 @@ export default function AnalyticsPage() {
                 .filter((c: any) => c.balance > 0 && c.lastTxnDate < now - (30 * 24 * 60 * 60 * 1000))
                 .sort((a: any, b: any) => a.lastTxnDate - b.lastTxnDate)
         };
-    }, [customers, transactions, activeBook, timeframe, today]);
+    }, [customers, transactions, activeBook, timeframe, today, customStart, customEnd]);
 
     if (loadingCustomers || loadingTxns) return <div className={styles.loading}>Analyzing Ledger...</div>;
     if (!stats) return <div className={styles.loading}>No data available for analysis.</div>;
@@ -117,11 +129,40 @@ export default function AnalyticsPage() {
                     <ArrowLeft size={24} />
                 </Link>
                 <h1>Elite Analytics</h1>
-                <div className={styles.timeframeToggle}>
-                    <button className={timeframe === 30 ? styles.activeToggle : ''} onClick={() => setTimeframe(30)}>30D</button>
-                    <button className={timeframe === 90 ? styles.activeToggle : ''} onClick={() => setTimeframe(90)}>90D</button>
-                </div>
             </header>
+
+            <div className={styles.filterBar}>
+                <div className={styles.pillContainer}>
+                    {[
+                        { label: '1M', val: 30 },
+                        { label: '3M', val: 90 },
+                        { label: '6M', val: 180 },
+                        { label: '1Y', val: 365 },
+                        { label: 'Custom', val: 'CUSTOM' }
+                    ].map(opt => (
+                        <button
+                            key={opt.label}
+                            className={`${styles.pill} ${timeframe === opt.val ? styles.activePill : ''}`}
+                            onClick={() => setTimeframe(opt.val as any)}
+                        >
+                            {opt.label}
+                        </button>
+                    ))}
+                </div>
+
+                {timeframe === 'CUSTOM' && (
+                    <div className={styles.customDateRow}>
+                        <div className={styles.dateInput}>
+                            <label>From</label>
+                            <input type="date" value={customStart} onChange={(e) => setCustomStart(e.target.value)} />
+                        </div>
+                        <div className={styles.dateInput}>
+                            <label>To</label>
+                            <input type="date" value={customEnd} onChange={(e) => setCustomEnd(e.target.value)} />
+                        </div>
+                    </div>
+                )}
+            </div>
 
             <div className={styles.statsGrid}>
                 <div className={`${styles.statCard} ${styles.primaryCard}`}>

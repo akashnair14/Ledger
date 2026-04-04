@@ -137,38 +137,48 @@ export const Sidebar = () => {
         }
     };
 
-    const handleDeleteBook = async (id: string) => {
+    const handleDeleteBook = async (e: React.MouseEvent, id: string) => {
+        e.stopPropagation();
+        e.preventDefault();
+
         try {
             setIsChecking(true);
             const stats = await getBookDataStats(id);
             setIsChecking(false);
 
-            if (stats.hasData) {
-                let errorMsg = 'Cannot delete ledger: ';
-                const parts = [];
-                if (stats.customerCount > 0) parts.push(`${stats.customerCount} customers`);
-                if (stats.supplierCount > 0) parts.push(`${stats.supplierCount} suppliers`);
-                if (stats.transactionCount > 0) parts.push(`${stats.transactionCount} transactions`);
-
-                errorMsg += parts.join(', ') + ' still exist. Please delete them first.';
-                return alert(errorMsg);
-            }
-
-            if (confirm('Are you sure? This will soft-delete the ledger.')) {
-                await deleteBook(id);
-                if (activeBook?.id === id) {
-                    const nextBook = books.find(b => b.id !== id && b.isDeleted === 0);
-                    if (nextBook) setActiveBook(nextBook);
+            // Small delay to allow React to process isChecking=false before freezing main thread with confirm
+            setTimeout(async () => {
+                let message = 'Are you sure? This will soft-delete the ledger.';
+                if (stats.hasData) {
+                    const parts = [];
+                    if (stats.customerCount > 0) parts.push(`${stats.customerCount} customers`);
+                    if (stats.supplierCount > 0) parts.push(`${stats.supplierCount} suppliers`);
+                    if (stats.transactionCount > 0) parts.push(`${stats.transactionCount} transactions`);
+                    message = `WARNING: This ledger is not empty! It contains ${parts.join(', ')}.\n\nAre you ABSOLUTELY sure you want to delete this ledger AND hide all its data?`;
                 }
-                triggerSuccess();
-                showToast('Ledger deleted successfully!');
-                setIsBookDropdownOpen(false);
-            }
+
+                if (confirm(message)) {
+                    try {
+                        await deleteBook(id);
+                        if (activeBook?.id === id) {
+                            const nextBook = books.find(b => b.id !== id && b.isDeleted === 0);
+                            if (nextBook) setActiveBook(nextBook);
+                        }
+                        triggerSuccess();
+                        showToast('Ledger deleted successfully!');
+                        setIsBookDropdownOpen(false);
+                    } catch (error) {
+                        triggerError();
+                        console.error('Delete book failed:', error);
+                        showToast('Failed to delete ledger', 'error');
+                    }
+                }
+            }, 50);
+
         } catch (error) {
             setIsChecking(false);
-            triggerError();
-            console.error('Delete book failed:', error);
-            showToast('Failed to delete ledger', 'error');
+            console.error('Check book stats failed:', error);
+            showToast('Failed to verify ledger status', 'error');
         }
     };
 
@@ -211,8 +221,8 @@ export const Sidebar = () => {
                                         {book.name}
                                     </button>
                                     <div className={styles.bookActions}>
-                                        <button onClick={() => { setBookToEdit(book); setNewBookName(book.name); setIsBookDropdownOpen(false); }}><Edit3 size={14} /></button>
-                                        <button onClick={() => handleDeleteBook(book.id)}><Trash2 size={14} /></button>
+                                        <button onClick={(e) => { e.stopPropagation(); setBookToEdit(book); setNewBookName(book.name); setIsBookDropdownOpen(false); }}><Edit3 size={14} /></button>
+                                        <button onClick={(e) => handleDeleteBook(e, book.id)}><Trash2 size={14} /></button>
                                     </div>
                                 </div>
                             ))}

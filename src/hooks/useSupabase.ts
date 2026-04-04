@@ -219,10 +219,38 @@ export const updateBook = async (id: string, name: string) => {
 }
 
 export const deleteBook = async (id: string) => {
-    const { error } = await supabase.from('books').update({ is_deleted: true, updated_at: new Date().toISOString() }).eq('id', id)
-    if (error) throw error
-    await mutate('books')
+    // Soft delete locally first for offline-first responsiveness
+    const localBook = await db.books.get(id);
+    if (localBook) {
+        localBook.isDeleted = 1;
+        localBook.updatedAt = Date.now();
+        await db.books.put(localBook);
+    }
+    
+    // Provide optimistic UI
+    const currentBooks = await db.books.where('isDeleted').equals(0).toArray();
+    mutate('books', currentBooks.sort((a, b) => a.name.localeCompare(b.name)), false);
+
+    try {
+        const { error } = await supabase.from('books').update({ is_deleted: true, updated_at: new Date().toISOString() }).eq('id', id);
+        if (error) throw error;
+        // Refetch from server to confirm
+        await mutate('books');
+    } catch(err: any) {
+        if (!navigator.onLine || err.message === 'Failed to fetch' || err.message?.includes('fetch failed')) {
+            await db.syncQueue.put({ id: generateId(), action: 'DELETE_BOOK', payload: { id }, createdAt: Date.now() });
+            return;
+        }
+        // Rollback local state if real error
+        if (localBook) {
+            localBook.isDeleted = 0;
+            await db.books.put(localBook);
+            mutate('books');
+        }
+        throw err;
+    }
 }
+
 
 export const copyCustomers = async (sourceBookId: string, targetBookId: string, carryForwardBalance: boolean = false) => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -332,6 +360,8 @@ export const addCustomer = async (customer: Partial<Customer>) => {
     try {
         const { error } = await supabase.from('customers').insert(row)
         if (error) throw error
+        // Important: Mutate again after successful insert to fetch the real data!
+        await mutate('customers')
     } catch (err: any) {
         if (!navigator.onLine || err.message === 'Failed to fetch' || err.message?.includes('fetch failed')) {
             await db.syncQueue.put({ id: generateId(), action: 'ADD_CUSTOMER', payload: row, createdAt: Date.now() })
@@ -401,6 +431,10 @@ export const addTransaction = async (txn: Partial<Transaction>, file?: File) => 
     try {
         const { error } = await supabase.from('transactions').insert(row)
         if (error) throw error
+        // Important: Mutate again after successful insert to fetch real data and update balances
+        mutate(`transactions-${txn.customerId}`)
+        mutate('all-transactions')
+        mutate('customers') 
     } catch (err: any) {
         if (!navigator.onLine || err.message === 'Failed to fetch' || err.message?.includes('fetch failed')) {
             await db.syncQueue.put({ id: generateId(), action: 'ADD_TRANSACTION', payload: row, createdAt: Date.now() })
@@ -512,20 +546,16 @@ export const saveSetting = async (key: string, value: string) => {
 }
 
 export const getBookDataStats = async (bookId: string) => {
-    // Check both customers and transactions
-    const [custRes, txnRes] = await Promise.all([
-        supabase.from('customers').select('type', { count: 'exact', head: false }).eq('book_id', bookId),
-        supabase.from('transactions').select('id', { count: 'exact', head: true }).eq('book_id', bookId)
-    ]);
+    // Check locally instead of network to instantly respect soft deletes and offline state!
+    const customers = await db.customers.where('bookId').equals(bookId).toArray();
+    const transactions = await db.transactions.where('bookId').equals(bookId).toArray();
 
-    if (custRes.error) throw custRes.error;
-    if (txnRes.error) throw txnRes.error;
+    const activeCustomers = customers.filter(c => c.isDeleted === 0);
+    const activeTransactions = transactions.filter(t => t.isDeleted === 0);
 
-    const customers = custRes.data || [];
-    const customerCount = (customers as any[]).filter((c: any) => (c.type || 'CUSTOMER') === 'CUSTOMER').length;
-    const supplierCount = (customers as any[]).filter((c: any) => c.type === 'SUPPLIER').length;
-    const transactionCount = txnRes.count || 0;
-
+    const customerCount = activeCustomers.filter(c => c.type === 'CUSTOMER' || !c.type).length;
+    const supplierCount = activeCustomers.filter(c => c.type === 'SUPPLIER').length;
+    const transactionCount = activeTransactions.length;
 
     return {
         customerCount,
@@ -556,6 +586,9 @@ export const processSyncQueue = async () => {
             } else if (item.action === 'ADD_TRANSACTION') {
                 const { error } = await supabase.from('transactions').insert(item.payload);
                 if (error && !error.message.includes('duplicate')) throw error;
+            } else if (item.action === 'DELETE_BOOK') {
+                const { error } = await supabase.from('books').update({ is_deleted: true, updated_at: new Date().toISOString() }).eq('id', item.payload.id);
+                if (error) throw error;
             }
             await db.syncQueue.delete(item.id);
         } catch (err: any) {

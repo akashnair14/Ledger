@@ -11,10 +11,12 @@ export const PWAInstallButton = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     useEffect(() => {
-        // Show modal automatically if can install and hasn't been dismissed this session
-        if (canInstall) {
+        // Show modal automatically only on mobile devices if can install and hasn't been dismissed
+        if (canInstall && typeof window !== 'undefined') {
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
             const dismissed = sessionStorage.getItem('pwa_prompt_dismissed');
-            if (!dismissed) {
+            
+            if (isMobile && !dismissed) {
                 // eslint-disable-next-line react-hooks/set-state-in-effect
                 setIsModalOpen(true);
             }
