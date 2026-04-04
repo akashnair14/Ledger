@@ -181,7 +181,7 @@ export default function LandingPage() {
                 </div>
                 <div className={styles.statItem}>
                     <h3>Secure</h3>
-                    <p>Local & Could Sync</p>
+                    <p>Local & Cloud Sync</p>
                 </div>
                 <div className={styles.statItem}>
                     <h3>Free</h3>
