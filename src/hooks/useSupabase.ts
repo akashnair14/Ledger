@@ -2,7 +2,7 @@
 
 import useSWR, { mutate } from 'swr'
 import { createClient } from '@/lib/supabase/client'
-import { Customer, Transaction, PaymentMode, Book } from '@/lib/db'
+import { Customer, Transaction, PaymentMode, Book, db, generateId } from '@/lib/db'
 
 const supabase = createClient()
 
@@ -58,56 +58,68 @@ const mapTransaction = (row: Record<string, unknown>): Transaction => ({
 // --- Fetchers ---
 
 const fetchBooks = async () => {
-    const { data, error } = await supabase
-        .from('books')
-        .select('*')
-        .eq('is_deleted', false)
-        .order('name')
-
-    if (error) throw error
-    return data.map(mapBook)
+    try {
+        const { data, error } = await supabase.from('books').select('*').eq('is_deleted', false).order('name')
+        if (error) throw error
+        const books = data.map(mapBook)
+        await db.books.clear()
+        await db.books.bulkPut(books)
+        return books
+    } catch (err: any) {
+        if (!navigator.onLine || err.message === 'Failed to fetch' || err.message?.includes('fetch failed')) {
+            const localBooks = await db.books.toArray()
+            return localBooks.sort((a, b) => a.name.localeCompare(b.name))
+        }
+        throw err
+    }
 }
 
 const fetchCustomers = async () => {
-    const { data, error } = await supabase
-        .from('customers')
-        .select('*')
-        .order('name')
-
-
-
-    if (error) throw error
-    return data.map(mapCustomer)
+    try {
+        const { data, error } = await supabase.from('customers').select('*').order('name')
+        if (error) throw error
+        const customers = data.map(mapCustomer)
+        await db.customers.clear()
+        await db.customers.bulkPut(customers)
+        return customers
+    } catch (err: any) {
+        if (!navigator.onLine || err.message === 'Failed to fetch' || err.message?.includes('fetch failed')) {
+            const localCustomers = await db.customers.toArray()
+            return localCustomers.sort((a, b) => a.name.localeCompare(b.name))
+        }
+        throw err
+    }
 }
 
 const fetchTransactions = async (customerId?: string) => {
-    let query = supabase
-        .from('transactions')
-        .select('*')
-        .order('date', { ascending: false })
-
-
-
-    if (customerId) {
-        query = query.eq('customer_id', customerId)
+    try {
+        let query = supabase.from('transactions').select('*').order('date', { ascending: false })
+        if (customerId) query = query.eq('customer_id', customerId)
+        const { data, error } = await query
+        if (error) throw error
+        const txns = data.map(mapTransaction)
+        
+        // We only bulk sync all transactions if we didn't filter by customer, else we're replacing the whole table incorrectly!
+        if (!customerId) {
+            await db.transactions.clear()
+            await db.transactions.bulkPut(txns)
+        } else {
+            // Update local records selectively
+            await db.transactions.bulkPut(txns)
+        }
+        return txns
+    } catch (err: any) {
+        if (!navigator.onLine || err.message === 'Failed to fetch' || err.message?.includes('fetch failed')) {
+            let localTxns = await db.transactions.toArray()
+            if (customerId) localTxns = localTxns.filter(t => t.customerId === customerId)
+            return localTxns.sort((a, b) => b.date - a.date)
+        }
+        throw err
     }
-
-    const { data, error } = await query
-
-    if (error) throw error
-    return data.map(mapTransaction)
 }
 
 const fetchAllTransactions = async () => {
-    const { data, error } = await supabase
-        .from('transactions')
-        .select('*')
-        .order('date', { ascending: false })
-
-
-
-    if (error) throw error
-    return data.map(mapTransaction)
+    return fetchTransactions()
 }
 
 const fetchSettings = async () => {
@@ -296,30 +308,40 @@ export const copyCustomers = async (sourceBookId: string, targetBookId: string, 
 
 
 export const addCustomer = async (customer: Partial<Customer>) => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('Authenticaton required');
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('Authenticaton required')
 
+    const newId = generateId()
     const row: Record<string, unknown> = {
+        id: newId,
         name: customer.name,
         mobile: customer.phone,
         email: customer.email,
         address: customer.address,
         type: customer.type || 'CUSTOMER',
-        user_id: user.id // Satisfy RLS policies
+        user_id: user.id
     }
 
-    if (customer.bookId) row.book_id = customer.bookId;
-    else row.book_id = 'default-book';
+    if (customer.bookId) row.book_id = customer.bookId
+    else row.book_id = 'default-book'
 
-    const { data, error } = await supabase.from('customers').insert(row).select().single()
-    if (error) throw error
+    const tempCustomer = mapCustomer({...row, created_at: new Date().toISOString()})
+    await db.customers.put(tempCustomer)
+    mutate('customers')
 
-    // Revalidate multiple keys to ensure consistency
-    await Promise.all([
-        mutate('customers'),
-        mutate('all-transactions') // In case stats are affected
-    ])
-    return mapCustomer(data)
+    try {
+        const { error } = await supabase.from('customers').insert(row)
+        if (error) throw error
+    } catch (err: any) {
+        if (!navigator.onLine || err.message === 'Failed to fetch' || err.message?.includes('fetch failed')) {
+            await db.syncQueue.put({ id: generateId(), action: 'ADD_CUSTOMER', payload: row, createdAt: Date.now() })
+            return tempCustomer
+        }
+        await db.customers.delete(newId)
+        mutate('customers')
+        throw err
+    }
+    return tempCustomer
 }
 
 export const uploadAttachment = async (file: File) => {
@@ -344,15 +366,18 @@ export const uploadAttachment = async (file: File) => {
 };
 
 export const addTransaction = async (txn: Partial<Transaction>, file?: File) => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('Authenticaton required');
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('Authenticaton required')
 
-    let attachmentUrl = txn.attachmentUrl;
+    let attachmentUrl = txn.attachmentUrl
     if (file) {
-        attachmentUrl = await uploadAttachment(file);
+        if (!navigator.onLine) throw new Error('Cannot upload attachments while offline.')
+        attachmentUrl = await uploadAttachment(file)
     }
 
+    const newId = generateId()
     const row: Record<string, unknown> = {
+        id: newId,
         customer_id: txn.customerId,
         amount: txn.amount,
         type: txn.type,
@@ -362,23 +387,31 @@ export const addTransaction = async (txn: Partial<Transaction>, file?: File) => 
         note: txn.note,
         tags: txn.tags,
         attachment_url: attachmentUrl,
-        user_id: user.id // Satisfy RLS policies
+        user_id: user.id
     }
 
-    if (txn.bookId) row.book_id = txn.bookId;
-    else row.book_id = 'default-book';
+    if (txn.bookId) row.book_id = txn.bookId
+    else row.book_id = 'default-book'
 
-    const { data, error } = await supabase.from('transactions').insert(row).select().single()
-    if (error) throw error
+    const tempTxn = mapTransaction({...row, created_at: new Date().toISOString()})
+    await db.transactions.put(tempTxn)
+    mutate(`transactions-${txn.customerId}`)
+    mutate('all-transactions')
 
-    // Parallel mutation for speed
-    await Promise.all([
-        mutate('customers'),
-        mutate(`transactions-${txn.customerId}`),
+    try {
+        const { error } = await supabase.from('transactions').insert(row)
+        if (error) throw error
+    } catch (err: any) {
+        if (!navigator.onLine || err.message === 'Failed to fetch' || err.message?.includes('fetch failed')) {
+            await db.syncQueue.put({ id: generateId(), action: 'ADD_TRANSACTION', payload: row, createdAt: Date.now() })
+            return tempTxn
+        }
+        await db.transactions.delete(newId)
+        mutate(`transactions-${txn.customerId}`)
         mutate('all-transactions')
-    ])
-
-    return mapTransaction(data)
+        throw err
+    }
+    return tempTxn
 }
 
 export const updateCustomer = async (id: string, updates: Partial<Customer>) => {
@@ -500,7 +533,35 @@ export const getBookDataStats = async (bookId: string) => {
         transactionCount,
         totalEntities: customerCount + supplierCount,
         hasData: customerCount > 0 || supplierCount > 0 || transactionCount > 0
-    };
+    }
 }
 
 
+export const processSyncQueue = async () => {
+    if (!navigator.onLine) return;
+    
+    // Safely attempt to access syncQueue (to avoid crashes if Dexie version mismatch)
+    let pending;
+    try {
+        pending = await db.syncQueue.orderBy('createdAt').toArray();
+    } catch (e) { return; }
+    
+    if (pending.length === 0) return;
+
+    for (const item of pending) {
+        try {
+            if (item.action === 'ADD_CUSTOMER') {
+                const { error } = await supabase.from('customers').insert(item.payload);
+                if (error && !error.message.includes('duplicate')) throw error;
+            } else if (item.action === 'ADD_TRANSACTION') {
+                const { error } = await supabase.from('transactions').insert(item.payload);
+                if (error && !error.message.includes('duplicate')) throw error;
+            }
+            await db.syncQueue.delete(item.id);
+        } catch (err: any) {
+            console.error('Sync failed for item', item, err);
+            if (err.message === 'Failed to fetch' || !navigator.onLine) break;
+            await db.syncQueue.delete(item.id);
+        }
+    }
+}

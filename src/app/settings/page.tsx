@@ -113,9 +113,9 @@ export default function SettingsPage() {
             if (success) {
                 await bioAuth.setEnabled(true);
                 setLockEnabled(true);
-                alert('Biometric lock enabled!');
+                showToast('Biometric lock enabled!');
             } else {
-                alert('Registration failed. Ensure device support.');
+                showToast('Registration failed. Ensure device support.', 'error');
             }
         } else {
             await bioAuth.setEnabled(false);
@@ -125,28 +125,31 @@ export default function SettingsPage() {
 
     const handleExport = (type: 'CSV' | 'EXCEL', variant: BackupVariant = 'FULL') => {
         if (!customers || !transactions) {
-            alert('Data is still loading or unavailable.');
+            showToast('Data is still loading or unavailable.', 'error');
             return;
         }
 
         const bookId = selectedExportBookId === 'ACTIVE' ? activeBook?.id : selectedExportBookId;
 
         if (selectedExportBookId === 'ACTIVE' && !activeBook) {
-            alert('No active ledger selected.');
+            showToast('No active ledger selected.', 'error');
             return;
         }
 
         // Filter data based on selection
-        let filteredCustomers = (customers as Customer[]).filter(c => c.isDeleted === 0);
-        let filteredTransactions = (transactions as Transaction[]).filter(t => t.isDeleted === 0);
+        const activeBookIds = new Set(books.map(b => b.id));
+        let filteredCustomers = (customers as Customer[]).filter(c => c.isDeleted === 0 && activeBookIds.has(c.bookId));
+        let filteredTransactions = (transactions as Transaction[]).filter(t => t.isDeleted === 0 && activeBookIds.has(t.bookId));
 
         if (bookId !== 'ALL') {
-            filteredCustomers = filteredCustomers.filter(c => c.bookId === (bookId === 'ACTIVE' ? activeBook?.id : bookId));
-            filteredTransactions = filteredTransactions.filter(t => t.bookId === (bookId === 'ACTIVE' ? activeBook?.id : bookId));
+            const targetId = bookId === 'ACTIVE' ? activeBook?.id : bookId;
+            filteredCustomers = filteredCustomers.filter(c => c.bookId === targetId);
+            filteredTransactions = filteredTransactions.filter(t => t.bookId === targetId);
         }
 
+
         if (filteredCustomers.length === 0 && filteredTransactions.length === 0) {
-            alert('No data available for the selected ledger.');
+            showToast('No data available for the selected ledger.', 'error');
             return;
         }
 
@@ -166,7 +169,7 @@ export default function SettingsPage() {
 
         try {
             if (!activeBook) {
-                alert('Please select or create a ledger book first.');
+                showToast('Please select or create a ledger book first.', 'error');
                 return;
             }
 

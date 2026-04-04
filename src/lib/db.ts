@@ -63,6 +63,13 @@ export interface SyncMetadata {
     value: unknown;
 }
 
+export interface SyncItem {
+    id: string;
+    action: 'ADD_CUSTOMER' | 'UPDATE_CUSTOMER' | 'DELETE_CUSTOMER' | 'ADD_TRANSACTION' | 'UPDATE_TRANSACTION' | 'DELETE_TRANSACTION' | 'ADD_BOOK' | 'UPDATE_BOOK' | 'DELETE_BOOK';
+    payload: any;
+    createdAt: number;
+}
+
 export class LedgerDatabase extends Dexie {
     customers!: Table<Customer>;
     transactions!: Table<Transaction>;
@@ -70,6 +77,7 @@ export class LedgerDatabase extends Dexie {
     attachments!: Table<Attachment>;
     syncMetadata!: Table<SyncMetadata>;
     settings!: Table<{ key: string, value: unknown }>;
+    syncQueue!: Table<SyncItem>;
 
     constructor() {
         super('LedgerDB');
@@ -142,6 +150,16 @@ export class LedgerDatabase extends Dexie {
             await tx.table('customers').toCollection().modify({
                 type: 'CUSTOMER'
             });
+        });
+
+        this.version(7).stores({
+            books: 'id, name, updatedAt, isDeleted',
+            attachments: 'id, txnId, updatedAt',
+            customers: 'id, name, phone, bookId, type, updatedAt, isDeleted',
+            transactions: 'id, customerId, bookId, type, date, paymentMode, invoiceNumber, customPaymentMode, updatedAt, isDeleted, *tags',
+            syncMetadata: 'key',
+            settings: 'key',
+            syncQueue: 'id, action, createdAt'
         });
     }
 }

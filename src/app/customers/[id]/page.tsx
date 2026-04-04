@@ -273,7 +273,7 @@ export default function CustomerDetailPage() {
             setShowSuccess(true);
             setTimeout(() => setShowSuccess(false), 2000);
         } catch (err: unknown) {
-            alert('Failed: ' + (err instanceof Error ? err.message : 'Unknown error'));
+            showToast('Failed: ' + (err instanceof Error ? err.message : 'Unknown error'), 'error');
         } finally {
             setIsSaving(false);
         }
@@ -327,7 +327,7 @@ export default function CustomerDetailPage() {
     };
 
     const handleSendReminder = () => {
-        if (!customer.phone) return alert('No phone');
+        if (!customer.phone) return showToast('No phone number attached', 'error');
         const msg = encodeURIComponent(`Hi ${customer.name}, your balance is ₹${Math.abs(balance).toLocaleString()}. Please check. Thanks!`);
         // Remove all non-digits for WhatsApp. If it doesn't start with a country code, we can't be sure, 
         // but normalizePhoneNumber ensures we have a consistent format.
@@ -353,14 +353,14 @@ export default function CustomerDetailPage() {
                 router.push('/dashboard');
             }
         } catch (err: unknown) {
-            alert('Delete failed: ' + (err instanceof Error ? err.message : 'Unknown error'));
+            showToast('Delete failed: ' + (err instanceof Error ? err.message : 'Unknown error'), 'error');
         }
     };
 
     const handleSaveCustomer = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (editName.trim().length < 3) return alert('Name must be at least 3 characters');
-        if (editPhone && !isValidPhone(editPhone)) return alert('Please enter a valid phone number');
+        if (editName.trim().length < 3) return showToast('Name must be at least 3 characters', 'error');
+        if (editPhone && !isValidPhone(editPhone)) return showToast('Please enter a valid phone number', 'error');
 
         setIsUpdatingCustomer(true);
         const normalizedPhone = normalizePhoneNumber(editPhone);
@@ -375,7 +375,7 @@ export default function CustomerDetailPage() {
             setIsEditModalOpen(false);
         } catch (err: unknown) {
             console.error(err);
-            alert('Failed to update: ' + (err instanceof Error ? err.message : 'Unknown error'));
+            showToast('Failed to update: ' + (err instanceof Error ? err.message : 'Unknown error'), 'error');
         } finally {
             setIsUpdatingCustomer(false);
         }

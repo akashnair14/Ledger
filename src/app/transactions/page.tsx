@@ -10,11 +10,14 @@ import {
     Search,
     Paperclip,
     Filter,
-    RefreshCw
+    RefreshCw,
+    X
 } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import styles from './TransactionsPage.module.css';
 import Link from 'next/link';
+import { useBooks } from '@/hooks/useSupabase';
+
 
 export default function TransactionsPage() {
     const { activeBook } = useBook();
@@ -27,16 +30,27 @@ export default function TransactionsPage() {
     const [typeFilter, setTypeFilter] = useState<'ALL' | 'CREDIT' | 'PAYMENT'>('ALL');
     const [modeFilter, setModeFilter] = useState<'ALL' | PaymentMode>('ALL');
 
+    const { books } = useBooks();
     const { customers, isLoading: loadingCustomers } = useCustomers();
     const { transactions, isLoading: loadingTxns } = useTransactions();
 
+
     const filtered = useMemo(() => {
-        if (!transactions || !customers) return [];
+        if (!transactions || !customers || !books) return [];
+        const activeBookIds = new Set(books.map((b: any) => b.id));
+
 
         return transactions
             .filter((t: Transaction) => {
+                if (t.isDeleted !== 0) return false;
+
+                // Ensure the transaction belongs to a non-deleted book
+                if (!activeBookIds.has(t.bookId)) return false;
+
                 // Book Filter
                 if (activeBook && t.bookId !== activeBook.id) return false;
+
+
 
                 // Search Match
                 const customer = customers.find((c: Customer) => c.id === t.customerId);

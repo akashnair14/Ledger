@@ -122,10 +122,10 @@ export default function CustomersPage() {
 
   };
 
-  const handleSaveCustomer = async (e: React.FormEvent) => {
+    const handleSaveCustomer = async (e: React.FormEvent) => {
     e.preventDefault();
     const error = await validateForm();
-    if (error) return alert(error);
+    if (error) return showToast(error, 'error');
 
     if (activeTab === 'INSIGHTS') return;
 
@@ -142,7 +142,7 @@ export default function CustomersPage() {
         showToast(`${activeTab === 'CUSTOMER' ? 'Customer' : 'Supplier'} details updated`);
       } else {
         if (!activeBook) {
-          alert('book should be selected or created before adding new entity');
+          showToast('Book should be selected or created before adding a new entity', 'error');
           setIsSaving(false);
           return;
         }
@@ -161,7 +161,7 @@ export default function CustomersPage() {
     } catch (err: unknown) {
       console.error(err);
       const msg = err instanceof Error ? err.message : 'Unknown error';
-      alert('Failed to save: ' + msg);
+      showToast('Failed to save: ' + msg, 'error');
     } finally {
       setIsSaving(false);
     }
@@ -179,7 +179,7 @@ export default function CustomersPage() {
         showToast(`${activeTab === 'CUSTOMER' ? 'Customer' : 'Supplier'} deleted`);
       }
     } catch (err: unknown) {
-      alert('Delete failed: ' + (err instanceof Error ? err.message : 'Unknown error'));
+      showToast('Delete failed: ' + (err instanceof Error ? err.message : 'Unknown error'), 'error');
     }
   };
 
@@ -219,7 +219,7 @@ export default function CustomersPage() {
                 className={styles.addBtn}
                 onClick={() => {
                   if (!activeBook) {
-                    alert('Book should be selected first');
+                    showToast('Book should be selected first', 'error');
                     return;
                   }
                   setIsModalOpen(true);
@@ -234,7 +234,7 @@ export default function CustomersPage() {
                 className={styles.addBtn}
                 onClick={() => {
                   if (!activeBook) {
-                    alert('Book should be selected first');
+                    showToast('Book should be selected first', 'error');
                     return;
                   }
                   setIsModalOpen(true);

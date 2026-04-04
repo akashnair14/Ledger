@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useSettings, saveSetting } from '@/hooks/useSupabase';
+import { useSettings, saveSetting, processSyncQueue } from '@/hooks/useSupabase';
 import { db } from '@/lib/db';
 
 /**
@@ -38,8 +38,19 @@ export const SettingsSync = () => {
                     }
                 }
             }
+            
+            // 3. Sync Pending Mutations to Cloud
+            await processSyncQueue();
         };
         sync();
+
+        // 4. Attach event listeners for dynamic reconnections
+        const handleOnline = () => {
+             console.log('[Sync] Network restored, processing queue...');
+             processSyncQueue();
+        };
+        window.addEventListener('online', handleOnline);
+        return () => window.removeEventListener('online', handleOnline);
     }, [isLoading, settings]);
 
     return null;

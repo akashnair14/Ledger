@@ -90,7 +90,7 @@ export default function AnalyticsPage() {
 
             trendData.push({
                 date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-                balance: runningBalance,
+                balance: isNaN(runningBalance) ? 0 : runningBalance,
                 fullDate: dateStr
             });
         }
@@ -163,7 +163,14 @@ export default function AnalyticsPage() {
                                 contentStyle={{ background: 'var(--surface)', border: '1px solid var(--border-thick)', borderRadius: '8px', fontSize: '12px' }}
                                 formatter={(value: number | string | undefined) => [`₹${(Number(value) || 0).toLocaleString()}`, 'Balance']}
                             />
-                            <Area type="monotone" dataKey="balance" stroke="#3b82f6" strokeWidth={3} fillOpacity={1} fill="url(#colorBalance)" />
+                            <Area 
+                                type={stats.trendData.some(d => d.balance !== 0) ? "monotone" : "linear"} 
+                                dataKey="balance" 
+                                stroke="#3b82f6" 
+                                strokeWidth={3} 
+                                fillOpacity={1} 
+                                fill="url(#colorBalance)" 
+                            />
                         </AreaChart>
                     </ResponsiveContainer>
                 </div>

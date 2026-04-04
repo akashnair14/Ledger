@@ -25,8 +25,10 @@ export const InsightsView = () => {
             topCreditors: []
         };
 
-        const bookTransactions = transactions.filter((t: Transaction) => t.bookId === activeBook.id);
-        const bookCustomers = customers.filter((c: Customer) => c.bookId === activeBook.id);
+        const bookTransactions = transactions.filter((t: Transaction) => t.bookId === activeBook.id && t.isDeleted === 0);
+        const bookCustomers = customers.filter((c: Customer) => c.bookId === activeBook.id && c.isDeleted === 0);
+
+
 
 
         if (bookCustomers.length === 0) return {

@@ -8,6 +8,7 @@ import { AuthStateListener } from "@/components/auth/AuthStateListener";
 import { Shell } from "@/components/layout/Shell";
 import { ToastProvider } from "@/context/ToastContext";
 import { SettingsSync } from "@/components/layout/SettingsSync";
+import { AuthGuard } from "@/components/auth/AuthGuard";
 
 const fraunces = Fraunces({
   subsets: ["latin"],
@@ -62,7 +63,9 @@ export default function RootLayout({
               <AppLock>
                 <SettingsSync />
                 <AuthStateListener />
-                <Shell>{children}</Shell>
+                <AuthGuard>
+                  <Shell>{children}</Shell>
+                </AuthGuard>
               </AppLock>
             </ToastProvider>
           </BookProvider>
