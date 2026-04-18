@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useSettings, saveSetting, processSyncQueue } from '@/hooks/useSupabase';
 import { db } from '@/lib/db';
+import { createClient } from '@/lib/supabase/client';
 
 /**
  * Global component to keep local IndexedDB settings in sync with Supabase cloud settings.
@@ -15,6 +16,11 @@ export const SettingsSync = () => {
     useEffect(() => {
         const sync = async () => {
             if (isLoading) return;
+
+            const supabase = createClient();
+            const { data: { user } } = await supabase.auth.getUser();
+
+            if (!user) return; // Only sync if authenticated
 
             // 1. Cloud to Local Sync
             if (settings) {
@@ -34,7 +40,7 @@ export const SettingsSync = () => {
                         console.log(`Migrating local setting ${ls.key} to cloud...`);
                         await saveSetting(ls.key, ls.value as string);
                     } catch (err) {
-                        console.error(`Failed to migrate setting ${ls.key}:`, err);
+                        console.warn(`Failed to migrate setting ${ls.key}:`, err);
                     }
                 }
             }
@@ -45,7 +51,12 @@ export const SettingsSync = () => {
         sync();
 
         // 4. Attach event listeners for dynamic reconnections
-        const handleOnline = () => {
+        const handleOnline = async () => {
+             const supabase = createClient();
+             const { data: { user } } = await supabase.auth.getUser();
+             
+             if (!user) return;
+
              console.log('[Sync] Network restored, processing queue...');
              processSyncQueue();
         };

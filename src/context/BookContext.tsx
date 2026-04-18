@@ -21,6 +21,12 @@ export function BookProvider({ children }: { children: React.ReactNode }) {
         const syncLocalBooks = async () => {
             if (isLoading) return;
 
+            const { createClient } = await import('@/lib/supabase/client');
+            const supabase = createClient();
+            const { data: { user } } = await supabase.auth.getUser();
+            
+            if (!user) return; // Only sync if authenticated
+
             // 1. Get local books
             const localBooks = await db.books.where('isDeleted').equals(0).toArray();
             if (localBooks.length === 0) return;
@@ -34,7 +40,7 @@ export function BookProvider({ children }: { children: React.ReactNode }) {
                     try {
                         await addBook(lb.name, lb.id);
                     } catch (err) {
-                        console.error(`Failed to migrate book ${lb.name}:`, err);
+                        console.warn(`Failed to migrate book ${lb.name}:`, err);
                     }
                 }
             }

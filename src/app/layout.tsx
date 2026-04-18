@@ -31,6 +31,19 @@ export const metadata: Metadata = {
   title: "LedgerManager - Personal Ledger",
   description: "Secure, offline-first personal ledger management.",
   manifest: "/manifest.json",
+  icons: {
+    icon: [
+      { url: '/appstore-images/ios/16.png', sizes: '16x16', type: 'image/png' },
+      { url: '/appstore-images/ios/32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/appstore-images/android/launchericon-192x192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/appstore-images/android/launchericon-512x512.png', sizes: '512x512', type: 'image/png' },
+    ],
+    apple: [
+      { url: '/appstore-images/ios/152.png', sizes: '152x152', type: 'image/png' },
+      { url: '/appstore-images/ios/167.png', sizes: '167x167', type: 'image/png' },
+      { url: '/appstore-images/ios/180.png', sizes: '180x180', type: 'image/png' },
+    ],
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",

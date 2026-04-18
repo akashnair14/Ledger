@@ -12,33 +12,31 @@ export const Shell = ({ children }: { children: React.ReactNode }) => {
     const pathname = usePathname();
     const isPublic = pathname === '/' || pathname === '/login' || pathname === '/forgot-password' || pathname === '/reset-password' || pathname?.startsWith('/auth') || pathname?.startsWith('/docs');
 
+    if (isPublic) {
+        return <>{children}</>;
+    }
+
     return (
         <div className={styles.shell}>
-            {!isPublic && (
-                <>
-                    <div className={styles.desktopSidebar}>
-                        <Sidebar />
-                    </div>
-                    <div className={styles.mobileNav}>
-                        <GlobalSearch />
-                        <Navbar />
-                    </div>
-                </>
-            )}
+            <div className={styles.desktopSidebar}>
+                <Sidebar />
+            </div>
+            <div className={styles.mobileNav}>
+                <GlobalSearch />
+                <Navbar />
+            </div>
 
-            <main className={isPublic ? styles.publicMain : styles.main}>
-                <div className={isPublic ? styles.publicContent : styles.content}>
+            <main className={styles.main}>
+                <div className={styles.content}>
                     <PullToRefresh>
                         {children}
                     </PullToRefresh>
                 </div>
             </main>
 
-            {!isPublic && (
-                <div className={styles.mobileNav}>
-                    <BottomNav />
-                </div>
-            )}
+            <div className={styles.mobileNav}>
+                <BottomNav />
+            </div>
         </div>
     );
 };
