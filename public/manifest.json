@@ -1,6 +1,8 @@
 {
+  "id": "/?source=pwa",
   "name": "Personal Ledger Manager",
   "short_name": "Ledger",
+  "lang": "en",
   "description": "Secure, offline-first personal ledger management with Google Drive sync.",
   "start_url": "/dashboard",
   "display": "standalone",
