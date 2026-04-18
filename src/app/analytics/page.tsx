@@ -202,7 +202,7 @@ export default function AnalyticsPage() {
                             <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: 'var(--text-dim)' }} tickFormatter={(val) => `₹${val / 1000}k`} />
                             <Tooltip
                                 contentStyle={{ background: 'var(--surface)', border: '1px solid var(--border-thick)', borderRadius: '8px', fontSize: '12px' }}
-                                formatter={(value: number | string | undefined) => [`₹${(Number(value) || 0).toLocaleString()}`, 'Balance']}
+                                formatter={(value: any) => [`₹${(Number(value) || 0).toLocaleString()}`, 'Balance']}
                             />
                             <Area 
                                 type={stats.trendData.some(d => d.balance !== 0) ? "monotone" : "linear"} 
