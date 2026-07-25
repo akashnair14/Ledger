@@ -1279,3 +1279,85 @@
         opacity: 1;
     }
 }
+
+/* simplified Customer detail styles */
+.moreMenuWrapper {
+    position: relative;
+    display: inline-block;
+}
+
+.actionDropdown {
+    position: absolute;
+    right: 0;
+    top: 44px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-card);
+    display: flex;
+    flex-direction: column;
+    padding: 6px;
+    min-width: 160px;
+    z-index: 100;
+}
+
+.actionItem {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    background: transparent;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+    transition: all 0.2s ease;
+}
+
+.actionItem:hover {
+    background: var(--surface-header);
+    color: var(--text-main);
+}
+
+.inlineWarningBanner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(240, 92, 56, 0.05);
+    border: 1px solid rgba(240, 92, 56, 0.2);
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+}
+
+.collapsibleDetails {
+    background: var(--surface);
+    border: 1px solid var(--border-thick);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+}
+
+.collapsibleSummary {
+    padding: 0.85rem 1.25rem;
+    font-weight: 750;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    cursor: pointer;
+    background: var(--surface-header);
+    user-select: none;
+    transition: all 0.2s ease;
+}
+
+.collapsibleSummary:hover {
+    color: var(--text-main);
+    background: rgba(255,255,255,0.02);
+}
+
+.collapsibleContent {
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+}
