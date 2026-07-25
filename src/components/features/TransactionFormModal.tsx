@@ -41,11 +41,27 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = ({
     onSuccess
 }) => {
     const { settings } = useSettings();
-    const showPaymentMode = settings?.pref_show_payment_mode !== 'false';
-    const showEntryDate = settings?.pref_show_entry_date !== 'false';
-    const showInvoiceNo = settings?.pref_show_invoice_no !== 'false';
-    const showNote = settings?.pref_show_note !== 'false';
-    const showAttachment = settings?.pref_show_attachment !== 'false';
+    const isCredit = txnType === 'CREDIT';
+
+    const showPaymentMode = isCredit
+        ? settings?.pref_show_payment_mode_credit !== 'false'
+        : settings?.pref_show_payment_mode_debit !== 'false';
+
+    const showEntryDate = isCredit
+        ? settings?.pref_show_entry_date_credit !== 'false'
+        : settings?.pref_show_entry_date_debit !== 'false';
+
+    const showInvoiceNo = isCredit
+        ? settings?.pref_show_invoice_no_credit !== 'false'
+        : settings?.pref_show_invoice_no_debit !== 'false';
+
+    const showNote = isCredit
+        ? settings?.pref_show_note_credit !== 'false'
+        : settings?.pref_show_note_debit !== 'false';
+
+    const showAttachment = isCredit
+        ? settings?.pref_show_attachment_credit !== 'false'
+        : settings?.pref_show_attachment_debit !== 'false';
 
     // Form States
     const [amount, setAmount] = useState('');

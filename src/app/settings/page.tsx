@@ -92,11 +92,16 @@ export default function SettingsPage() {
         }
     };
 
-    const showPaymentMode = cloudSettings.pref_show_payment_mode !== 'false';
-    const showEntryDate = cloudSettings.pref_show_entry_date !== 'false';
-    const showInvoiceNo = cloudSettings.pref_show_invoice_no !== 'false';
-    const showNote = cloudSettings.pref_show_note !== 'false';
-    const showAttachment = cloudSettings.pref_show_attachment !== 'false';
+    const showPaymentModeCredit = cloudSettings.pref_show_payment_mode_credit !== 'false';
+    const showPaymentModeDebit = cloudSettings.pref_show_payment_mode_debit !== 'false';
+    const showEntryDateCredit = cloudSettings.pref_show_entry_date_credit !== 'false';
+    const showEntryDateDebit = cloudSettings.pref_show_entry_date_debit !== 'false';
+    const showInvoiceNoCredit = cloudSettings.pref_show_invoice_no_credit !== 'false';
+    const showInvoiceNoDebit = cloudSettings.pref_show_invoice_no_debit !== 'false';
+    const showNoteCredit = cloudSettings.pref_show_note_credit !== 'false';
+    const showNoteDebit = cloudSettings.pref_show_note_debit !== 'false';
+    const showAttachmentCredit = cloudSettings.pref_show_attachment_credit !== 'false';
+    const showAttachmentDebit = cloudSettings.pref_show_attachment_debit !== 'false';
 
     const togglePref = async (key: string, currentValue: boolean) => {
         const newValue = (!currentValue).toString();
@@ -513,73 +518,147 @@ export default function SettingsPage() {
 
                 {activeTab === 'PREFERENCES' && (
                     <section className={styles.section}>
+                        {/* CREDIT ENTRIES CARD */}
                         <div className={styles.card}>
                             <div className={styles.cardHeader}>
                                 <Building2 size={18} />
-                                <h2>Transaction Form Fields</h2>
+                                <h2>Credit Entries (Give / Purchase)</h2>
                             </div>
                             <p style={{ padding: '0 16px', color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '8px' }}>
-                                Choose which optional fields are visible during credit and debit entries. Disabling fields simplifies the form.
+                                Optional fields visible when recording credit or purchase entries.
                             </p>
                             <div style={{ marginTop: '16px' }}>
                                 <div className={styles.row}>
                                     <div className={styles.info}>
                                         <h3>Payment Mode</h3>
-                                        <p>Select cash, UPI, Bank transfer, NEFT, Cheque, etc.</p>
+                                        <p>Select payment modes (e.g. Cash, UPI) for credit entries.</p>
                                     </div>
                                     <button
-                                        className={`${styles.toggleBtn} ${showPaymentMode ? styles.active : ''}`}
-                                        onClick={() => togglePref('pref_show_payment_mode', showPaymentMode)}
+                                        className={`${styles.toggleBtn} ${showPaymentModeCredit ? styles.active : ''}`}
+                                        onClick={() => togglePref('pref_show_payment_mode_credit', showPaymentModeCredit)}
                                     >
-                                        {showPaymentMode ? <ToggleRight size={24} color="white" /> : <ToggleLeft size={24} color="var(--text-dim)" />}
+                                        {showPaymentModeCredit ? <ToggleRight size={24} color="white" /> : <ToggleLeft size={24} color="var(--text-dim)" />}
                                     </button>
                                 </div>
                                 <div className={styles.row}>
                                     <div className={styles.info}>
                                         <h3>Entry Date</h3>
-                                        <p>Choose a custom date for the entry (defaults to today).</p>
+                                        <p>Select custom entry date for credit entries.</p>
                                     </div>
                                     <button
-                                        className={`${styles.toggleBtn} ${showEntryDate ? styles.active : ''}`}
-                                        onClick={() => togglePref('pref_show_entry_date', showEntryDate)}
+                                        className={`${styles.toggleBtn} ${showEntryDateCredit ? styles.active : ''}`}
+                                        onClick={() => togglePref('pref_show_entry_date_credit', showEntryDateCredit)}
                                     >
-                                        {showEntryDate ? <ToggleRight size={24} color="white" /> : <ToggleLeft size={24} color="var(--text-dim)" />}
+                                        {showEntryDateCredit ? <ToggleRight size={24} color="white" /> : <ToggleLeft size={24} color="var(--text-dim)" />}
                                     </button>
                                 </div>
                                 <div className={styles.row}>
                                     <div className={styles.info}>
                                         <h3>Invoice / Reference #</h3>
-                                        <p>Add invoice or document reference numbers.</p>
+                                        <p>Add reference numbers for credit entries.</p>
                                     </div>
                                     <button
-                                        className={`${styles.toggleBtn} ${showInvoiceNo ? styles.active : ''}`}
-                                        onClick={() => togglePref('pref_show_invoice_no', showInvoiceNo)}
+                                        className={`${styles.toggleBtn} ${showInvoiceNoCredit ? styles.active : ''}`}
+                                        onClick={() => togglePref('pref_show_invoice_no_credit', showInvoiceNoCredit)}
                                     >
-                                        {showInvoiceNo ? <ToggleRight size={24} color="white" /> : <ToggleLeft size={24} color="var(--text-dim)" />}
+                                        {showInvoiceNoCredit ? <ToggleRight size={24} color="white" /> : <ToggleLeft size={24} color="var(--text-dim)" />}
                                     </button>
                                 </div>
                                 <div className={styles.row}>
                                     <div className={styles.info}>
-                                        <h3>Transaction Notes</h3>
-                                        <p>Add description notes or comments to the transaction.</p>
+                                        <h3>Notes</h3>
+                                        <p>Add description notes for credit entries.</p>
                                     </div>
                                     <button
-                                        className={`${styles.toggleBtn} ${showNote ? styles.active : ''}`}
-                                        onClick={() => togglePref('pref_show_note', showNote)}
+                                        className={`${styles.toggleBtn} ${showNoteCredit ? styles.active : ''}`}
+                                        onClick={() => togglePref('pref_show_note_credit', showNoteCredit)}
                                     >
-                                        {showNote ? <ToggleRight size={24} color="white" /> : <ToggleLeft size={24} color="var(--text-dim)" />}
+                                        {showNoteCredit ? <ToggleRight size={24} color="white" /> : <ToggleLeft size={24} color="var(--text-dim)" />}
                                     </button>
                                 </div>
                                 <div className={styles.row}>
                                     <div className={styles.info}>
-                                        <h3>File Attachments & OCR Scan</h3>
-                                        <p>Attach invoices, bill photos, or auto-scan them.</p>
+                                        <h3>Attachments & OCR Scan</h3>
+                                        <p>Attach documents or scan receipts for credit entries.</p>
                                     </div>
                                     <button
-                                        className={`${styles.toggleBtn} ${showAttachment ? styles.active : ''}`}
-                                        onClick={() => togglePref('pref_show_attachment', showAttachment)}
+                                        className={`${styles.toggleBtn} ${showAttachmentCredit ? styles.active : ''}`}
+                                        onClick={() => togglePref('pref_show_attachment_credit', showAttachmentCredit)}
                                     >
-                                        {showAttachment ? <ToggleRight size={24} color="white" /> : <ToggleLeft size={24} color="var(--text-dim)" />}
+                                        {showAttachmentCredit ? <ToggleRight size={24} color="white" /> : <ToggleLeft size={24} color="var(--text-dim)" />}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* DEBIT ENTRIES CARD */}
+                        <div className={styles.card}>
+                            <div className={styles.cardHeader}>
+                                <Building2 size={18} />
+                                <h2>Debit Entries (Receive / Payment)</h2>
+                            </div>
+                            <p style={{ padding: '0 16px', color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '8px' }}>
+                                Optional fields visible when recording payments or debit entries.
+                            </p>
+                            <div style={{ marginTop: '16px' }}>
+                                <div className={styles.row}>
+                                    <div className={styles.info}>
+                                        <h3>Payment Mode</h3>
+                                        <p>Select payment modes (e.g. Cash, UPI) for debit entries.</p>
+                                    </div>
+                                    <button
+                                        className={`${styles.toggleBtn} ${showPaymentModeDebit ? styles.active : ''}`}
+                                        onClick={() => togglePref('pref_show_payment_mode_debit', showPaymentModeDebit)}
+                                    >
+                                        {showPaymentModeDebit ? <ToggleRight size={24} color="white" /> : <ToggleLeft size={24} color="var(--text-dim)" />}
+                                    </button>
+                                </div>
+                                <div className={styles.row}>
+                                    <div className={styles.info}>
+                                        <h3>Entry Date</h3>
+                                        <p>Select custom entry date for debit entries.</p>
+                                    </div>
+                                    <button
+                                        className={`${styles.toggleBtn} ${showEntryDateDebit ? styles.active : ''}`}
+                                        onClick={() => togglePref('pref_show_entry_date_debit', showEntryDateDebit)}
+                                    >
+                                        {showEntryDateDebit ? <ToggleRight size={24} color="white" /> : <ToggleLeft size={24} color="var(--text-dim)" />}
+                                    </button>
+                                </div>
+                                <div className={styles.row}>
+                                    <div className={styles.info}>
+                                        <h3>Invoice / Reference #</h3>
+                                        <p>Add reference numbers for debit entries.</p>
+                                    </div>
+                                    <button
+                                        className={`${styles.toggleBtn} ${showInvoiceNoDebit ? styles.active : ''}`}
+                                        onClick={() => togglePref('pref_show_invoice_no_debit', showInvoiceNoDebit)}
+                                    >
+                                        {showInvoiceNoDebit ? <ToggleRight size={24} color="white" /> : <ToggleLeft size={24} color="var(--text-dim)" />}
+                                    </button>
+                                </div>
+                                <div className={styles.row}>
+                                    <div className={styles.info}>
+                                        <h3>Notes</h3>
+                                        <p>Add description notes for debit entries.</p>
+                                    </div>
+                                    <button
+                                        className={`${styles.toggleBtn} ${showNoteDebit ? styles.active : ''}`}
+                                        onClick={() => togglePref('pref_show_note_debit', showNoteDebit)}
+                                    >
+                                        {showNoteDebit ? <ToggleRight size={24} color="white" /> : <ToggleLeft size={24} color="var(--text-dim)" />}
+                                    </button>
+                                </div>
+                                <div className={styles.row}>
+                                    <div className={styles.info}>
+                                        <h3>Attachments & OCR Scan</h3>
+                                        <p>Attach documents or scan receipts for debit entries.</p>
+                                    </div>
+                                    <button
+                                        className={`${styles.toggleBtn} ${showAttachmentDebit ? styles.active : ''}`}
+                                        onClick={() => togglePref('pref_show_attachment_debit', showAttachmentDebit)}
+                                    >
+                                        {showAttachmentDebit ? <ToggleRight size={24} color="white" /> : <ToggleLeft size={24} color="var(--text-dim)" />}
                                     </button>
                                 </div>
                             </div>
