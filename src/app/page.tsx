@@ -289,6 +289,27 @@ export default function LandingPage() {
                     </div>
                 </div>
             </footer>
+
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{
+                    __html: JSON.stringify({
+                        '@context': 'https://schema.org',
+                        '@type': 'WebApplication',
+                        'name': 'LedgerManager',
+                        'url': 'https://ledgermanager.vercel.app',
+                        'description': 'Secure, offline-first personal ledger management. Track customer credit balances, payments, and business accounts.',
+                        'applicationCategory': 'BusinessApplication',
+                        'operatingSystem': 'All',
+                        'offers': {
+                            '@type': 'Offer',
+                            'price': '0',
+                            'priceCurrency': 'USD'
+                        },
+                        'features': 'Offline mode, Supabase cloud sync, mobile search integration, PDF ledger exports, biometric app lock security'
+                    })
+                }}
+            />
         </div>
     );
 }

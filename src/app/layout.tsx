@@ -28,9 +28,24 @@ const monoFont = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "LedgerManager - Personal Ledger",
-  description: "Secure, offline-first personal ledger management.",
+  metadataBase: new URL('https://ledgermanager.vercel.app'),
+  title: "LedgerManager - Secure Personal Ledger & Khata Book",
+  description: "Secure, offline-first personal ledger management. Track customer credits, supplier payments, and business logs with local data ownership.",
+  keywords: ['ledger manager', 'khata book', 'credit ledger', 'debt tracker', 'business accounts', 'offline-first ledger', 'digital ledger'],
   manifest: "/manifest.json",
+  openGraph: {
+    title: "LedgerManager - Secure Personal Ledger & Khata Book",
+    description: "Secure, offline-first personal ledger management. Keep track of transaction history and balances.",
+    url: "https://ledgermanager.vercel.app",
+    siteName: "LedgerManager",
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "LedgerManager - Secure Personal Ledger & Khata Book",
+    description: "Secure, offline-first personal ledger management. Keep track of transaction history and balances.",
+  },
   icons: {
     icon: [
       { url: '/appstore-images/ios/16.png', sizes: '16x16', type: 'image/png' },
