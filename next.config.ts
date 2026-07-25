@@ -19,7 +19,15 @@ const withPWA = require('next-pwa')({
 });
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  async rewrites() {
+    return [
+      { source: '/features', destination: '/#features' },
+      { source: '/faq', destination: '/#faq' },
+      { source: '/pricing', destination: '/#seo-deepdive' },
+      { source: '/contact', destination: '/docs#faq' },
+      { source: '/user-guide', destination: '/docs' },
+    ];
+  },
 };
 
 module.exports = withPWA(nextConfig);

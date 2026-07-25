@@ -61,6 +61,7 @@ export default function ForgotPasswordPage() {
                             required
                             className={styles.input}
                             disabled={loading}
+                            aria-label="Email Address"
                         />
                     </div>
 

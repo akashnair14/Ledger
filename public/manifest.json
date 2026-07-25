@@ -77,5 +77,21 @@
         }
       ]
     }
+  ],
+  "screenshots": [
+    {
+      "src": "/showcase/ledger-dashboard-dark-theme.jpg",
+      "sizes": "500x320",
+      "type": "image/jpeg",
+      "form_factor": "wide",
+      "label": "LedgerManager Business Dashboard"
+    },
+    {
+      "src": "/showcase/customer-ledger-directory-view.jpg",
+      "sizes": "500x320",
+      "type": "image/jpeg",
+      "form_factor": "narrow",
+      "label": "Customer Credit Directory & Balance Tracker"
+    }
   ]
 }

@@ -71,6 +71,7 @@ export default function ResetPasswordPage() {
                             required
                             className={styles.input}
                             disabled={loading}
+                            aria-label="New Password"
                         />
                     </div>
 
