@@ -381,21 +381,21 @@ export default function CustomerDetailPage() {
     const initials = getInitials(customer.name);
 
     return (
-        <div className={styles.container} style={{ gap: '2rem' }}>
+        <div className={styles.container}>
             {/* Section 1: Customer Profile Header (Strictly Compact, Max 90-110px) */}
-            <header className={styles.header} style={{ minHeight: '90px', padding: '0.75rem 0', alignItems: 'center' }}>
-                <div className={styles.headerTop} style={{ gap: '0.75rem', alignItems: 'center' }}>
+            <header className={styles.header}>
+                <div className={styles.headerTop}>
                     <Link href="/dashboard" className={styles.backButton}>
                         <ArrowLeft size={20} />
                     </Link>
                     
-                    <div className={styles.avatar} style={{ backgroundColor: getAvatarColor(customer.name), width: '40px', height: '40px', fontSize: '0.95rem' }}>
+                    <div className={styles.avatar} style={{ backgroundColor: getAvatarColor(customer.name) }}>
                         {initials}
                     </div>
 
                     <div className={styles.nameSection}>
-                        <h1 style={{ fontSize: '1.2rem' }}>{customer.name}</h1>
-                        <div className={styles.quickInfo} style={{ fontSize: '0.75rem', gap: '0.75rem' }}>
+                        <h1>{customer.name}</h1>
+                        <div className={styles.quickInfo}>
                             <span>📞 {customer.phone}</span>
                             <span>📅 Since {new Date(customer.createdAt).toLocaleDateString(undefined, { month: 'short', year: 'numeric' })}</span>
                         </div>
@@ -403,7 +403,6 @@ export default function CustomerDetailPage() {
 
                     <button
                         className={styles.editBtn}
-                        style={{ width: '32px', height: '32px' }}
                         onClick={() => {
                             setEditName(customer.name);
                             setEditPhone(customer.phone);
@@ -418,23 +417,23 @@ export default function CustomerDetailPage() {
                 </div>
 
                 {/* Primary Financial Workspace Actions */}
-                <div className={styles.mainActions} style={{ gap: '0.5rem' }}>
-                    <button className={styles.giveBtnDesktop} style={{ minHeight: '38px', padding: '0.45rem 1rem', fontSize: '0.8rem' }} onClick={() => { setTxnType('CREDIT'); setTxnModalOpen(true); }}>
+                <div className={styles.mainActions}>
+                    <button className={styles.giveBtnDesktop} onClick={() => { setTxnType('CREDIT'); setTxnModalOpen(true); }}>
                         <Plus size={14} /> 
                         <span>{isSupplier ? 'Record Purchase' : 'Give Credit'}</span>
                     </button>
-                    <button className={styles.receiveBtnDesktop} style={{ minHeight: '38px', padding: '0.45rem 1rem', fontSize: '0.8rem' }} onClick={() => { setTxnType('PAYMENT'); setTxnModalOpen(true); }}>
+                    <button className={styles.receiveBtnDesktop} onClick={() => { setTxnType('PAYMENT'); setTxnModalOpen(true); }}>
                         <Minus size={14} /> 
                         <span>{isSupplier ? 'Pay Supplier' : 'Receive Payment'}</span>
                     </button>
 
                     {/* More Actions Dropdown hub */}
-                    <div className={styles.moreMenuWrapper} ref={moreMenuRef} style={{ position: 'relative' }}>
-                        <button className={styles.actionBtn} style={{ minHeight: '38px', padding: '0.45rem 0.75rem' }} onClick={() => setIsMoreMenuOpen(!isMoreMenuOpen)}>
+                    <div className={styles.moreMenuWrapper} ref={moreMenuRef}>
+                        <button className={styles.actionBtn} onClick={() => setIsMoreMenuOpen(!isMoreMenuOpen)}>
                             <MoreHorizontal size={16} />
                         </button>
                         {isMoreMenuOpen && (
-                            <div className={styles.actionDropdown} style={{ position: 'absolute', right: 0, top: '42px', zIndex: 200, minWidth: '150px' }}>
+                            <div className={styles.actionDropdown}>
                                 <button className={styles.actionItem} onClick={() => { handleSendReminder(); setIsMoreMenuOpen(false); }}>
                                     <MessageSquare size={12} /> Send Reminder
                                 </button>
@@ -452,52 +451,43 @@ export default function CustomerDetailPage() {
 
             {/* Inline Warning Reminder Banner (Height-Reduced) */}
             {outstanding > 0 && (
-                <section className={styles.inlineWarningBanner} style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    background: 'rgba(240, 92, 56, 0.05)',
-                    border: '1px solid rgba(240, 92, 56, 0.2)',
-                    padding: '8px 16px',
-                    borderRadius: '8px',
-                    fontSize: '0.8rem'
-                }}>
+                <section className={styles.inlineWarningBanner}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <span style={{ color: '#f05c38', fontWeight: 800 }}>⚠️ Payment Overdue</span>
                         <span style={{ color: 'var(--text-muted)' }}>Outstanding ₹{outstanding.toLocaleString()}</span>
                     </div>
-                    <button className={styles.sendBtn} style={{ padding: '4px 10px', fontSize: '0.75rem', background: '#f05c38', border: 'none', color: 'white', borderRadius: '4px', cursor: 'pointer' }} onClick={handleSendReminder}>
+                    <button className={styles.sendBtn} onClick={handleSendReminder}>
                         Send Reminder
                     </button>
                 </section>
             )}
 
             {/* Section 2: Financial Summary (4 Compact Cards) */}
-            <section className={styles.statsGrid} style={{ gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem' }}>
-                <div className={styles.statCard} style={{ padding: '0.85rem' }}>
-                    <span className={styles.statLabel} style={{ fontSize: '0.65rem' }}>Outstanding</span>
-                    <div className={styles.statVal} style={{ fontSize: '1.25rem', color: outstanding >= 0 ? '#10b981' : '#ef4444' }}>
+            <section className={styles.statsGrid}>
+                <div className={styles.statCard}>
+                    <span className={styles.statLabel}>Outstanding</span>
+                    <div className={styles.statVal} style={{ color: outstanding >= 0 ? '#10b981' : '#ef4444' }}>
                         ₹{outstanding.toLocaleString()}
                     </div>
                 </div>
 
-                <div className={styles.statCard} style={{ padding: '0.85rem' }}>
-                    <span className={styles.statLabel} style={{ fontSize: '0.65rem' }}>Total Given</span>
-                    <div className={styles.statVal} style={{ fontSize: '1.25rem', color: '#ef4444' }}>
+                <div className={styles.statCard}>
+                    <span className={styles.statLabel}>Total Given</span>
+                    <div className={styles.statVal} style={{ color: '#ef4444' }}>
                         ₹{customerBalances.totalCredit.toLocaleString()}
                     </div>
                 </div>
 
-                <div className={styles.statCard} style={{ padding: '0.85rem' }}>
-                    <span className={styles.statLabel} style={{ fontSize: '0.65rem' }}>Total Received</span>
-                    <div className={styles.statVal} style={{ fontSize: '1.25rem', color: '#10b981' }}>
+                <div className={styles.statCard}>
+                    <span className={styles.statLabel}>Total Received</span>
+                    <div className={styles.statVal} style={{ color: '#10b981' }}>
                         ₹{customerBalances.totalPayment.toLocaleString()}
                     </div>
                 </div>
 
-                <div className={styles.statCard} style={{ padding: '0.85rem' }}>
-                    <span className={styles.statLabel} style={{ fontSize: '0.65rem' }}>Last Transaction</span>
-                    <div className={styles.statVal} style={{ fontSize: '1.25rem' }}>
+                <div className={styles.statCard}>
+                    <span className={styles.statLabel}>Last Transaction</span>
+                    <div className={styles.statVal}>
                         {customerBalances.lastTxnDateStr}
                     </div>
                 </div>
@@ -505,7 +495,7 @@ export default function CustomerDetailPage() {
 
             {/* Section 3: Ledger Timeline & Filter Toolbar (Highest Priority, 70% height area) */}
             <section style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                <div className={styles.toolbar} style={{ borderBottom: '1px solid var(--border)', paddingBottom: '0.75rem' }}>
+                <div className={styles.toolbar}>
                     <div className={styles.searchWrapper}>
                         <Search size={16} className={styles.searchIcon} />
                         <input
@@ -515,7 +505,6 @@ export default function CustomerDetailPage() {
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             className={styles.searchInput}
-                            style={{ padding: '0.5rem 1rem 0.5rem 36px', fontSize: '0.85rem' }}
                             aria-label="Search ledger history"
                         />
                     </div>
