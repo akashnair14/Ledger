@@ -483,26 +483,6 @@ export default function CustomersPage() {
             </div>
           </section>
 
-          {/* Quick Business Insights Row */}
-          <section className={styles.insightsSummaryRow}>
-            <div className={styles.insightMiniCard}>
-              <span className={styles.insightLabel}>Most Active</span>
-              <span className={styles.insightVal}>{insights.active}</span>
-            </div>
-            <div className={styles.insightMiniCard}>
-              <span className={styles.insightLabel}>Highest Outstanding</span>
-              <span className={styles.insightVal}>{insights.highest}</span>
-            </div>
-            <div className={styles.insightMiniCard}>
-              <span className={styles.insightLabel}>Recently Settled</span>
-              <span className={styles.insightVal}>{insights.recently}</span>
-            </div>
-            <div className={styles.insightMiniCard}>
-              <span className={styles.insightLabel}>System Security</span>
-              <span className={styles.insightVal}>AES 256-bit Encrypted</span>
-            </div>
-          </section>
-
           {/* Search & Filter Toolbar */}
           <section className={styles.toolbar}>
             <div className={styles.searchWrapper}>
