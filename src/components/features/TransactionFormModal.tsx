@@ -233,7 +233,20 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = ({
                             type="text"
                             value={amount}
                             onChange={(e) => {
-                                const val = e.target.value.replace(/[^0-9+\-*/.()]/g, '');
+                                let val = e.target.value.replace(/[^0-9+\-*/.()]/g, '');
+                                const operators = ['+', '-', '*', '/'];
+                                if (val.length >= 2) {
+                                    const lastChar = val[val.length - 1];
+                                    const secondLastChar = val[val.length - 2];
+                                    if (operators.includes(lastChar) && operators.includes(secondLastChar)) {
+                                        if (lastChar === '-' && (secondLastChar === '*' || secondLastChar === '/')) {
+                                            // Allow negative inputs for multiplication/division
+                                        } else {
+                                            // Replace the older operator with the new operator
+                                            val = val.substring(0, val.length - 2) + lastChar;
+                                        }
+                                    }
+                                }
                                 setAmount(val);
                             }}
                             placeholder="e.g. 500+250"

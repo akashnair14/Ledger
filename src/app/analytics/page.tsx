@@ -9,8 +9,10 @@ import {
     TrendingDown,
     ArrowLeft,
     AlertCircle,
-    Activity
+    Activity,
+    Wallet
 } from 'lucide-react';
+import { AnimatedNumber } from '@/components/ui/AnimatedNumber';
 import Link from 'next/link';
 import styles from './Analytics.module.css';
 import {
@@ -122,6 +124,11 @@ export default function AnalyticsPage() {
     if (loadingCustomers || loadingTxns) return <div className={styles.loading}>Analyzing Ledger...</div>;
     if (!stats) return <div className={styles.loading}>No data available for analysis.</div>;
 
+    const netBalance = stats.totalReceivable - stats.totalPayable;
+    const isReceivablePositive = netBalance >= 0;
+    const chartColor = isReceivablePositive ? 'var(--success)' : 'var(--danger)';
+    const gradientId = isReceivablePositive ? 'colorSuccess' : 'colorDanger';
+
     return (
         <div className={styles.container}>
             <header className={styles.header}>
@@ -169,7 +176,7 @@ export default function AnalyticsPage() {
                     <div className={styles.statIcon}><TrendingUp size={24} /></div>
                     <div className={styles.statInfo}>
                         <span>Total Receivables</span>
-                        <h2>₹{stats.totalReceivable.toLocaleString()}</h2>
+                        <h2>₹<AnimatedNumber value={stats.totalReceivable} /></h2>
                         <p>Others owe you</p>
                     </div>
                 </div>
@@ -177,8 +184,16 @@ export default function AnalyticsPage() {
                     <div className={styles.statIcon}><TrendingDown size={24} /></div>
                     <div className={styles.statInfo}>
                         <span>Total Payables</span>
-                        <h2>₹{stats.totalPayable.toLocaleString()}</h2>
+                        <h2>₹<AnimatedNumber value={stats.totalPayable} /></h2>
                         <p>You owe others</p>
+                    </div>
+                </div>
+                <div className={`${styles.statCard} ${isReceivablePositive ? styles.successCard : styles.warningCard}`}>
+                    <div className={styles.statIcon}><Wallet size={24} /></div>
+                    <div className={styles.statInfo}>
+                        <span>Net Outstanding</span>
+                        <h2>₹<AnimatedNumber value={Math.abs(netBalance)} /></h2>
+                        <p>{isReceivablePositive ? 'Net Receivable' : 'Net Payable'}</p>
                     </div>
                 </div>
             </div>
@@ -192,9 +207,9 @@ export default function AnalyticsPage() {
                     <ResponsiveContainer width="100%" height={300}>
                         <AreaChart data={stats.trendData}>
                             <defs>
-                                <linearGradient id="colorBalance" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
-                                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                                <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor={chartColor} stopOpacity={0.3} />
+                                    <stop offset="95%" stopColor={chartColor} stopOpacity={0} />
                                 </linearGradient>
                             </defs>
                             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
@@ -207,10 +222,10 @@ export default function AnalyticsPage() {
                             <Area 
                                 type={stats.trendData.some(d => d.balance !== 0) ? "monotone" : "linear"} 
                                 dataKey="balance" 
-                                stroke="#3b82f6" 
+                                stroke={chartColor} 
                                 strokeWidth={3} 
                                 fillOpacity={1} 
-                                fill="url(#colorBalance)" 
+                                fill={`url(#${gradientId})`} 
                             />
                         </AreaChart>
                     </ResponsiveContainer>

@@ -18,6 +18,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { BiometricPrompt } from '@/components/ui/BiometricPrompt';
 import { DashboardSkeleton } from '@/components/ui/LayoutSkeletons';
+import { AnimatedNumber } from '@/components/ui/AnimatedNumber';
 import { normalizePhoneNumber, isValidPhone, formatPhoneDisplay } from '@/lib/phoneUtils';
 
 
@@ -282,7 +283,7 @@ export default function CustomersPage() {
               <div className={styles.summaryInfo}>
                 <span className={styles.summaryLabel}>Total {activeTab === 'CUSTOMER' ? 'To Collect' : 'To Pay'}</span>
                 <h2 className={totalAmount >= 0 ? styles.positiveSummary : styles.negativeSummary}>
-                  ₹{Math.abs(totalAmount).toLocaleString('en-IN')}
+                  ₹<AnimatedNumber value={Math.abs(totalAmount)} />
                 </h2>
               </div>
             </div>
@@ -370,7 +371,11 @@ export default function CustomersPage() {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, scale: 0.9 }}
-                      transition={{ delay: index * 0.05 }}
+                      transition={{
+                        layout: { type: 'spring', stiffness: 350, damping: 35 },
+                        opacity: { duration: 0.2 },
+                        y: { duration: 0.2 }
+                      }}
                       className={styles.cardContainer}
                     >
                       <Link

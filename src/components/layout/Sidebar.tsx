@@ -14,7 +14,8 @@ import {
     Edit3,
     Trash2,
     Moon,
-    Sun
+    Sun,
+    Search
 } from 'lucide-react';
 import { useBook } from '@/context/BookContext';
 import { type Book as BookType } from '@/lib/db';
@@ -235,6 +236,14 @@ export const Sidebar = () => {
             </div>
 
             <nav className={styles.nav}>
+                <button
+                    className={styles.navItem}
+                    onClick={() => window.dispatchEvent(new CustomEvent('open-global-search'))}
+                    style={{ background: 'none', border: 'none', width: '100%', textAlign: 'left', cursor: 'pointer' }}
+                >
+                    <Search size={20} />
+                    <span>Search</span>
+                </button>
                 {navItems.map((item) => {
                     const Icon = item.icon;
                     const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname?.startsWith(item.href));

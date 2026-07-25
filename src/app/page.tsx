@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+import Lenis from 'lenis';
 import {
     Users,
     ShieldCheck,
@@ -24,6 +25,26 @@ import { MiniLedgerDemo } from '@/components/landing/MiniLedgerDemo';
 
 export default function LandingPage() {
     const { promptInstall, canInstall } = usePWAInstall();
+
+    React.useEffect(() => {
+        const lenis = new Lenis({
+            duration: 1.2,
+            easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+            wheelMultiplier: 1.1,
+            touchMultiplier: 1.5,
+        });
+
+        function raf(time: number) {
+            lenis.raf(time);
+            requestAnimationFrame(raf);
+        }
+
+        requestAnimationFrame(raf);
+
+        return () => {
+            lenis.destroy();
+        };
+    }, []);
     const features = [
         {
             icon: <Users size={24} />,

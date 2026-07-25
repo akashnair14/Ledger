@@ -400,9 +400,22 @@ export const addTransaction = async (txn: Partial<Transaction>, file?: File) => 
     if (!user) throw new Error('Authenticaton required')
 
     let attachmentUrl = txn.attachmentUrl
+    const attachmentId = generateId()
     if (file) {
-        if (!navigator.onLine) throw new Error('Cannot upload attachments while offline.')
-        attachmentUrl = await uploadAttachment(file)
+        if (!navigator.onLine) {
+            await db.attachments.put({
+                id: attachmentId,
+                txnId: '',
+                blob: file,
+                mimeType: file.type,
+                fileName: file.name,
+                createdAt: Date.now(),
+                updatedAt: Date.now()
+            });
+            attachmentUrl = `local-attachment:${attachmentId}`
+        } else {
+            attachmentUrl = await uploadAttachment(file)
+        }
     }
 
     const newId = generateId()
@@ -699,7 +712,23 @@ export const processSyncQueue = async () => {
                 const { error } = await supabase.from('customers').insert(item.payload);
                 if (error && !error.message.includes('duplicate')) throw error;
             } else if (item.action === 'ADD_TRANSACTION') {
-                const { error } = await supabase.from('transactions').insert(item.payload);
+                const payload = item.payload;
+                if (payload && typeof payload.attachment_url === 'string' && payload.attachment_url.startsWith('local-attachment:')) {
+                    try {
+                        const attachmentId = payload.attachment_url.split(':')[1];
+                        const attachRecord = await db.attachments.get(attachmentId);
+                        if (attachRecord) {
+                            const file = new File([attachRecord.blob], attachRecord.fileName, { type: attachRecord.mimeType });
+                            const publicUrl = await uploadAttachment(file);
+                            payload.attachment_url = publicUrl;
+                            await db.transactions.update(payload.id, { attachmentUrl: publicUrl, hasAttachment: true });
+                            await db.attachments.delete(attachmentId);
+                        }
+                    } catch (uploadErr) {
+                        console.error('Failed to sync offline attachment:', uploadErr);
+                    }
+                }
+                const { error } = await supabase.from('transactions').insert(payload);
                 if (error && !error.message.includes('duplicate')) throw error;
             } else if (item.action === 'DELETE_BOOK') {
                 const { error } = await supabase.from('books').update({ is_deleted: true, updated_at: new Date().toISOString() }).eq('id', item.payload.id);

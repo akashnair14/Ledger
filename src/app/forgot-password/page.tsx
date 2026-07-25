@@ -19,24 +19,7 @@ export default function ForgotPasswordPage() {
         setMessage(null)
 
         try {
-            // 1. Check if user exists first
-            const { data: exists, error: checkError } = await supabase.rpc('check_email_exists', {
-                email_arg: email
-            })
-
-            if (checkError) {
-                console.error('RPC Error:', checkError)
-                // Fallback if RPC fails or not created yet
-            } else if (exists === false) {
-                setMessage({
-                    text: 'No user found with this email. Please sign up to continue.',
-                    type: 'error'
-                })
-                setLoading(false)
-                return
-            }
-
-            // 2. Send reset link if user exists
+            // Send reset link directly without validating email existence beforehand
             const { error } = await supabase.auth.resetPasswordForEmail(email, {
                 redirectTo: `${window.location.origin}/auth/callback?next=/reset-password`,
             })
@@ -44,7 +27,10 @@ export default function ForgotPasswordPage() {
             if (error) {
                 setMessage({ text: error.message, type: 'error' })
             } else {
-                setMessage({ text: 'Check your email for the password reset link!', type: 'success' })
+                setMessage({ 
+                    text: 'If an account exists with this email, a password reset link has been sent.', 
+                    type: 'success' 
+                })
                 setEmail('')
             }
         } catch {

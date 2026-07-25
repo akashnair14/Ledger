@@ -95,8 +95,14 @@
 
 .statsGrid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(3, 1fr);
     gap: 1.25rem;
+}
+
+@media (max-width: 768px) {
+    .statsGrid {
+        grid-template-columns: 1fr;
+    }
 }
 
 .statCard {
@@ -125,6 +131,16 @@
 }
 
 .dangerCard .statIcon {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--danger);
+}
+
+.successCard .statIcon {
+    background: rgba(23, 184, 119, 0.1);
+    color: var(--success);
+}
+
+.warningCard .statIcon {
     background: rgba(239, 68, 68, 0.1);
     color: var(--danger);
 }
@@ -251,8 +267,4 @@
     background: var(--surface);
 }
 
-@media (max-width: 600px) {
-    .statsGrid {
-        grid-template-columns: 1fr;
-    }
-}
+/* media queries handled above */

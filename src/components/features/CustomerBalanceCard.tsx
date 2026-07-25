@@ -1,7 +1,6 @@
-'use client';
-
 import React from 'react';
 import styles from '@/app/customers/[id]/CustomerDetail.module.css';
+import { AnimatedNumber } from '@/components/ui/AnimatedNumber';
 
 interface CustomerBalanceCardProps {
     balance: number;
@@ -21,7 +20,7 @@ export const CustomerBalanceCard: React.FC<CustomerBalanceCardProps> = ({
             <div className={styles.balanceInfo}>
                 <span className={styles.balanceLabel}>Current Balance</span>
                 <h2 className={`${styles.balanceValue} ${balance >= 0 ? (isSupplier ? styles.positive : styles.negative) : (isSupplier ? styles.negative : styles.positive)}`}>
-                    ₹{Math.abs(balance).toLocaleString('en-IN')}
+                    ₹<AnimatedNumber value={Math.abs(balance)} />
                 </h2>
                 <span className={styles.balanceSub}>
                     {balance === 0 ? 'Settled' : (balance > 0 ? (isSupplier ? 'You will pay' : 'You will collect') : (isSupplier ? 'You Collected' : 'You Paid'))}

@@ -88,6 +88,12 @@ export const GlobalSearch = () => {
     }, [router, handleClose]);
 
     useEffect(() => {
+        const handleOpenEvent = () => handleOpen();
+        window.addEventListener('open-global-search', handleOpenEvent);
+        return () => window.removeEventListener('open-global-search', handleOpenEvent);
+    }, [handleOpen]);
+
+    useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
                 e.preventDefault();

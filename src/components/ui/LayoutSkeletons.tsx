@@ -53,6 +53,11 @@ export const CustomerDetailSkeleton = () => {
                         <Skeleton width="32px" height="32px" type="rect" />
                     </div>
                 </div>
+                <div className={detailStyles.mainActions} style={{ marginTop: '16px', display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                    <Skeleton width="130px" height="38px" type="rect" style={{ borderRadius: 'var(--radius-md)' }} />
+                    <Skeleton width="130px" height="38px" type="rect" style={{ borderRadius: 'var(--radius-md)' }} />
+                    <Skeleton width="90px" height="38px" type="rect" style={{ borderRadius: 'var(--radius-md)' }} />
+                </div>
             </header>
 
             <div className={detailStyles.balanceCard}>

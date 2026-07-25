@@ -2,14 +2,13 @@
 import { createClient } from '@/lib/supabase/server'
 import { type NextRequest, NextResponse } from 'next/server'
 
-export async function GET(request: NextRequest) {
-    const requestUrl = new URL(request.url)
+export async function POST(request: NextRequest) {
     const supabase = await createClient()
 
     // Sign out on the server (clears cookies via library)
     await supabase.auth.signOut()
 
-    const response = NextResponse.redirect(`${requestUrl.origin}/login`)
+    const response = NextResponse.json({ success: true })
 
     // MANUALLY CLEAR ALL KNOWN AUTH COOKIES for maximum reliability
     // Supabase usually uses sb-access-token, sb-refresh-token, or sb-[project-id]-auth-token

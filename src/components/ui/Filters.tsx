@@ -50,14 +50,24 @@ export const TransactionFilters = ({ filters, onFilterChange }: FiltersProps) =>
         onFilterChange(initial);
     };
 
-    const hasActiveFilters = filters.minAmount || filters.maxAmount || filters.type !== 'ALL' || filters.paymentModes.length > 0 || filters.tags.length > 0;
+    const activeCount = (() => {
+        let count = 0;
+        if (filters.minAmount) count++;
+        if (filters.maxAmount) count++;
+        if (filters.type !== 'ALL') count++;
+        if (filters.paymentModes && filters.paymentModes.length > 0) count += filters.paymentModes.length;
+        if (filters.tags && filters.tags.length > 0) count += filters.tags.length;
+        return count;
+    })();
+
+    const hasActiveFilters = activeCount > 0;
 
     return (
         <>
             <div className={styles.triggerBar} onClick={() => setIsExpanded(true)}>
                 <SlidersHorizontal size={18} />
                 <span>Filter Transactions</span>
-                {hasActiveFilters && <span className={styles.filterCount}>Active</span>}
+                {hasActiveFilters && <span className={styles.filterCount}>{activeCount}</span>}
             </div>
 
             <Modal

@@ -127,7 +127,12 @@ export const AppLock: React.FC<AppLockProps> = ({ children }) => {
                                 <p>Your data is encrypted and secure.</p>
                                 {/* EMERGENCY LOGOUT if biometric fails */}
                                 <button
-                                    onClick={() => window.location.href = '/auth/signout'}
+                                    onClick={async () => {
+                                        try {
+                                            await fetch('/auth/signout', { method: 'POST' });
+                                        } catch {}
+                                        window.location.href = '/login';
+                                    }}
                                     style={{
                                         marginTop: '1rem',
                                         background: 'none',

@@ -13,7 +13,8 @@ import {
     Sun,
     Edit3,
     Trash2,
-    Loader2
+    Loader2,
+    Search
 } from 'lucide-react';
 import { useTheme } from '@/context/ThemeContext';
 import { useToast } from '@/context/ToastContext';
@@ -200,6 +201,14 @@ export const Navbar = () => {
                 </div>
 
                 <div className={styles.actions}>
+                    <button 
+                        className={styles.iconButton} 
+                        onClick={() => window.dispatchEvent(new CustomEvent('open-global-search'))}
+                        aria-label="Search"
+                    >
+                        <Search size={20} />
+                    </button>
+
                     <button className={styles.iconButton} onClick={toggleTheme}>
                         {mounted && (theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />)}
                     </button>

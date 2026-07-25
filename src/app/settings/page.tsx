@@ -15,6 +15,7 @@ import { useToast } from '@/context/ToastContext';
 import { useSettings, saveSetting } from '@/hooks/useSupabase';
 import { createClient, resetClient } from '@/lib/supabase/client';
 import { useState, useEffect } from 'react';
+import { Modal } from '@/components/ui/Modal';
 import styles from './SettingsPage.module.css';
 
 type Tab = 'PROFILE' | 'DATA' | 'SECURITY' | 'PREFERENCES';
@@ -28,6 +29,7 @@ export default function SettingsPage() {
     // UI State
     const [activeTab, setActiveTab] = useState<Tab>('PROFILE');
     const [selectedExportBookId, setSelectedExportBookId] = useState<string>('ACTIVE');
+    const [isClearModalOpen, setIsClearModalOpen] = useState(false);
 
     // Security State
 
@@ -208,8 +210,12 @@ export default function SettingsPage() {
     };
 
 
-    const clearData = async () => {
-        if (!confirm('This will delete ALL local data. Cloud data in Supabase will NOT be affected. Continue?')) return;
+    const clearData = () => {
+        setIsClearModalOpen(true);
+    };
+
+    const handleConfirmClear = async () => {
+        setIsClearModalOpen(false);
         await db.customers.clear();
         await db.transactions.clear();
         await db.syncMetadata.clear();
@@ -255,14 +261,17 @@ export default function SettingsPage() {
             // 5. Reset the singleton Supabase client to destroy stale state
             resetClient();
 
-            // 6. Force a hard redirect to the server logout route
-            // This ensures cookies are cleared and middleware sees the clean state
-            window.location.href = '/auth/signout';
+            // 6. Force a server logout via POST
+            await fetch('/auth/signout', { method: 'POST' });
+            window.location.href = '/login';
         } catch (err) {
             console.error('Logout error:', err);
             // Fallback: Still try to reset and redirect
             resetClient();
-            window.location.href = '/auth/signout';
+            try {
+                await fetch('/auth/signout', { method: 'POST' });
+            } catch {}
+            window.location.href = '/login';
         }
     };
 
@@ -670,6 +679,34 @@ export default function SettingsPage() {
             <div className={styles.footer}>
                 <p>LedgerManager v1.2.0 (Supabase Optimized)</p>
             </div>
+
+            <Modal
+                isOpen={isClearModalOpen}
+                onClose={() => setIsClearModalOpen(false)}
+                title="Reset Local Cache"
+            >
+                <div style={{ padding: '0.5rem', color: 'var(--text-main)' }}>
+                    <p style={{ marginBottom: '1.5rem', fontSize: '0.95rem', lineHeight: '1.5' }}>
+                        This will delete ALL local data. Cloud data in Supabase will NOT be affected. Continue?
+                    </p>
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+                        <button 
+                            className={styles.secondaryBtn} 
+                            onClick={() => setIsClearModalOpen(false)}
+                            style={{ padding: '8px 16px', borderRadius: 'var(--radius-sm)', cursor: 'pointer' }}
+                        >
+                            Cancel
+                        </button>
+                        <button 
+                            className={styles.dangerBtn} 
+                            onClick={handleConfirmClear}
+                            style={{ padding: '8px 16px', borderRadius: 'var(--radius-sm)', cursor: 'pointer' }}
+                        >
+                            Confirm Erase
+                        </button>
+                    </div>
+                </div>
+            </Modal>
         </div>
     );
 }

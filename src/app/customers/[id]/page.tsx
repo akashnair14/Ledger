@@ -303,7 +303,11 @@ export default function CustomerDetailPage() {
                                         initial={{ opacity: 0, x: -20 }}
                                         animate={{ opacity: 1, x: 0 }}
                                         exit={{ opacity: 0, x: 20 }}
-                                        transition={{ delay: index * 0.03 }}
+                                        transition={{
+                                            layout: { type: 'spring', stiffness: 350, damping: 35 },
+                                            opacity: { duration: 0.2 },
+                                            x: { duration: 0.2 }
+                                        }}
                                         className={`${styles.txnCard} ${isSelectMode ? styles.clickableCard : ''}`}
                                         onClick={() => isSelectMode && toggleTxnSelection(t.id)}
                                     >
