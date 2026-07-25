@@ -550,7 +550,6 @@ export default function CustomerDetailPage() {
                                             <div 
                                                 key={t.id} 
                                                 className={`${styles.txnCard} ${isSelectMode ? styles.clickableCard : ''}`}
-                                                style={{ padding: '0.85rem' }}
                                                 onClick={() => isSelectMode && toggleTxnSelection(t.id)}
                                             >
                                                 {isSelectMode && (
@@ -582,15 +581,15 @@ export default function CustomerDetailPage() {
                                                 </div>
 
                                                 {/* Running Balance timeline calculation column */}
-                                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', minWidth: '90px' }}>
-                                                    <span style={{ fontSize: '0.6rem', textTransform: 'uppercase', color: 'var(--text-dim)', fontWeight: 700 }}>Balance</span>
-                                                    <span style={{ fontSize: '0.8rem', fontFamily: 'var(--font-mono)', color: 'var(--text-dim)' }}>
+                                                <div className={styles.balanceCol}>
+                                                    <span>Balance</span>
+                                                    <span>
                                                         ₹{t.runningBalance.toLocaleString()}
                                                     </span>
                                                 </div>
 
                                                 <div className={styles.amountArea}>
-                                                    <span className={`${styles.amount} ${t.type === 'CREDIT' ? styles.amountCredit : styles.amountPayment}`} style={{ fontSize: '1rem', fontWeight: 800 }}>
+                                                    <span className={`${styles.amount} ${t.type === 'CREDIT' ? styles.amountCredit : styles.amountPayment}`}>
                                                         {t.type === 'CREDIT' ? '-' : '+'} ₹{t.amount.toLocaleString()}
                                                     </span>
                                                 </div>

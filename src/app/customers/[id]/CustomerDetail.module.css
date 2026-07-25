@@ -450,6 +450,27 @@
     text-align: right;
 }
 
+.balanceCol {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    min-width: 90px;
+}
+
+.balanceCol span:first-child {
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    font-weight: 700;
+}
+
+.balanceCol span:last-child {
+    font-size: 0.8rem;
+    font-family: var(--font-mono), monospace;
+    color: var(--text-dim);
+}
+
+
 .amount {
     font-family: var(--font-mono), monospace;
     font-size: 1rem;
@@ -656,19 +677,83 @@
     }
     
     .txnCard {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 8px;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.4rem 0.6rem;
+        gap: 0.35rem;
+    }
+    
+    .txnDate {
+        min-width: 45px;
+        line-height: 1.1;
+    }
+    
+    .dateDisplay {
+        font-size: 0.7rem !important;
+    }
+    
+    .timeDisplay {
+        font-size: 0.6rem !important;
+    }
+    
+    .txnMain {
+        padding-left: 4px;
+        gap: 1px;
+        flex: 1;
+        min-width: 0;
+    }
+    
+    .typeBadge,
+    .modeBadge,
+    .invoiceBadge {
+        font-size: 0.6rem !important;
+        padding: 0px 4px;
+    }
+    
+    .noteText {
+        font-size: 0.7rem !important;
+        margin-top: 1px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 120px;
     }
     
     .amountArea {
-        text-align: left;
+        text-align: right;
+        min-width: 70px;
+    }
+    
+    .amount {
+        font-size: 0.85rem !important;
     }
     
     .quickActions {
         opacity: 1;
         pointer-events: auto;
+        display: flex;
         justify-content: flex-end;
+        margin-left: 4px;
+        gap: 2px;
+    }
+    
+    .quickActions button {
+        padding: 4px;
+        min-height: 28px;
+        min-width: 28px;
+    }
+    
+    .balanceCol {
+        min-width: 60px;
+    }
+    
+    .balanceCol span:first-child {
+        display: none;
+    }
+    
+    .balanceCol span:last-child {
+        font-size: 0.75rem !important;
     }
 }
 
