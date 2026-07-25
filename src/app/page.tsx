@@ -99,7 +99,7 @@ export default function LandingPage() {
                     <div className={styles.navLinks}>
                         <Link href="/docs" className={styles.loginLink}>User Guide</Link>
                         <Link href="/login" className={styles.loginLink}>Log In</Link>
-                        <Link href="/login" className={styles.signupBtn}>Get Started Free</Link>
+                        <Link href="/login" className={styles.signupBtn}>Get Started Now</Link>
                     </div>
 
                     {/* Mobile Menu Toggle */}
@@ -121,7 +121,7 @@ export default function LandingPage() {
                     >
                         <Link href="/docs" className={styles.mobileLink}>User Guide</Link>
                         <Link href="/login" className={styles.mobileLink}>Log In</Link>
-                        <Link href="/login" className={styles.mobileSignupBtn}>Get Started Free</Link>
+                        <Link href="/login" className={styles.mobileSignupBtn}>Get Started Now</Link>
                     </motion.div>
                 )}
             </nav>
@@ -163,7 +163,7 @@ export default function LandingPage() {
                         className={styles.heroActions}
                     >
                         <Link href="/login" className={styles.primaryBtn}>
-                            Start Using for Free <ArrowRight size={20} />
+                            Start Using Now <ArrowRight size={20} />
                         </Link>
                         <a href="#features" className={styles.secondaryBtn}>
                             See How It Works
@@ -205,8 +205,8 @@ export default function LandingPage() {
                     <p>Local & Cloud Sync</p>
                 </div>
                 <div className={styles.statItem}>
-                    <h3>Free</h3>
-                    <p>Forever for Everyone</p>
+                    <h3>Seamless</h3>
+                    <p>Built for Businesses</p>
                 </div>
             </section>
 
@@ -272,10 +272,10 @@ export default function LandingPage() {
                     <p>Join thousands of users who have moved to a simpler, more secure finance management system.</p>
                     <div className={styles.ctaActions}>
                         <Link href="/login" className={styles.ctaPrimary}>
-                            Start Your Free Account <ArrowRight size={20} />
+                            Start Your Account <ArrowRight size={20} />
                         </Link>
                     </div>
-                    <p className={styles.ctaNoCredit}>No credit card required • Secure encryption • 100% Free</p>
+                    <p className={styles.ctaNoCredit}>No credit card required • Secure encryption • Premium Design</p>
                 </div>
             </section>
 
@@ -301,11 +301,6 @@ export default function LandingPage() {
                         'description': 'Secure, offline-first personal ledger management. Track customer credit balances, payments, and business accounts.',
                         'applicationCategory': 'BusinessApplication',
                         'operatingSystem': 'All',
-                        'offers': {
-                            '@type': 'Offer',
-                            'price': '0',
-                            'priceCurrency': 'USD'
-                        },
                         'features': 'Offline mode, Supabase cloud sync, mobile search integration, PDF ledger exports, biometric app lock security'
                     })
                 }}
