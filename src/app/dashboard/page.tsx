@@ -66,6 +66,8 @@ export default function CustomersPage() {
   const [filterType, setFilterType] = useState<'ALL' | 'HAS_BALANCE' | 'SETTLED'>('ALL');
   const [sortType, setSortType] = useState<'NAME_ASC' | 'AMOUNT_DESC' | 'AMOUNT_ASC'>('NAME_ASC');
 
+  const activeFilterCount = (filterType !== 'ALL' ? 1 : 0) + (sortType !== 'NAME_ASC' ? 1 : 0);
+
   // Client-side search & Book filtering
   const filteredCustomers = allCustomers?.filter((c: CustomerWithBalance) => {
     // Book Filter - must match active book and NOT be deleted
@@ -303,6 +305,9 @@ export default function CustomersPage() {
                   title="Sort & Filter"
                 >
                   <Filter size={20} />
+                  {activeFilterCount > 0 && (
+                    <span className={styles.filterBadge}>{activeFilterCount}</span>
+                  )}
                 </button>
                 {isFilterOpen && (
                   <div className={styles.filterDropdown}>
@@ -349,7 +354,7 @@ export default function CustomersPage() {
                     label: `Add ${activeTab === 'CUSTOMER' ? 'Customer' : 'Supplier'}`,
                     onClick: () => {
                       if (!activeBook) {
-                        alert('Book should be selected first');
+                        showToast('Book should be selected first', 'error');
                         return;
                       }
                       setIsModalOpen(true);

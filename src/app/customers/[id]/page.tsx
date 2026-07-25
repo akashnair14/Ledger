@@ -1,42 +1,28 @@
 'use client';
 
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
-import { Transaction, PaymentMode, Customer } from '@/lib/db';
+import { Transaction, Customer } from '@/lib/db';
 import {
-    ArrowLeft,
-    Plus,
-    Minus,
     Trash2,
     Edit2,
-    Phone,
-    MapPin,
     X,
     Paperclip,
     Receipt,
-    Calendar,
     ArrowUpRight,
     ArrowDownLeft,
-    MessageSquare,
     Check,
-    Calculator,
-    FileText,
-    Upload,
-    Loader2,
-    ScanLine
+    Plus,
+    Minus,
 } from 'lucide-react';
-import Link from 'next/link';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Modal } from '@/components/ui/Modal';
 import { TransactionFilters, FilterState } from '@/components/ui/Filters';
 import { SuccessAnimation } from '@/components/ui/SuccessAnimation';
-import { StatementDownloader } from '@/components/ui/StatementDownloader';
 import styles from './CustomerDetail.module.css';
 import {
     useCustomers,
     useTransactions,
-    addTransaction,
     deleteTransaction,
-    updateTransaction,
     updateCustomer,
     deleteCustomer,
     getTransactionCount
@@ -45,19 +31,10 @@ import { useToast } from '@/context/ToastContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { CustomerDetailSkeleton } from '@/components/ui/LayoutSkeletons';
-import { normalizePhoneNumber, isValidPhone, formatPhoneDisplay } from '@/lib/phoneUtils';
-
-
-
-const PAYMENT_MODES: { value: PaymentMode; label: string }[] = [
-    { value: 'CASH', label: 'Cash' },
-    { value: 'UPI', label: 'UPI/GooglePay/PhonePe' },
-    { value: 'NEFT', label: 'NEFT Transfer' },
-    { value: 'IMPS', label: 'IMPS Transfer' },
-    { value: 'CHEQUE', label: 'Cheque' },
-    { value: 'BANK_TRANSFER', label: 'Bank Transfer' },
-    { value: 'OTHER', label: 'Other' },
-];
+import { normalizePhoneNumber, isValidPhone } from '@/lib/phoneUtils';
+import { CustomerHeader } from '@/components/features/CustomerHeader';
+import { CustomerBalanceCard } from '@/components/features/CustomerBalanceCard';
+import { TransactionFormModal } from '@/components/features/TransactionFormModal';
 
 export default function CustomerDetailPage() {
     const { id } = useParams();
@@ -80,29 +57,12 @@ export default function CustomerDetailPage() {
     const [editAddress, setEditAddress] = useState('');
     const [isUpdatingCustomer, setIsUpdatingCustomer] = useState(false);
 
-    // Transaction Form States
+    // Transaction Modal States
     const [isTxnModalOpen, setTxnModalOpen] = useState(false);
     const [editingTxn, setEditingTxn] = useState<Transaction | null>(null);
     const [txnType, setTxnType] = useState<'CREDIT' | 'PAYMENT'>('CREDIT');
-    // ... rest of form states ... (kept)
-    const [amount, setAmount] = useState('');
-    const [evaluatedAmount, setEvaluatedAmount] = useState(0);
-    const [note, setNote] = useState('');
-    const [paymentMode, setPaymentMode] = useState<PaymentMode>('CASH');
-    const [customPaymentMode, setCustomPaymentMode] = useState('');
-    const [invoiceNumber, setInvoiceNumber] = useState('');
-    const [invoiceDate, setInvoiceDate] = useState<string>(new Date().toISOString().split('T')[0]);
-    const [tags, setTags] = useState<string[]>([]);
-    const [attachment, setAttachment] = useState<File | null>(null);
-    const fileInputRef = useRef<HTMLInputElement>(null);
-
-    // Scanning States
-    const [isScanning, setIsScanning] = useState(false);
-    const [scanIntent, setScanIntent] = useState(false);
 
     // UX States
-    const [isSaving, setIsSaving] = useState(false);
-    const [showConfirm, setShowConfirm] = useState(false);
     const [isSelectMode, setIsSelectMode] = useState(false);
     const [selectedTxns, setSelectedTxns] = useState<string[]>([]);
     const [showSuccess, setShowSuccess] = useState(false);
@@ -115,23 +75,6 @@ export default function CustomerDetailPage() {
         sortBy: 'DATE',
         sortOrder: 'DESC'
     });
-
-    // Calculator Helper
-    const evaluateExpression = (expr: string): number => {
-        try {
-            const cleanExpr = expr.replace(/[^0-9+\-*/.()]/g, '');
-            if (!cleanExpr) return 0;
-            const result = new Function(`return ${cleanExpr}`)();
-            return typeof result === 'number' && isFinite(result) ? result : 0;
-        } catch {
-            return 0;
-        }
-    };
-
-    useEffect(() => {
-        const val = evaluateExpression(amount);
-        setEvaluatedAmount(val);
-    }, [amount]);
 
     // Keyboard Shortcuts
     useEffect(() => {
@@ -146,13 +89,10 @@ export default function CustomerDetailPage() {
                 setTxnType('CREDIT');
                 setTxnModalOpen(true);
             }
-            if (e.key === 'Escape' && isTxnModalOpen) {
-                resetForm();
-            }
         };
         window.addEventListener('keydown', handleKeyPress);
         return () => window.removeEventListener('keydown', handleKeyPress);
-    }, [isTxnModalOpen]);
+    }, []);
 
     // Handle Voice Command / Quick Add Params
     const searchParams = useSearchParams();
@@ -164,10 +104,8 @@ export default function CustomerDetailPage() {
             const pType = searchParams.get('type') as 'CREDIT' | 'PAYMENT';
             const pNote = searchParams.get('note');
 
-            if (pAmount) setAmount(pAmount);
+            // Quick add values handled locally inside modal. We will pass a callback or trigger the modal.
             if (pType) setTxnType(pType);
-            if (pNote) setNote(pNote);
-
             setTxnModalOpen(true);
 
             const newParams = new URLSearchParams(searchParams.toString());
@@ -201,7 +139,6 @@ export default function CustomerDetailPage() {
     if (!customer) return <div className={styles.loading}>Customer not found.</div>;
 
     // Filter Logic
-
     const filteredTransactions = allTransactions?.filter((t: Transaction) => {
         if (activeFilters.type !== 'ALL' && t.type !== activeFilters.type) return false;
         if (activeFilters.minAmount && t.amount < Number(activeFilters.minAmount)) return false;
@@ -224,59 +161,9 @@ export default function CustomerDetailPage() {
     const totalPayment = allTransactions?.filter((t: Transaction) => t.type === 'PAYMENT').reduce((sum: number, t: Transaction) => sum + t.amount, 0) || 0;
     const balance = totalCredit - totalPayment;
 
-    const validateForm = async () => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const errors: any = {};
-        if (!amount || evaluatedAmount <= 0) errors.amount = 'Valid amount required';
-        if (paymentMode === 'OTHER' && !customPaymentMode.trim()) errors.customPaymentMode = 'Specify mode';
-        if (new Date(invoiceDate).getTime() > Date.now()) errors.invoiceDate = 'Future date not allowed';
-        return Object.keys(errors).length === 0;
-    };
-
-    const handlePreSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (await validateForm()) setShowConfirm(true);
-    };
-
-    const handleFinalSubmit = async () => {
-        setIsSaving(true);
-        try {
-            const commonData = {
-                amount: evaluatedAmount,
-                type: txnType,
-                paymentMode,
-                customPaymentMode: paymentMode === 'OTHER' ? customPaymentMode.trim() : undefined,
-                invoiceNumber: invoiceNumber.trim(),
-                date: new Date(invoiceDate).getTime(),
-                note: note.trim(),
-                tags,
-                attachmentUrl: editingTxn?.attachmentUrl
-            };
-
-            if (editingTxn) {
-                await updateTransaction(editingTxn.id, {
-                    ...commonData,
-                    customerId: customerId,
-                }, attachment || undefined);
-                showToast('Transaction updated');
-            } else {
-                await addTransaction({
-                    ...commonData,
-                    customerId: customerId,
-                    bookId: customer.bookId || 'default-book',
-                }, attachment || undefined);
-                showToast('Entry saved successfully');
-            }
-
-            resetForm();
-            setShowConfirm(false);
-            setShowSuccess(true);
-            setTimeout(() => setShowSuccess(false), 2000);
-        } catch (err: unknown) {
-            showToast('Failed: ' + (err instanceof Error ? err.message : 'Unknown error'), 'error');
-        } finally {
-            setIsSaving(false);
-        }
+    const handleTransactionSuccess = () => {
+        setShowSuccess(true);
+        setTimeout(() => setShowSuccess(false), 2000);
     };
 
     const handleBulkDelete = async () => {
@@ -305,40 +192,21 @@ export default function CustomerDetailPage() {
         }
     };
 
-    const resetForm = () => {
-        setAmount(''); setEvaluatedAmount(0); setNote(''); setPaymentMode('CASH'); setCustomPaymentMode('');
-        setInvoiceNumber(''); setInvoiceDate(new Date().toISOString().split('T')[0]);
-        setTags([]); setAttachment(null); setTxnModalOpen(false); setShowConfirm(false);
-        setEditingTxn(null);
-    };
-
     const handleEdit = (txn: Transaction) => {
         setEditingTxn(txn);
         setTxnType(txn.type);
-        setAmount(txn.amount.toString());
-        setEvaluatedAmount(txn.amount);
-        setNote(txn.note || '');
-        setPaymentMode(txn.paymentMode);
-        setCustomPaymentMode(txn.customPaymentMode || '');
-        setInvoiceNumber(txn.invoiceNumber || '');
-        setInvoiceDate(new Date(txn.date).toISOString().split('T')[0]);
-        setTags(txn.tags || []);
         setTxnModalOpen(true);
     };
 
     const handleSendReminder = () => {
         if (!customer.phone) return showToast('No phone number attached', 'error');
         const msg = encodeURIComponent(`Hi ${customer.name}, your balance is ₹${Math.abs(balance).toLocaleString()}. Please check. Thanks!`);
-        // Remove all non-digits for WhatsApp. If it doesn't start with a country code, we can't be sure, 
-        // but normalizePhoneNumber ensures we have a consistent format.
         let phoneDigits = customer.phone.replace(/\D/g, '');
-        // If it's 10 digits, assume Indian (+91)
         if (phoneDigits.length === 10) {
             phoneDigits = '91' + phoneDigits;
         }
         window.open(`https://wa.me/${phoneDigits}?text=${msg}`, '_blank');
     };
-
 
     const handleDeleteCustomer = async () => {
         try {
@@ -381,103 +249,30 @@ export default function CustomerDetailPage() {
         }
     };
 
-
-    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            setAttachment(file);
-            if (scanIntent) {
-                setIsScanning(true);
-                try {
-                    const { scanReceipt } = await import('@/lib/ai/ocr');
-                    const data = await scanReceipt(file);
-                    if (data.amount) setAmount(data.amount.toString());
-                    if (data.date) setInvoiceDate(data.date.split('T')[0]);
-                    if (data.invoiceNumber) setInvoiceNumber(data.invoiceNumber);
-                    showToast('Receipt scanned successfully');
-                } catch (err) {
-                    console.error(err);
-                    showToast('Failed to scan receipt', 'error');
-                } finally {
-                    setIsScanning(false);
-                    setScanIntent(false);
-                }
-            }
-        }
-    };
-
     return (
         <>
             <div className={styles.container}>
-                <header className={styles.header}>
-                    <div className={styles.headerTop}>
-                        <Link href="/dashboard" className={styles.backButton} style={{ marginTop: '4px' }}><ArrowLeft size={24} /></Link>
-                        <div className={styles.nameSection}>
-                            <h1>{customer.name}</h1>
-                            <div className={styles.quickInfo}>
-                                <span><Phone size={14} /> {formatPhoneDisplay(customer.phone)}</span>
+                <CustomerHeader
+                    customer={customer}
+                    isSupplier={isSupplier}
+                    allTransactions={allTransactions || []}
+                    setTxnType={setTxnType}
+                    setTxnModalOpen={setTxnModalOpen}
+                    setEditName={setEditName}
+                    setEditPhone={setEditPhone}
+                    setEditEmail={setEditEmail}
+                    setEditAddress={setEditAddress}
+                    setIsEditModalOpen={setIsEditModalOpen}
+                    handleDeleteCustomer={handleDeleteCustomer}
+                    handleSendReminder={handleSendReminder}
+                />
 
-                                {customer.address && <span><MapPin size={14} /> {customer.address}</span>}
-                            </div>
-                        </div>
-                        <div className={styles.mgmtActions}>
-                            <button
-                                className={styles.editBtn}
-                                onClick={() => {
-                                    setEditName(customer.name);
-                                    setEditPhone(customer.phone);
-                                    setEditEmail(customer.email || '');
-                                    setEditAddress(customer.address || '');
-                                    setIsEditModalOpen(true);
-                                }}
-                            >
-                                <Edit2 size={18} />
-                            </button>
-                            <button className={styles.deleteBtn} onClick={() => handleDeleteCustomer()}>
-                                <Trash2 size={18} />
-                            </button>
-                        </div>
-                    </div>
-
-                    <div className={styles.mainActions}>
-                        <div className={styles.desktopPrimaryActions}>
-                            <button className={styles.giveBtnDesktop} onClick={() => { setTxnType('CREDIT'); setTxnModalOpen(true); }}>
-                                <Plus size={18} /> {isSupplier ? 'RECORD PURCHASE' : 'GIVE CREDIT'}
-                            </button>
-                            <button className={styles.receiveBtnDesktop} onClick={() => { setTxnType('PAYMENT'); setTxnModalOpen(true); }}>
-                                <Minus size={18} /> {isSupplier ? 'PAY SUPPLIER' : 'RECEIVE PAYMENT'}
-                            </button>
-                        </div>
-                        <StatementDownloader customerName={customer.name} transactions={allTransactions || []} />
-                        <button className={styles.miniReminderBtn} onClick={handleSendReminder}>
-                            <MessageSquare size={18} />
-                            <span>Remind</span>
-                        </button>
-                    </div>
-                </header>
-
-                <div className={styles.balanceCard}>
-                    <div className={styles.balanceInfo}>
-                        <span className={styles.balanceLabel}>Current Balance</span>
-                        <h2 className={`${styles.balanceValue} ${balance >= 0 ? (isSupplier ? styles.positive : styles.negative) : (isSupplier ? styles.negative : styles.positive)}`}>
-                            ₹{Math.abs(balance).toLocaleString('en-IN')}
-                        </h2>
-                        <span className={styles.balanceSub}>
-                            {balance === 0 ? 'Settled' : (balance > 0 ? (isSupplier ? 'You will pay' : 'You will collect') : (isSupplier ? 'You Collected' : 'You Paid'))}
-                        </span>
-                    </div>
-                    <div className={styles.divider} />
-                    <div className={styles.balanceStats}>
-                        <div className={styles.stat}>
-                            <span className={styles.statLabel}>{isSupplier ? 'Purchases' : 'Total Credit'}</span>
-                            <span className={`${styles.statValue} ${styles.negative}`}>₹{totalCredit.toLocaleString('en-IN')}</span>
-                        </div>
-                        <div className={styles.stat}>
-                            <span className={styles.statLabel}>{isSupplier ? 'Payments' : 'Total Payment'}</span>
-                            <span className={`${styles.statValue} ${styles.positive}`}>₹{totalPayment.toLocaleString('en-IN')}</span>
-                        </div>
-                    </div>
-                </div>
+                <CustomerBalanceCard
+                    balance={balance}
+                    isSupplier={isSupplier}
+                    totalCredit={totalCredit}
+                    totalPayment={totalPayment}
+                />
 
                 <div className={styles.txnList}>
                     <div className={styles.listHeader}>
@@ -550,147 +345,26 @@ export default function CustomerDetailPage() {
                 </div>
             ) : (
                 <div className={styles.bottomActions}>
-                    <button className={styles.giveBtn} onClick={() => { setTxnType('CREDIT'); setTxnModalOpen(true); }}>
+                    <button className={styles.giveBtn} onClick={() => { setTxnType('CREDIT'); setEditingTxn(null); setTxnModalOpen(true); }}>
                         <Plus size={20} /> {isSupplier ? 'PURCHASE / CREDIT' : 'GIVE CREDIT'}
                     </button>
-                    <button className={styles.receiveBtn} onClick={() => { setTxnType('PAYMENT'); setTxnModalOpen(true); }}>
+                    <button className={styles.receiveBtn} onClick={() => { setTxnType('PAYMENT'); setEditingTxn(null); setTxnModalOpen(true); }}>
                         <Minus size={20} /> {isSupplier ? 'PAY BALANCE' : 'RECEIVE PAYMENT'}
                     </button>
                 </div>
             )}
 
-            <Modal
+            <TransactionFormModal
                 isOpen={isTxnModalOpen}
-                onClose={() => !isSaving && resetForm()}
-                title={editingTxn ? 'Edit Transaction' : (
-                    txnType === 'CREDIT'
-                        ? (isSupplier ? 'Record Purchase' : 'Give Credit')
-                        : (isSupplier ? 'Record Payment' : 'Receive Payment')
-                )}
-            >
-                {!showConfirm ? (
-                    <form onSubmit={handlePreSubmit} className={styles.form}>
-                        <div className={styles.inputGroup}>
-                            <label><Calculator size={14} /> Amount (Calculatable) *</label>
-                            <input
-                                type="text"
-                                value={amount}
-                                onChange={(e) => {
-                                    // Only allow numbers and math operators
-                                    const val = e.target.value.replace(/[^0-9+\-*/.()]/g, '');
-                                    setAmount(val);
-                                }}
-                                placeholder="e.g. 500+250"
-                                required
-                                autoFocus
-                            />
-                            {amount && evaluatedAmount > 0 && (
-                                <p className={styles.totalPreview}>Total: ₹{evaluatedAmount.toLocaleString('en-IN')}</p>
-                            )}
-                        </div>
-
-                        <div className={styles.formGrid}>
-                            <div className={styles.inputGroup}>
-                                <label><Receipt size={14} /> Payment Mode *</label>
-                                <select value={paymentMode} onChange={(e) => setPaymentMode(e.target.value as PaymentMode)}>
-                                    {PAYMENT_MODES.map(m => (<option key={m.value} value={m.value}>{m.label}</option>))}
-                                </select>
-                            </div>
-                            <div className={styles.inputGroup}>
-                                <label><Calendar size={14} /> Entry Date</label>
-                                <input type="date" value={invoiceDate} onChange={(e) => setInvoiceDate(e.target.value)} />
-                            </div>
-                        </div>
-
-                        <div className={styles.inputGroup}>
-                            <label><FileText size={14} /> Invoice / Reference #</label>
-                            <input type="text" value={invoiceNumber} onChange={(e) => setInvoiceNumber(e.target.value)} placeholder="Optional" />
-                        </div>
-
-                        <div className={styles.inputGroup}>
-                            <label><Edit2 size={14} /> Note</label>
-                            <textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder="What is this for?" rows={2} />
-                        </div>
-
-                        <div className={styles.inputGroup}>
-                            <label><Paperclip size={14} /> Attach Document</label>
-                            <div className={styles.fileUpload}>
-                                <input type="file" ref={fileInputRef} onChange={handleFileChange} hidden />
-                                <button type="button" className={styles.uploadTrigger} onClick={() => fileInputRef.current?.click()}>
-                                    {attachment ? (
-                                        <><Check size={16} /> {attachment.name}</>
-                                    ) : (
-                                        editingTxn?.attachmentUrl ? (
-                                            <><Check size={16} /> Existing Attachment</>
-                                        ) : (
-                                            <><Upload size={16} /> Select File</>
-                                        )
-                                    )}
-                                </button>
-
-                                <button
-                                    type="button"
-                                    className={`${styles.scanBtn} ${isScanning ? styles.scanning : ''}`}
-                                    onClick={() => { setScanIntent(true); fileInputRef.current?.click(); }}
-                                    disabled={isScanning}
-                                    title="Scan Receipt for Details"
-                                >
-                                    {isScanning ? <Loader2 size={16} className="spin" /> : <ScanLine size={16} />}
-                                    {isScanning ? 'Scanning...' : 'Auto-Scan'}
-                                </button>
-
-                                {(attachment || editingTxn?.attachmentUrl) && (
-                                    <button type="button" className={styles.clearFile} onClick={() => {
-                                        setAttachment(null);
-                                        if (editingTxn) setEditingTxn({ ...editingTxn, attachmentUrl: undefined });
-                                    }}>
-                                        <X size={14} />
-                                    </button>
-                                )}
-                            </div>
-                            {editingTxn?.attachmentUrl && !attachment && (
-                                <a href={editingTxn.attachmentUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.8rem', color: '#3b82f6', marginTop: '0.5rem', display: 'block', textAlign: 'center' }}>
-                                    View Current Attachment
-                                </a>
-                            )}
-                        </div>
-
-                        <button type="submit" className={styles.submitBtn}>Review Entry</button>
-                    </form>
-                ) : (
-                    <div className={styles.confirmView}>
-                        <div className={styles.confirmCard}>
-                            <div className={styles.confirmHeader}>
-                                <span className={txnType === 'CREDIT' ? styles.tagCredit : styles.tagPayment}>
-                                    {txnType === 'CREDIT'
-                                        ? (isSupplier ? 'RECORDING PURCHASE' : 'GIVING CREDIT')
-                                        : (isSupplier ? 'RECORDING PAYMENT' : 'RECEIVING PAYMENT')
-                                    }
-                                </span>
-                            </div>
-                            <div className={styles.confirmMain}>
-                                <h2 className={txnType === 'CREDIT' ? styles.positive : styles.negative}>
-                                    ₹{evaluatedAmount.toLocaleString('en-IN')}
-                                </h2>
-                                <p className={styles.confirmNote}>{note || 'No special note'}</p>
-                            </div>
-                            <div className={styles.confirmDetails}>
-                                <div className={styles.confirmRow}><span>Mode</span><strong>{paymentMode}</strong></div>
-                                <div className={styles.confirmRow}><span>Date</span><strong>{new Date(invoiceDate).toLocaleDateString()}</strong></div>
-                                {invoiceNumber && <div className={styles.confirmRow}><span>Invoice</span><strong>#{invoiceNumber}</strong></div>}
-                                {attachment && <div className={styles.confirmRow}><span>Attachment</span><strong>{attachment.name}</strong></div>}
-                            </div>
-                        </div>
-                        <div className={styles.modalActions}>
-                            <button className={styles.cancelBtn} onClick={() => setShowConfirm(false)}>Edit</button>
-                            <button className={styles.submitBtn} onClick={handleFinalSubmit} disabled={isSaving}>
-                                {isSaving ? 'Saving...' : 'Confirm Entry'}
-                            </button>
-                        </div>
-                    </div>
-                )}
-            </Modal>
-            <SuccessAnimation isVisible={showSuccess} onComplete={() => setShowSuccess(false)} />
+                onClose={() => { setTxnModalOpen(false); setEditingTxn(null); }}
+                editingTxn={editingTxn}
+                txnType={txnType}
+                isSupplier={isSupplier}
+                customerId={customerId}
+                bookId={customer.bookId || 'default-book'}
+                showToast={showToast}
+                onSuccess={handleTransactionSuccess}
+            />
 
             {/* Customer Edit Modal */}
             <Modal
@@ -711,7 +385,7 @@ export default function CustomerDetailPage() {
                         />
                     </div>
                     <div className={styles.inputGroup}>
-                        <label>Phone Number (Optional - allows country code & spaces)</label>
+                        <label>Phone Number (Optional)</label>
                         <input
                             type="tel"
                             value={editPhone}
@@ -744,6 +418,7 @@ export default function CustomerDetailPage() {
                     </button>
                 </form>
             </Modal>
+            <SuccessAnimation isVisible={showSuccess} onComplete={() => setShowSuccess(false)} />
         </>
     );
 }

@@ -456,19 +456,52 @@ export const updateCustomer = async (id: string, updates: Partial<Customer>) => 
     if (updates.address) row.address = updates.address
     row.updated_at = new Date().toISOString()
 
-    const { error } = await supabase.from('customers').update(row).eq('id', id)
-    if (error) throw error
+    const localCust = await db.customers.get(id);
+    let originalCust: Customer | undefined;
+    if (localCust) {
+        originalCust = { ...localCust };
+        const updatedCust = {
+            ...localCust,
+            name: updates.name ?? localCust.name,
+            phone: updates.phone ?? localCust.phone,
+            email: updates.email ?? localCust.email,
+            address: updates.address ?? localCust.address,
+            updatedAt: Date.now()
+        };
+        await db.customers.put(updatedCust);
+    }
 
     await Promise.all([
         mutate('customers'),
         mutate(`transactions-${id}`), // Refresh specific customer detail if open
         mutate('all-transactions')
     ])
+
+    try {
+        const { error } = await supabase.from('customers').update(row).eq('id', id)
+        if (error) throw error
+    } catch (err: any) {
+        if (!navigator.onLine || err.message === 'Failed to fetch' || err.message?.includes('fetch failed')) {
+            await db.syncQueue.put({ id: generateId(), action: 'UPDATE_CUSTOMER', payload: { id, updates: row }, createdAt: Date.now() })
+            return;
+        }
+        // Rollback
+        if (originalCust) {
+            await db.customers.put(originalCust);
+            await Promise.all([
+                mutate('customers'),
+                mutate(`transactions-${id}`),
+                mutate('all-transactions')
+            ]);
+        }
+        throw err;
+    }
 }
 
 export const updateTransaction = async (id: string, updates: Partial<Transaction>, file?: File) => {
     let attachmentUrl = updates.attachmentUrl;
     if (file) {
+        if (!navigator.onLine) throw new Error('Cannot upload attachments while offline.')
         attachmentUrl = await uploadAttachment(file);
     }
 
@@ -482,30 +515,90 @@ export const updateTransaction = async (id: string, updates: Partial<Transaction
     if (updates.tags) row.tags = updates.tags;
     if (attachmentUrl !== undefined) row.attachment_url = attachmentUrl;
 
-    const { error } = await supabase.from('transactions').update(row).eq('id', id);
-    if (error) throw error;
+    const localTxn = await db.transactions.get(id);
+    let originalTxn: Transaction | undefined;
+    if (localTxn) {
+        originalTxn = { ...localTxn };
+        const updatedTxn = {
+            ...localTxn,
+            amount: updates.amount ?? localTxn.amount,
+            type: updates.type ?? localTxn.type,
+            paymentMode: updates.paymentMode ?? localTxn.paymentMode,
+            invoiceNumber: updates.invoiceNumber ?? localTxn.invoiceNumber,
+            date: updates.date ?? localTxn.date,
+            note: updates.note ?? localTxn.note,
+            tags: updates.tags ?? localTxn.tags,
+            attachmentUrl: attachmentUrl ?? localTxn.attachmentUrl,
+            updatedAt: Date.now()
+        };
+        await db.transactions.put(updatedTxn);
+    }
 
     await Promise.all([
         mutate(`transactions-${updates.customerId}`),
         mutate('all-transactions'),
         mutate('customers')
     ]);
+
+    try {
+        const { error } = await supabase.from('transactions').update(row).eq('id', id);
+        if (error) throw error;
+    } catch (err: any) {
+        if (!navigator.onLine || err.message === 'Failed to fetch' || err.message?.includes('fetch failed')) {
+            await db.syncQueue.put({ id: generateId(), action: 'UPDATE_TRANSACTION', payload: { id, updates: row }, createdAt: Date.now() })
+            return;
+        }
+        // Rollback
+        if (originalTxn) {
+            await db.transactions.put(originalTxn);
+            await Promise.all([
+                mutate(`transactions-${updates.customerId}`),
+                mutate('all-transactions'),
+                mutate('customers')
+            ]);
+        }
+        throw err;
+    }
 };
 
 export const deleteCustomer = async (id: string) => {
-    // 1. Delete associated transactions first to avoid orphaned data/FK issues
-    const { error: txnError } = await supabase.from('transactions').delete().eq('customer_id', id);
-    if (txnError) console.warn('[useSupabase] Failed to delete transactions for customer:', id, txnError.message);
-
-    // 2. Delete the customer
-    const { error } = await supabase.from('customers').delete().eq('id', id)
-    if (error) throw error
+    const localCustomer = await db.customers.get(id);
+    if (localCustomer) {
+        await db.customers.update(id, { isDeleted: 1 });
+        await db.transactions.where('customerId').equals(id).modify({ isDeleted: 1 });
+    }
 
     await Promise.all([
         mutate('customers'),
         mutate(`transactions-${id}`),
         mutate('all-transactions')
     ])
+
+    try {
+        // 1. Delete associated transactions first to avoid orphaned data/FK issues
+        const { error: txnError } = await supabase.from('transactions').delete().eq('customer_id', id);
+        if (txnError) console.warn('[useSupabase] Failed to delete transactions for customer:', id, txnError.message);
+
+        // 2. Delete the customer
+        const { error } = await supabase.from('customers').delete().eq('id', id)
+        if (error) throw error
+    } catch (err: any) {
+        if (!navigator.onLine || err.message === 'Failed to fetch' || err.message?.includes('fetch failed')) {
+            await db.syncQueue.put({ id: generateId(), action: 'DELETE_CUSTOMER', payload: { id }, createdAt: Date.now() });
+            return;
+        }
+        // Rollback
+        if (localCustomer) {
+            await db.customers.update(id, { isDeleted: 0 });
+            await db.transactions.where('customerId').equals(id).modify({ isDeleted: 0 });
+            await Promise.all([
+                mutate('customers'),
+                mutate(`transactions-${id}`),
+                mutate('all-transactions')
+            ]);
+        }
+        throw err;
+    }
 }
 
 
@@ -520,14 +613,36 @@ export const getTransactionCount = async (customerId: string) => {
 }
 
 export const deleteTransaction = async (id: string, customerId: string) => {
-    const { error } = await supabase.from('transactions').delete().eq('id', id)
-    if (error) throw error
+    const localTxn = await db.transactions.get(id);
+    if (localTxn) {
+        await db.transactions.update(id, { isDeleted: 1 });
+    }
 
     await Promise.all([
         mutate(`transactions-${customerId}`),
         mutate('all-transactions'),
         mutate('customers') // Balance might change
     ])
+
+    try {
+        const { error } = await supabase.from('transactions').delete().eq('id', id)
+        if (error) throw error
+    } catch (err: any) {
+        if (!navigator.onLine || err.message === 'Failed to fetch' || err.message?.includes('fetch failed')) {
+            await db.syncQueue.put({ id: generateId(), action: 'DELETE_TRANSACTION', payload: { id }, createdAt: Date.now() });
+            return;
+        }
+        // Rollback
+        if (localTxn) {
+            await db.transactions.update(id, { isDeleted: 0 });
+            await Promise.all([
+                mutate(`transactions-${customerId}`),
+                mutate('all-transactions'),
+                mutate('customers')
+            ]);
+        }
+        throw err;
+    }
 }
 
 // Alias for backward compatibility if needed, but cleaned up
@@ -588,6 +703,23 @@ export const processSyncQueue = async () => {
                 if (error && !error.message.includes('duplicate')) throw error;
             } else if (item.action === 'DELETE_BOOK') {
                 const { error } = await supabase.from('books').update({ is_deleted: true, updated_at: new Date().toISOString() }).eq('id', item.payload.id);
+                if (error) throw error;
+            } else if (item.action === 'UPDATE_CUSTOMER') {
+                const { id, updates } = item.payload;
+                const { error } = await supabase.from('customers').update(updates).eq('id', id);
+                if (error) throw error;
+            } else if (item.action === 'DELETE_CUSTOMER') {
+                const { id } = item.payload;
+                await supabase.from('transactions').delete().eq('customer_id', id);
+                const { error } = await supabase.from('customers').delete().eq('id', id);
+                if (error) throw error;
+            } else if (item.action === 'UPDATE_TRANSACTION') {
+                const { id, updates } = item.payload;
+                const { error } = await supabase.from('transactions').update(updates).eq('id', id);
+                if (error) throw error;
+            } else if (item.action === 'DELETE_TRANSACTION') {
+                const { id } = item.payload;
+                const { error } = await supabase.from('transactions').delete().eq('id', id);
                 if (error) throw error;
             }
             await db.syncQueue.delete(item.id);

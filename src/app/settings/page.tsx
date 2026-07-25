@@ -17,7 +17,7 @@ import { createClient, resetClient } from '@/lib/supabase/client';
 import { useState, useEffect } from 'react';
 import styles from './SettingsPage.module.css';
 
-type Tab = 'PROFILE' | 'DATA' | 'SECURITY';
+type Tab = 'PROFILE' | 'DATA' | 'SECURITY' | 'PREFERENCES';
 
 export default function SettingsPage() {
     const { showToast } = useToast();
@@ -90,6 +90,19 @@ export default function SettingsPage() {
         } catch (err) {
             console.error('Failed to sync setting to cloud:', err);
         }
+    };
+
+    const showPaymentMode = cloudSettings.pref_show_payment_mode !== 'false';
+    const showEntryDate = cloudSettings.pref_show_entry_date !== 'false';
+    const showInvoiceNo = cloudSettings.pref_show_invoice_no !== 'false';
+    const showNote = cloudSettings.pref_show_note !== 'false';
+    const showAttachment = cloudSettings.pref_show_attachment !== 'false';
+
+    const togglePref = async (key: string, currentValue: boolean) => {
+        const newValue = (!currentValue).toString();
+        await saveBrandingLocal(key, newValue);
+        await saveBrandingCloud(key, newValue);
+        showToast('Preference updated!');
     };
 
     const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -278,6 +291,12 @@ export default function SettingsPage() {
                         onClick={() => setActiveTab('SECURITY')}
                     >
                         Security
+                    </button>
+                    <button
+                        className={`${styles.tabBtn} ${activeTab === 'PREFERENCES' ? styles.active : ''}`}
+                        onClick={() => setActiveTab('PREFERENCES')}
+                    >
+                        Preferences
                     </button>
                 </div>
             </header>
@@ -487,6 +506,82 @@ export default function SettingsPage() {
                                 >
                                     {lockEnabled ? <ToggleRight size={24} color="white" /> : <ToggleLeft size={24} color="var(--text-dim)" />}
                                 </button>
+                            </div>
+                        </div>
+                    </section>
+                )}
+
+                {activeTab === 'PREFERENCES' && (
+                    <section className={styles.section}>
+                        <div className={styles.card}>
+                            <div className={styles.cardHeader}>
+                                <Building2 size={18} />
+                                <h2>Transaction Form Fields</h2>
+                            </div>
+                            <p style={{ padding: '0 16px', color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '8px' }}>
+                                Choose which optional fields are visible during credit and debit entries. Disabling fields simplifies the form.
+                            </p>
+                            <div style={{ marginTop: '16px' }}>
+                                <div className={styles.row}>
+                                    <div className={styles.info}>
+                                        <h3>Payment Mode</h3>
+                                        <p>Select cash, UPI, Bank transfer, NEFT, Cheque, etc.</p>
+                                    </div>
+                                    <button
+                                        className={`${styles.toggleBtn} ${showPaymentMode ? styles.active : ''}`}
+                                        onClick={() => togglePref('pref_show_payment_mode', showPaymentMode)}
+                                    >
+                                        {showPaymentMode ? <ToggleRight size={24} color="white" /> : <ToggleLeft size={24} color="var(--text-dim)" />}
+                                    </button>
+                                </div>
+                                <div className={styles.row}>
+                                    <div className={styles.info}>
+                                        <h3>Entry Date</h3>
+                                        <p>Choose a custom date for the entry (defaults to today).</p>
+                                    </div>
+                                    <button
+                                        className={`${styles.toggleBtn} ${showEntryDate ? styles.active : ''}`}
+                                        onClick={() => togglePref('pref_show_entry_date', showEntryDate)}
+                                    >
+                                        {showEntryDate ? <ToggleRight size={24} color="white" /> : <ToggleLeft size={24} color="var(--text-dim)" />}
+                                    </button>
+                                </div>
+                                <div className={styles.row}>
+                                    <div className={styles.info}>
+                                        <h3>Invoice / Reference #</h3>
+                                        <p>Add invoice or document reference numbers.</p>
+                                    </div>
+                                    <button
+                                        className={`${styles.toggleBtn} ${showInvoiceNo ? styles.active : ''}`}
+                                        onClick={() => togglePref('pref_show_invoice_no', showInvoiceNo)}
+                                    >
+                                        {showInvoiceNo ? <ToggleRight size={24} color="white" /> : <ToggleLeft size={24} color="var(--text-dim)" />}
+                                    </button>
+                                </div>
+                                <div className={styles.row}>
+                                    <div className={styles.info}>
+                                        <h3>Transaction Notes</h3>
+                                        <p>Add description notes or comments to the transaction.</p>
+                                    </div>
+                                    <button
+                                        className={`${styles.toggleBtn} ${showNote ? styles.active : ''}`}
+                                        onClick={() => togglePref('pref_show_note', showNote)}
+                                    >
+                                        {showNote ? <ToggleRight size={24} color="white" /> : <ToggleLeft size={24} color="var(--text-dim)" />}
+                                    </button>
+                                </div>
+                                <div className={styles.row}>
+                                    <div className={styles.info}>
+                                        <h3>File Attachments & OCR Scan</h3>
+                                        <p>Attach invoices, bill photos, or auto-scan them.</p>
+                                    </div>
+                                    <button
+                                        className={`${styles.toggleBtn} ${showAttachment ? styles.active : ''}`}
+                                        onClick={() => togglePref('pref_show_attachment', showAttachment)}
+                                    >
+                                        {showAttachment ? <ToggleRight size={24} color="white" /> : <ToggleLeft size={24} color="var(--text-dim)" />}
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </section>

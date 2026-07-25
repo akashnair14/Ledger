@@ -48,8 +48,8 @@ export const Navbar = () => {
     const handleCreateBook = async (e: React.FormEvent) => {
         e.preventDefault();
         const name = newBookName.trim();
-        if (name.length < 3) return alert('Name must be at least 3 characters');
-        if (books.some(b => b.name === name && b.isDeleted === 0)) return alert('Duplicate book name');
+        if (name.length < 3) return showToast('Name must be at least 3 characters', 'error');
+        if (books.some(b => b.name === name && b.isDeleted === 0)) return showToast('Duplicate book name', 'error');
 
         try {
             setIsChecking(true);
@@ -80,8 +80,8 @@ export const Navbar = () => {
         e.preventDefault();
         if (!bookToEdit) return;
         const name = newBookName.trim();
-        if (name.length < 3) return alert('Name must be at least 3 characters');
-        if (books.some(b => b.name === name && b.id !== bookToEdit.id && b.isDeleted === 0)) return alert('Duplicate book name');
+        if (name.length < 3) return showToast('Name must be at least 3 characters', 'error');
+        if (books.some(b => b.name === name && b.id !== bookToEdit.id && b.isDeleted === 0)) return showToast('Duplicate book name', 'error');
 
         try {
             setIsChecking(true);
@@ -112,7 +112,7 @@ export const Navbar = () => {
                 if (stats.transactionCount > 0) parts.push(`${stats.transactionCount} transactions`);
 
                 errorMsg += parts.join(', ') + ' still exist. Please delete them first.';
-                return alert(errorMsg);
+                return showToast(errorMsg, 'error');
             }
 
             if (confirm('Are you sure? This will soft-delete the ledger.')) {

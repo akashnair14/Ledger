@@ -5,6 +5,7 @@ import { Download, Calendar, FileText, RefreshCw, ChevronRight } from 'lucide-re
 import { exportToPDF, ReportType } from '@/lib/export/generate';
 import { Transaction } from '@/lib/db';
 import { Modal } from '@/components/ui/Modal';
+import { useToast } from '@/context/ToastContext';
 import styles from './StatementDownloader.module.css';
 
 interface StatementDownloaderProps {
@@ -13,6 +14,7 @@ interface StatementDownloaderProps {
 }
 
 export const StatementDownloader = ({ customerName, transactions }: StatementDownloaderProps) => {
+    const { showToast } = useToast();
     const [isOpen, setIsOpen] = useState(false);
     const [isGenerating, setIsGenerating] = useState(false);
 
@@ -51,7 +53,7 @@ export const StatementDownloader = ({ customerName, transactions }: StatementDow
                 end = new Date(startYear + 1, 2, 31, 23, 59, 59); // March 31st
             } else if (duration === 'CUSTOM') {
                 if (!startDate || !endDate) {
-                    alert('Please select both start and end dates');
+                    showToast('Please select both start and end dates', 'error');
                     setIsGenerating(false);
                     return;
                 }
@@ -65,7 +67,7 @@ export const StatementDownloader = ({ customerName, transactions }: StatementDow
             resetState();
         } catch (error) {
             console.error(error);
-            alert('An error occurred while generating the report.');
+            showToast(error instanceof Error ? error.message : 'An error occurred while generating the report.', 'error');
         } finally {
             setIsGenerating(false);
         }

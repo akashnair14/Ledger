@@ -83,8 +83,8 @@ export const Sidebar = () => {
     const handleCreateBook = async (e: React.FormEvent) => {
         e.preventDefault();
         const name = newBookName.trim();
-        if (name.length < 3) return alert('Name must be at least 3 characters');
-        if (books.some(b => b.name === name && b.isDeleted === 0)) return alert('Duplicate book name');
+        if (name.length < 3) return showToast('Name must be at least 3 characters', 'error');
+        if (books.some(b => b.name === name && b.isDeleted === 0)) return showToast('Duplicate book name', 'error');
 
         try {
             setIsChecking(true);
@@ -116,9 +116,9 @@ export const Sidebar = () => {
     const handleUpdateBook = async (e: React.FormEvent) => {
         e.preventDefault();
         const name = newBookName.trim();
-        if (name.length < 3) return alert('Name must be at least 3 characters');
+        if (name.length < 3) return showToast('Name must be at least 3 characters', 'error');
         if (!bookToEdit) return;
-        if (books.some(b => b.name === name && b.id !== bookToEdit.id && b.isDeleted === 0)) return alert('Duplicate book name');
+        if (books.some(b => b.name === name && b.id !== bookToEdit.id && b.isDeleted === 0)) return showToast('Duplicate book name', 'error');
 
         try {
             setIsChecking(true);

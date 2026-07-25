@@ -214,8 +214,7 @@ export async function exportToPDF(customerName: string, transactions: Transactio
         }
 
         if (filtered.length === 0) {
-            alert('No transactions found for the selected period.');
-            return;
+            throw new Error('No transactions found for the selected period.');
         }
 
         doc.setFontSize(14);
@@ -306,7 +305,7 @@ export async function exportToPDF(customerName: string, transactions: Transactio
         doc.save(`${customerName}_statement.pdf`);
     } catch (error) {
         console.error(error);
-        alert('PDF Generation Failed');
+        throw new Error('PDF Generation Failed');
     }
 }
 

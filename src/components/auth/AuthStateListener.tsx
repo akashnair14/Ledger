@@ -20,6 +20,24 @@ export function AuthStateListener() {
                 localStorage.clear();
                 sessionStorage.clear();
 
+                // Delete Dexie database
+                try {
+                    const { db } = await import('@/lib/db');
+                    await db.delete();
+                } catch (e) {
+                    console.error("Failed to delete local database:", e);
+                }
+
+                // Clear PWA caches
+                if (typeof window !== 'undefined' && 'caches' in window) {
+                    try {
+                        const cacheKeys = await caches.keys();
+                        await Promise.all(cacheKeys.map(key => caches.delete(key)));
+                    } catch (e) {
+                        console.error("Failed to clear PWA caches:", e);
+                    }
+                }
+
                 // Reset the singleton client to destroy stale session state
                 resetClient();
 
