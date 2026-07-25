@@ -606,6 +606,17 @@
 
 /* Mobile responsive card parameters */
 @media (max-width: 768px) {
+    .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .headerActions {
+        width: 100%;
+        justify-content: space-between;
+    }
+
     .summaryGrid {
         grid-template-columns: repeat(2, 1fr);
     }
@@ -643,5 +654,11 @@
     
     .chevronIcon {
         display: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .summaryGrid {
+        grid-template-columns: 1fr;
     }
 }
