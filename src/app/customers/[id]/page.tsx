@@ -580,17 +580,12 @@ export default function CustomerDetailPage() {
                                                     {t.note && <p className={styles.noteText} style={{ marginTop: '2px', fontSize: '0.8rem', color: 'var(--text-muted)' }}>{t.note}</p>}
                                                 </div>
 
-                                                {/* Running Balance timeline calculation column */}
-                                                <div className={styles.balanceCol}>
-                                                    <span>Balance</span>
-                                                    <span>
-                                                        ₹{t.runningBalance.toLocaleString()}
-                                                    </span>
-                                                </div>
-
-                                                <div className={styles.amountArea}>
+                                                <div className={styles.amountCol}>
                                                     <span className={`${styles.amount} ${t.type === 'CREDIT' ? styles.amountCredit : styles.amountPayment}`}>
                                                         {t.type === 'CREDIT' ? '-' : '+'} ₹{t.amount.toLocaleString()}
+                                                    </span>
+                                                    <span className={styles.runningBalance}>
+                                                        Bal: ₹{t.runningBalance.toLocaleString()}
                                                     </span>
                                                 </div>
 
