@@ -235,14 +235,9 @@ export const KachaBillViewerModal: React.FC<KachaBillViewerModalProps> = ({
                     /* Conversion Sub-Form */
                     <form onSubmit={handleConfirmConvert} className={styles.convertForm}>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                            <label style={{ fontSize: '0.85rem', fontWeight: 600 }}>Select Party *</label>
+                            <label className={styles.convertLabel}>Select Party *</label>
                             <select
-                                style={{
-                                    padding: '0.75rem',
-                                    borderRadius: '10px',
-                                    border: '1px solid var(--border-color, #e5e7eb)',
-                                    background: 'var(--bg-surface)'
-                                }}
+                                className={styles.convertSelect}
                                 value={targetCustomerId}
                                 onChange={(e) => setTargetCustomerId(e.target.value)}
                                 required
@@ -258,14 +253,9 @@ export const KachaBillViewerModal: React.FC<KachaBillViewerModalProps> = ({
 
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                                <label style={{ fontSize: '0.85rem', fontWeight: 600 }}>Transaction Type</label>
+                                <label className={styles.convertLabel}>Transaction Type</label>
                                 <select
-                                    style={{
-                                        padding: '0.75rem',
-                                        borderRadius: '10px',
-                                        border: '1px solid var(--border-color, #e5e7eb)',
-                                        background: 'var(--bg-surface)'
-                                    }}
+                                    className={styles.convertSelect}
                                     value={convertType}
                                     onChange={(e) => setConvertType(e.target.value as 'CREDIT' | 'PAYMENT')}
                                 >
@@ -275,16 +265,11 @@ export const KachaBillViewerModal: React.FC<KachaBillViewerModalProps> = ({
                             </div>
 
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                                <label style={{ fontSize: '0.85rem', fontWeight: 600 }}>Amount (₹) *</label>
+                                <label className={styles.convertLabel}>Amount (₹) *</label>
                                 <input
                                     type="number"
                                     step="any"
-                                    style={{
-                                        padding: '0.75rem',
-                                        borderRadius: '10px',
-                                        border: '1px solid var(--border-color, #e5e7eb)',
-                                        background: 'var(--bg-surface)'
-                                    }}
+                                    className={styles.convertInput}
                                     placeholder="Enter final amount"
                                     value={convertAmount}
                                     onChange={(e) => setConvertAmount(e.target.value)}
@@ -294,14 +279,9 @@ export const KachaBillViewerModal: React.FC<KachaBillViewerModalProps> = ({
                         </div>
 
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                            <label style={{ fontSize: '0.85rem', fontWeight: 600 }}>Payment Mode</label>
+                            <label className={styles.convertLabel}>Payment Mode</label>
                             <select
-                                style={{
-                                    padding: '0.75rem',
-                                    borderRadius: '10px',
-                                    border: '1px solid var(--border-color, #e5e7eb)',
-                                    background: 'var(--bg-surface)'
-                                }}
+                                className={styles.convertSelect}
                                 value={paymentMode}
                                 onChange={(e) => setPaymentMode(e.target.value as PaymentMode)}
                             >
@@ -314,15 +294,8 @@ export const KachaBillViewerModal: React.FC<KachaBillViewerModalProps> = ({
                         <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem' }}>
                             <button
                                 type="button"
-                                style={{
-                                    flex: 1,
-                                    padding: '0.85rem',
-                                    borderRadius: '10px',
-                                    border: '1px solid var(--border-color, #e5e7eb)',
-                                    background: 'var(--bg-surface-2)',
-                                    fontWeight: 600,
-                                    cursor: 'pointer'
-                                }}
+                                className={`${styles.actionBtn} ${styles.editBtn}`}
+                                style={{ flex: 1 }}
                                 onClick={() => setShowConvertForm(false)}
                                 disabled={isConverting}
                             >
@@ -330,20 +303,8 @@ export const KachaBillViewerModal: React.FC<KachaBillViewerModalProps> = ({
                             </button>
                             <button
                                 type="submit"
-                                style={{
-                                    flex: 2,
-                                    padding: '0.85rem',
-                                    borderRadius: '10px',
-                                    border: 'none',
-                                    background: 'var(--primary, #f05c38)',
-                                    color: '#fff',
-                                    fontWeight: 600,
-                                    cursor: 'pointer',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    gap: '0.5rem'
-                                }}
+                                className={`${styles.actionBtn} ${styles.convertBtn}`}
+                                style={{ flex: 2 }}
                                 disabled={isConverting}
                             >
                                 {isConverting ? (
@@ -354,7 +315,7 @@ export const KachaBillViewerModal: React.FC<KachaBillViewerModalProps> = ({
                                 ) : (
                                     <>
                                         <CheckCircle2 size={18} />
-                                        <span>Confirm & Post Transaction</span>
+                                        <span>Confirm & Post</span>
                                     </>
                                 )}
                             </button>

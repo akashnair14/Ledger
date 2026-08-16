@@ -3,57 +3,59 @@
     bottom: 0;
     left: 0;
     right: 0;
-    min-height: var(--nav-height);
+    min-height: var(--nav-height, 60px);
     padding-bottom: env(safe-area-inset-bottom);
     background: var(--surface);
     border-top: 1px solid var(--border);
     display: flex;
-    justify-content: space-between;
-    /* Changed to space-between for better control */
+    justify-content: space-around;
     align-items: center;
     z-index: 1000;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    background: rgba(var(--surface-rgb, 255, 255, 255), 0.98);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
 }
 
 .voiceWrapper {
     position: relative;
-    top: -24px;
-    /* Float above the nav */
+    top: -20px;
     background: var(--surface);
     border-radius: 50%;
-    padding: 6px;
-    /* Ring effect */
-    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+    padding: 5px;
+    box-shadow: 0 -4px 14px rgba(0, 0, 0, 0.15);
     z-index: 2002;
-    /* Above Modal (2000) */
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 0 12px;
+    margin: 0 4px;
+    border: 1px solid var(--border);
 }
 
-/* Ensure the button inside also looks good if it's not already */
-.voiceWrapper>button {
-    box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.4) !important;
-    transform: scale(1.1);
+.voiceWrapper > button {
+    box-shadow: 0 4px 12px rgba(var(--primary-rgb, 240, 92, 56), 0.4) !important;
+    transform: scale(1.05);
 }
 
 .navItem {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
+    justify-content: center;
     color: var(--text-dim);
     font-size: 0.65rem;
-    font-family: var(--font-hanken), sans-serif;
+    font-family: inherit;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.03em;
     flex: 1;
-    transition: var(--transition-smooth);
+    min-width: 0;
+    transition: var(--transition-smooth, all 0.2s ease);
     text-decoration: none;
+    padding: 4px 0;
+}
+
+.navItem:hover {
+    color: var(--text-main);
 }
 
 .navItem.active {
@@ -64,17 +66,23 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    transition: var(--transition-smooth);
+    justify-content: center;
+    gap: 2px;
+    transition: var(--transition-smooth, all 0.2s ease);
+    padding: 4px 8px;
+    border-radius: 12px;
 }
 
 .navItem.active .navItemContent {
-    background: rgba(var(--primary-rgb, 59, 130, 246), 0.1);
-    padding: 6px 16px;
-    border-radius: 20px;
+    background: rgba(var(--primary-rgb, 240, 92, 56), 0.12);
 }
 
 .navItem span {
-    opacity: 0.7;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 0.62rem;
+    line-height: 1.1;
     margin-top: 2px;
 }
 
@@ -82,4 +90,4 @@
     .bottomNav {
         display: none;
     }
-}
+}

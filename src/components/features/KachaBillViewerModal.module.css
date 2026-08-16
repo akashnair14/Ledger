@@ -7,19 +7,19 @@
 .imageWrapper {
     position: relative;
     width: 100%;
-    max-height: 420px;
-    background: #000;
-    border-radius: 12px;
+    max-height: 400px;
+    background: #090a0d;
+    border-radius: var(--radius-sm, 10px);
     overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 1px solid var(--border-color, #333);
+    border: 1px solid var(--border-thick);
 }
 
 .billImage {
     max-width: 100%;
-    max-height: 420px;
+    max-height: 400px;
     object-fit: contain;
 }
 
@@ -29,16 +29,17 @@
     right: 12px;
     display: flex;
     gap: 0.5rem;
-    background: rgba(0, 0, 0, 0.7);
+    background: rgba(14, 16, 21, 0.8);
     padding: 0.35rem 0.6rem;
     border-radius: 20px;
     backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .toolBtn {
     background: transparent;
     border: none;
-    color: #fff;
+    color: #ffffff;
     padding: 0.3rem;
     border-radius: 6px;
     cursor: pointer;
@@ -53,9 +54,9 @@
 }
 
 .detailsCard {
-    background: var(--bg-surface-2, #f9fafb);
-    border: 1px solid var(--border-color, #e5e7eb);
-    border-radius: 12px;
+    background: var(--surface-header);
+    border: 1px solid var(--border-thick);
+    border-radius: var(--radius-sm, 10px);
     padding: 1rem;
     display: flex;
     flex-direction: column;
@@ -66,26 +67,26 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 0.9rem;
+    font-size: 0.875rem;
 }
 
 .detailLabel {
-    color: var(--text-secondary);
+    color: var(--text-muted);
     font-weight: 500;
 }
 
 .detailValue {
-    font-weight: 600;
-    color: var(--text-primary);
+    font-weight: 700;
+    color: var(--text-main);
 }
 
 .noteBlock {
-    background: var(--bg-surface);
+    background: var(--surface);
     padding: 0.75rem 1rem;
-    border-radius: 8px;
-    border: 1px dashed var(--border-color, #d1d5db);
-    font-size: 0.95rem;
-    color: var(--text-primary);
+    border-radius: var(--radius-sm, 8px);
+    border: 1px dashed var(--border);
+    font-size: 0.9rem;
+    color: var(--text-main);
     line-height: 1.4;
     white-space: pre-wrap;
 }
@@ -103,42 +104,47 @@
     justify-content: center;
     gap: 0.5rem;
     padding: 0.75rem 1rem;
-    border-radius: 10px;
+    border-radius: var(--radius-sm, 10px);
     font-size: 0.9rem;
-    font-weight: 600;
+    font-weight: 700;
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
 .convertBtn {
     grid-column: span 2;
-    background: var(--primary, #f05c38);
-    color: #ffffff;
+    background: var(--primary);
+    color: var(--text-on-primary, #ffffff);
     border: none;
     padding: 0.85rem;
-    font-size: 0.95rem;
-    box-shadow: 0 4px 12px rgba(240, 92, 56, 0.25);
+    font-size: 0.9rem;
+    box-shadow: 0 4px 12px rgba(var(--primary-rgb, 240, 92, 56), 0.3);
 }
 
 .convertBtn:hover {
-    box-shadow: 0 6px 16px rgba(240, 92, 56, 0.35);
+    box-shadow: 0 6px 16px rgba(var(--primary-rgb, 240, 92, 56), 0.4);
     transform: translateY(-1px);
+    background: var(--primary-light, var(--primary));
 }
 
 .editBtn {
-    background: var(--bg-surface-2, #f3f4f6);
-    border: 1px solid var(--border-color, #e5e7eb);
-    color: var(--text-primary);
+    background: var(--surface-header);
+    border: 1px solid var(--border);
+    color: var(--text-main);
+}
+
+.editBtn:hover {
+    background: var(--surface);
 }
 
 .deleteBtn {
-    background: rgba(239, 68, 68, 0.1);
-    border: 1px solid rgba(239, 68, 68, 0.2);
-    color: #ef4444;
+    background: rgba(240, 68, 56, 0.1);
+    border: 1px solid rgba(240, 68, 56, 0.2);
+    color: var(--danger, #f04438);
 }
 
 .deleteBtn:hover {
-    background: rgba(239, 68, 68, 0.2);
+    background: rgba(240, 68, 56, 0.2);
 }
 
 /* Convert Sub-form */
@@ -147,4 +153,27 @@
     flex-direction: column;
     gap: 1rem;
     padding-top: 0.5rem;
+}
+
+.convertInput, .convertSelect {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: var(--surface);
+    border: 1px solid var(--border-thick);
+    border-radius: var(--radius-sm, 10px);
+    font-size: 0.95rem;
+    color: var(--text-main);
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.convertInput:focus, .convertSelect:focus {
+    border-color: var(--primary);
+    background: var(--surface-header);
+}
+
+.convertLabel {
+    font-size: 0.825rem;
+    font-weight: 650;
+    color: var(--text-muted);
 }
