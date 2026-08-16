@@ -216,7 +216,9 @@ export default function KachaBillsPage() {
                                 <div className={styles.cardBody}>
                                     <div className={styles.amountRow}>
                                         <span className={styles.amount}>
-                                            {bill.amount !== undefined ? `₹${bill.amount.toLocaleString()}` : 'Rough Slip'}
+                                            {bill.amount !== undefined && bill.amount !== null
+                                                ? `₹${bill.amount.toLocaleString()}`
+                                                : bill.title || 'Kacha Bill'}
                                         </span>
                                         <span className={styles.billDate}>
                                             {new Date(bill.billDate).toLocaleDateString(undefined, {
