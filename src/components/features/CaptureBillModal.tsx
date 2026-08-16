@@ -255,14 +255,14 @@ export const CaptureBillModal: React.FC<CaptureBillModalProps> = ({
                     <div className={styles.statusSelector}>
                         <button
                             type="button"
-                            className={`${styles.statusPill} ${status === 'PENDING' ? styles.statusPillActivePending : ''}`}
+                            className={`${styles.statusPill} ${status === 'PENDING' ? styles.statusPillPendingActive : ''}`}
                             onClick={() => setStatus('PENDING')}
                         >
                             Pending
                         </button>
                         <button
                             type="button"
-                            className={`${styles.statusPill} ${status === 'SETTLED' ? styles.statusPillActiveSettled : ''}`}
+                            className={`${styles.statusPill} ${status === 'SETTLED' ? styles.statusPillSettledActive : ''}`}
                             onClick={() => setStatus('SETTLED')}
                         >
                             Settled

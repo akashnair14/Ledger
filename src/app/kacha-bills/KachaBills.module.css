@@ -16,7 +16,7 @@
 .titleSection h1 {
     font-size: 1.75rem;
     font-weight: 750;
-    color: var(--text-main);
+    color: var(--text-main, #14161c);
     margin: 0 0 0.25rem 0;
     display: flex;
     align-items: center;
@@ -26,18 +26,18 @@
 
 .subtitle {
     font-size: 0.875rem;
-    color: var(--text-muted);
+    color: var(--text-muted, #595d6b);
     margin: 0;
 }
 
 .captureBtn {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     gap: 0.5rem;
     padding: 0.75rem 1.25rem;
     border-radius: var(--radius-sm, 10px);
-    background: var(--primary);
-    color: var(--text-on-primary, #ffffff);
+    background: var(--primary, #f05c38);
+    color: #ffffff !important;
     border: none;
     font-weight: 700;
     font-size: 0.9rem;
@@ -50,7 +50,7 @@
 .captureBtn:hover {
     transform: translateY(-1px);
     box-shadow: 0 6px 18px rgba(var(--primary-rgb, 240, 92, 56), 0.4);
-    background: var(--primary-light, var(--primary));
+    background: var(--primary-hover, #d64522);
 }
 
 /* Stats Overview */
@@ -62,8 +62,8 @@
 }
 
 .statCard {
-    background: var(--surface);
-    border: 1px solid var(--border-thick);
+    background: var(--surface, #ffffff);
+    border: 1px solid var(--border-thick, #d5d7df);
     border-radius: var(--radius-md, 14px);
     padding: 1.25rem;
     display: flex;
@@ -84,7 +84,7 @@
 
 .statIconAll {
     background: rgba(var(--primary-rgb, 240, 92, 56), 0.12);
-    color: var(--primary);
+    color: var(--primary, #f05c38);
 }
 
 .statIconPending {
@@ -104,7 +104,7 @@
 
 .statLabel {
     font-size: 0.75rem;
-    color: var(--text-muted);
+    color: var(--text-muted, #595d6b);
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.04em;
@@ -113,7 +113,7 @@
 .statValue {
     font-size: 1.35rem;
     font-weight: 750;
-    color: var(--text-main);
+    color: var(--text-main, #14161c);
 }
 
 /* Controls & Filters Bar */
@@ -137,35 +137,35 @@
     left: 14px;
     top: 50%;
     transform: translateY(-50%);
-    color: var(--text-dim);
+    color: var(--text-dim, #9fa3b2);
 }
 
 .searchInput {
     width: 100%;
     padding: 0.7rem 1rem 0.7rem 2.6rem;
-    background: var(--surface);
-    border: 1px solid var(--border-thick);
+    background: var(--surface, #ffffff);
+    border: 1px solid var(--border-thick, #d5d7df);
     border-radius: var(--radius-sm, 10px);
     font-size: 0.9rem;
-    color: var(--text-main);
+    color: var(--text-main, #14161c);
     outline: none;
     transition: all 0.2s ease;
 }
 
 .searchInput::placeholder {
-    color: var(--text-dim);
+    color: var(--text-dim, #9fa3b2);
 }
 
 .searchInput:focus {
-    border-color: var(--primary);
+    border-color: var(--primary, #f05c38);
     box-shadow: 0 0 0 3px rgba(var(--primary-rgb, 240, 92, 56), 0.15);
-    background: var(--surface-header);
+    background: var(--surface-header, #f4f5f7);
 }
 
 .filterTabs {
     display: flex;
-    background: var(--surface-header);
-    border: 1px solid var(--border-thick);
+    background: var(--surface-header, #f4f5f7);
+    border: 1px solid var(--border-thick, #d5d7df);
     padding: 4px;
     border-radius: var(--radius-sm, 10px);
     gap: 4px;
@@ -177,20 +177,23 @@
     border: 1px solid transparent;
     background: transparent;
     font-size: 0.825rem;
-    font-weight: 650;
-    color: var(--text-muted);
+    font-weight: 700;
+    color: var(--text-muted, #595d6b);
     cursor: pointer;
     transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .tabBtn:hover {
-    color: var(--text-main);
+    color: var(--text-main, #14161c);
 }
 
 .tabBtnActive {
-    background: var(--surface);
-    color: var(--text-main);
-    border-color: var(--border);
+    background: var(--surface, #ffffff) !important;
+    color: var(--text-main, #14161c) !important;
+    border-color: var(--border-thick, #d5d7df) !important;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
 }
 
@@ -202,8 +205,8 @@
 }
 
 .billCard {
-    background: var(--surface);
-    border: 1px solid var(--border-thick);
+    background: var(--surface, #ffffff);
+    border: 1px solid var(--border-thick, #d5d7df);
     border-radius: var(--radius-md, 14px);
     overflow: hidden;
     display: flex;
@@ -216,7 +219,7 @@
 .billCard:hover {
     transform: translateY(-2px);
     box-shadow: var(--shadow-card, 0 8px 24px rgba(0, 0, 0, 0.1));
-    border-color: var(--primary);
+    border-color: var(--primary, #f05c38);
 }
 
 .thumbnailContainer {
@@ -283,12 +286,12 @@
 .amount {
     font-size: 1.2rem;
     font-weight: 750;
-    color: var(--text-main);
+    color: var(--text-main, #14161c);
 }
 
 .billDate {
     font-size: 0.8rem;
-    color: var(--text-muted);
+    color: var(--text-muted, #595d6b);
 }
 
 .partyTag {
@@ -297,7 +300,7 @@
     gap: 0.3rem;
     font-size: 0.775rem;
     font-weight: 650;
-    color: var(--primary);
+    color: var(--primary, #f05c38);
     background: rgba(var(--primary-rgb, 240, 92, 56), 0.1);
     padding: 0.2rem 0.5rem;
     border-radius: 6px;
@@ -306,7 +309,7 @@
 
 .cardNote {
     font-size: 0.85rem;
-    color: var(--text-muted);
+    color: var(--text-muted, #595d6b);
     line-height: 1.4;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -317,18 +320,18 @@
 
 .cardFooter {
     padding: 0.75rem 1rem;
-    border-top: 1px solid var(--border);
+    border-top: 1px solid var(--border, #e8e9ec);
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: var(--surface-header);
+    background: var(--surface-header, #f4f5f7);
 }
 
 .cardActionLink {
     font-size: 0.825rem;
     font-weight: 700;
-    color: var(--primary);
-    display: flex;
+    color: var(--primary, #f05c38);
+    display: inline-flex;
     align-items: center;
     gap: 0.25rem;
 }
@@ -337,8 +340,8 @@
 .emptyState {
     text-align: center;
     padding: 4rem 1.5rem;
-    background: var(--surface);
-    border: 1.5px dashed var(--border-thick);
+    background: var(--surface, #ffffff);
+    border: 1.5px dashed var(--border-thick, #d5d7df);
     border-radius: var(--radius-md, 16px);
     display: flex;
     flex-direction: column;
@@ -351,7 +354,7 @@
     height: 64px;
     border-radius: 50%;
     background: rgba(var(--primary-rgb, 240, 92, 56), 0.12);
-    color: var(--primary);
+    color: var(--primary, #f05c38);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -361,33 +364,62 @@
     margin: 0;
     font-size: 1.15rem;
     font-weight: 750;
-    color: var(--text-main);
+    color: var(--text-main, #14161c);
 }
 
 .emptyState p {
     margin: 0;
-    color: var(--text-muted);
+    color: var(--text-muted, #595d6b);
     font-size: 0.875rem;
     max-width: 400px;
 }
 
 /* Explicit Dark Mode Overrides */
+:global([data-theme='dark']) .titleSection h1 {
+    color: #F4F5F7 !important;
+}
+
+:global([data-theme='dark']) .subtitle {
+    color: #8E92A3 !important;
+}
+
 :global([data-theme='dark']) .statCard,
 :global([data-theme='dark']) .billCard,
 :global([data-theme='dark']) .emptyState {
     background-color: #15181E !important;
-    border-color: #23262F !important;
+    border-color: #2e3340 !important;
+}
+
+:global([data-theme='dark']) .statValue {
+    color: #F4F5F7 !important;
+}
+
+:global([data-theme='dark']) .statLabel {
+    color: #8E92A3 !important;
+}
+
+:global([data-theme='dark']) .amount {
+    color: #F4F5F7 !important;
+}
+
+:global([data-theme='dark']) .billDate,
+:global([data-theme='dark']) .cardNote {
+    color: #8E92A3 !important;
 }
 
 :global([data-theme='dark']) .searchInput {
     background-color: #15181E !important;
-    border-color: #333745 !important;
+    border-color: #2e3340 !important;
     color: #F4F5F7 !important;
+}
+
+:global([data-theme='dark']) .searchInput::placeholder {
+    color: #555969 !important;
 }
 
 :global([data-theme='dark']) .filterTabs {
     background-color: #12141A !important;
-    border-color: #23262F !important;
+    border-color: #2e3340 !important;
 }
 
 :global([data-theme='dark']) .tabBtn {
@@ -400,13 +432,22 @@
 
 :global([data-theme='dark']) .tabBtnActive {
     background-color: #15181E !important;
-    border-color: #333745 !important;
+    border-color: #2e3340 !important;
     color: #F4F5F7 !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4) !important;
 }
 
 :global([data-theme='dark']) .cardFooter {
     background-color: #12141A !important;
     border-color: #23262F !important;
+}
+
+:global([data-theme='dark']) .emptyState h3 {
+    color: #F4F5F7 !important;
+}
+
+:global([data-theme='dark']) .emptyState p {
+    color: #8E92A3 !important;
 }
 
 @media (max-width: 768px) {
