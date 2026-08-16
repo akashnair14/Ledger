@@ -144,15 +144,15 @@
 }
 
 .statusPillActivePending {
-    background: rgba(245, 166, 35, 0.15);
-    border-color: var(--warning, #f5a623);
-    color: var(--warning, #f5a623);
+    background: rgba(245, 166, 35, 0.15) !important;
+    border-color: var(--warning, #f5a623) !important;
+    color: var(--warning, #f5a623) !important;
 }
 
 .statusPillActiveSettled {
-    background: rgba(23, 184, 119, 0.15);
-    border-color: var(--success, #17b877);
-    color: var(--success, #17b877);
+    background: rgba(23, 184, 119, 0.15) !important;
+    border-color: var(--success, #17b877) !important;
+    color: var(--success, #17b877) !important;
 }
 
 .actions {
@@ -206,4 +206,38 @@
 .submitBtn:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+}
+
+/* Explicit Dark Mode Overrides */
+:global([data-theme='dark']) .input,
+:global([data-theme='dark']) .select,
+:global([data-theme='dark']) .textarea {
+    background-color: #15181E !important;
+    border-color: #333745 !important;
+    color: #F4F5F7 !important;
+}
+
+:global([data-theme='dark']) .input:focus,
+:global([data-theme='dark']) .select:focus,
+:global([data-theme='dark']) .textarea:focus {
+    background-color: #12141A !important;
+    border-color: #FF704F !important;
+}
+
+:global([data-theme='dark']) .captureBtn {
+    background-color: #12141A !important;
+    border-color: #333745 !important;
+    color: #F4F5F7 !important;
+}
+
+:global([data-theme='dark']) .statusPill {
+    background-color: #12141A !important;
+    border-color: #333745 !important;
+    color: #8E92A3 !important;
+}
+
+:global([data-theme='dark']) .cancelBtn {
+    background-color: #12141A !important;
+    border-color: #23262F !important;
+    color: #8E92A3 !important;
 }

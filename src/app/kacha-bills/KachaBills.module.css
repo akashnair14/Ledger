@@ -371,6 +371,44 @@
     max-width: 400px;
 }
 
+/* Explicit Dark Mode Overrides */
+:global([data-theme='dark']) .statCard,
+:global([data-theme='dark']) .billCard,
+:global([data-theme='dark']) .emptyState {
+    background-color: #15181E !important;
+    border-color: #23262F !important;
+}
+
+:global([data-theme='dark']) .searchInput {
+    background-color: #15181E !important;
+    border-color: #333745 !important;
+    color: #F4F5F7 !important;
+}
+
+:global([data-theme='dark']) .filterTabs {
+    background-color: #12141A !important;
+    border-color: #23262F !important;
+}
+
+:global([data-theme='dark']) .tabBtn {
+    color: #8E92A3 !important;
+}
+
+:global([data-theme='dark']) .tabBtn:hover {
+    color: #F4F5F7 !important;
+}
+
+:global([data-theme='dark']) .tabBtnActive {
+    background-color: #15181E !important;
+    border-color: #333745 !important;
+    color: #F4F5F7 !important;
+}
+
+:global([data-theme='dark']) .cardFooter {
+    background-color: #12141A !important;
+    border-color: #23262F !important;
+}
+
 @media (max-width: 768px) {
     .container {
         padding: 1rem;
