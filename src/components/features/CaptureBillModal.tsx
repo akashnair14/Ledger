@@ -62,15 +62,35 @@ export const CaptureBillModal: React.FC<CaptureBillModalProps> = ({
         setIsCameraActive(false);
     }, []);
 
-    // Stop stream on modal close or unmount
+    // Reset all form fields to initial/blank state
+    const resetForm = useCallback(() => {
+        setNote(editingBill?.note || '');
+        setTitle(editingBill?.title || '');
+        setAmount(editingBill?.amount !== undefined ? String(editingBill.amount) : '');
+        setCustomerId(editingBill?.customerId || preselectedCustomerId || '');
+        setBillDate(
+            editingBill?.billDate
+                ? new Date(editingBill.billDate).toISOString().split('T')[0]
+                : new Date().toISOString().split('T')[0]
+        );
+        setStatus(editingBill?.status || 'PENDING');
+        setImageFile(null);
+        setPreviewUrl(editingBill?.imageUrl || null);
+        setIsSaving(false);
+        setIsCompressing(false);
+        stopCameraStream();
+        if (galleryInputRef.current) galleryInputRef.current.value = '';
+        if (nativeCameraInputRef.current) nativeCameraInputRef.current.value = '';
+    }, [editingBill, preselectedCustomerId, stopCameraStream]);
+
+    // Reset form whenever modal opens or editingBill changes
     useEffect(() => {
-        if (!isOpen) {
+        if (isOpen) {
+            resetForm();
+        } else {
             stopCameraStream();
         }
-        return () => {
-            stopCameraStream();
-        };
-    }, [isOpen, stopCameraStream]);
+    }, [isOpen, editingBill, resetForm, stopCameraStream]);
 
     // Start Live Camera
     const startCamera = async (facing: 'environment' | 'user' = 'environment') => {
@@ -252,6 +272,7 @@ export const CaptureBillModal: React.FC<CaptureBillModalProps> = ({
                 showToast('Kacha Bill saved successfully!');
             }
 
+            resetForm();
             onSuccess?.();
             onClose();
         } catch (err: any) {
