@@ -180,9 +180,11 @@ const fetchSettings = async () => {
 
 export function useSettings() {
     const { data, error, isLoading } = useSWR('settings', fetchSettings, {
-        revalidateOnFocus: true,
+        revalidateOnFocus: false,
         revalidateOnReconnect: true,
         revalidateIfStale: true,
+        dedupingInterval: 10000,
+        keepPreviousData: true,
     })
     return {
         settings: data || {},
@@ -193,9 +195,11 @@ export function useSettings() {
 
 export function useBooks() {
     const { data, error, isLoading } = useSWR('books', fetchBooks, {
-        revalidateOnFocus: true,
+        revalidateOnFocus: false,
         revalidateOnReconnect: true,
         revalidateIfStale: true,
+        dedupingInterval: 10000,
+        keepPreviousData: true,
     })
     return {
         books: data || [],
@@ -206,9 +210,11 @@ export function useBooks() {
 
 export function useCustomers() {
     const { data, error, isLoading } = useSWR('customers', fetchCustomers, {
-        revalidateOnFocus: true,
+        revalidateOnFocus: false,
         revalidateOnReconnect: true,
         revalidateIfStale: true,
+        dedupingInterval: 10000,
+        keepPreviousData: true,
     })
     return {
         customers: data,
@@ -220,9 +226,11 @@ export function useCustomers() {
 export function useKachaBills(bookId?: string) {
     const key = bookId ? `kacha-bills-${bookId}` : 'all-kacha-bills'
     const { data, error, isLoading } = useSWR(key, fetchKachaBills, {
-        revalidateOnFocus: true,
+        revalidateOnFocus: false,
         revalidateOnReconnect: true,
         revalidateIfStale: true,
+        dedupingInterval: 10000,
+        keepPreviousData: true,
     })
 
     const filteredBills = bookId && data ? data.filter((b: KachaBill) => b.bookId === bookId) : data
@@ -240,9 +248,11 @@ export function useTransactions(customerId?: string) {
     const fetcher = customerId ? () => fetchTransactions(customerId) : fetchAllTransactions
 
     const { data, error, isLoading } = useSWR(key, fetcher, {
-        revalidateOnFocus: true,
+        revalidateOnFocus: false,
         revalidateOnReconnect: true,
         revalidateIfStale: true,
+        dedupingInterval: 10000,
+        keepPreviousData: true,
     })
     return {
         transactions: data,

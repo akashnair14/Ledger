@@ -501,7 +501,7 @@ export default function CustomerDetailPage() {
                         <input
                             ref={searchInputRef}
                             type="text"
-                            placeholder="Search timeline notes or invoice #... (Ctrl+K)"
+                            placeholder="Search timeline notes or invoice #..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             className={styles.searchInput}
@@ -511,7 +511,6 @@ export default function CustomerDetailPage() {
 
                     <button 
                         className={`${styles.filterToggleBtn} ${isSelectMode ? styles.active : ''}`}
-                        style={{ padding: '0.5rem 1rem', fontSize: '0.8rem' }}
                         onClick={() => { setIsSelectMode(!isSelectMode); setSelectedTxns([]); }}
                     >
                         {isSelectMode ? 'Cancel Selection' : 'Select Entries'}

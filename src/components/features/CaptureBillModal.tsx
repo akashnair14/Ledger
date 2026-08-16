@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Camera, Upload, X, Loader2, Calendar, DollarSign, User, FileText, CheckCircle2, RotateCw } from 'lucide-react';
+import { Camera, Upload, X, Loader2, Calendar, DollarSign, User, FileText, CheckCircle2, RotateCw, Trash2, RefreshCw, Clock } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import { Customer, KachaBill, KachaBillStatus } from '@/lib/db';
 import { addKachaBill, updateKachaBill, useCustomers } from '@/hooks/useSupabase';
@@ -96,7 +96,6 @@ export const CaptureBillModal: React.FC<CaptureBillModalProps> = ({
     const startCamera = async (facing: 'environment' | 'user' = 'environment') => {
         try {
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                // Fallback to native system camera input if getUserMedia not supported
                 nativeCameraInputRef.current?.click();
                 return;
             }
@@ -292,7 +291,7 @@ export const CaptureBillModal: React.FC<CaptureBillModalProps> = ({
             }}
             title={editingBill ? 'Edit Kacha Bill' : 'Capture Kacha Bill'}
         >
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit} className={styles.modalForm}>
                 {/* Hidden Input Fallbacks */}
                 <input
                     ref={nativeCameraInputRef}
@@ -310,174 +309,206 @@ export const CaptureBillModal: React.FC<CaptureBillModalProps> = ({
                     onChange={handleFileSelect}
                 />
 
-                {/* Live Camera Viewfinder or Preview or Action Buttons */}
-                <div className={styles.captureSection}>
-                    {isCameraActive ? (
-                        <div className={styles.cameraViewfinder}>
-                            <video
-                                ref={videoRef}
-                                autoPlay
-                                playsInline
-                                muted
-                                className={styles.videoElement}
-                            />
-                            <div className={styles.cameraOverlayControls}>
-                                <button
-                                    type="button"
-                                    className={styles.cameraUtilityBtn}
-                                    onClick={stopCameraStream}
-                                    title="Close Camera"
-                                >
-                                    <X size={20} />
-                                </button>
+                <div className={styles.formScrollBody}>
+                    {/* Live Camera Viewfinder or Preview or Action Buttons */}
+                    <div className={styles.captureSection}>
+                        {isCameraActive ? (
+                            <div className={styles.cameraViewfinder}>
+                                <video
+                                    ref={videoRef}
+                                    autoPlay
+                                    playsInline
+                                    muted
+                                    className={styles.videoElement}
+                                />
+                                <div className={styles.cameraOverlayControls}>
+                                    <button
+                                        type="button"
+                                        className={styles.cameraUtilityBtn}
+                                        onClick={stopCameraStream}
+                                        title="Close Camera"
+                                        aria-label="Close Camera"
+                                    >
+                                        <X size={20} />
+                                    </button>
 
-                                <button
-                                    type="button"
-                                    className={styles.shutterButton}
-                                    onClick={handleSnapPhoto}
-                                    title="Snap Photo"
-                                >
-                                    <div className={styles.shutterInner} />
-                                </button>
+                                    <button
+                                        type="button"
+                                        className={styles.shutterButton}
+                                        onClick={handleSnapPhoto}
+                                        title="Snap Photo"
+                                        aria-label="Capture photo"
+                                    >
+                                        <div className={styles.shutterInner} />
+                                    </button>
 
+                                    <button
+                                        type="button"
+                                        className={styles.cameraUtilityBtn}
+                                        onClick={handleFlipCamera}
+                                        title="Flip Camera"
+                                        aria-label="Switch camera"
+                                    >
+                                        <RotateCw size={20} />
+                                    </button>
+                                </div>
+                            </div>
+                        ) : isCompressing ? (
+                            <div className={styles.optimizingState}>
+                                <Loader2 size={24} className="spin" />
+                                <span>Optimizing bill photo...</span>
+                            </div>
+                        ) : previewUrl ? (
+                            <div className={styles.previewContainer}>
+                                <img src={previewUrl} alt="Bill Preview" className={styles.previewImage} />
+                                <div className={styles.previewActionsOverlay}>
+                                    <button
+                                        type="button"
+                                        className={styles.previewActionBtn}
+                                        onClick={() => galleryInputRef.current?.click()}
+                                        title="Replace Photo"
+                                    >
+                                        <RefreshCw size={14} />
+                                        <span>Change</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className={`${styles.previewActionBtn} ${styles.deleteActionBtn}`}
+                                        onClick={handleRemoveImage}
+                                        title="Remove Photo"
+                                    >
+                                        <Trash2 size={14} />
+                                        <span>Remove</span>
+                                    </button>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className={styles.buttonGrid}>
                                 <button
                                     type="button"
-                                    className={styles.cameraUtilityBtn}
-                                    onClick={handleFlipCamera}
-                                    title="Flip Camera"
+                                    className={styles.captureBtn}
+                                    onClick={() => startCamera('environment')}
                                 >
-                                    <RotateCw size={20} />
+                                    <div className={styles.captureIconWrapper}>
+                                        <Camera size={22} />
+                                    </div>
+                                    <span className={styles.btnLabel}>Take Photo</span>
+                                    <span className={styles.btnSubtext}>Use Device Camera</span>
+                                </button>
+                                <button
+                                    type="button"
+                                    className={styles.captureBtn}
+                                    onClick={() => galleryInputRef.current?.click()}
+                                >
+                                    <div className={styles.captureIconWrapper}>
+                                        <Upload size={22} />
+                                    </div>
+                                    <span className={styles.btnLabel}>Upload File</span>
+                                    <span className={styles.btnSubtext}>From Gallery</span>
                                 </button>
                             </div>
-                        </div>
-                    ) : isCompressing ? (
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem', gap: '0.5rem', color: 'var(--text-muted)' }}>
-                            <Loader2 size={20} className="spin" />
-                            <span style={{ fontSize: '0.9rem' }}>Optimizing bill photo...</span>
-                        </div>
-                    ) : previewUrl ? (
-                        <div className={styles.previewContainer}>
-                            <img src={previewUrl} alt="Bill Preview" className={styles.previewImage} />
-                            <button
-                                type="button"
-                                className={styles.removeImageBtn}
-                                onClick={handleRemoveImage}
-                                title="Remove photo"
-                            >
-                                <X size={18} />
-                            </button>
-                        </div>
-                    ) : (
-                        <div className={styles.buttonGrid}>
-                            <button
-                                type="button"
-                                className={styles.captureBtn}
-                                onClick={() => startCamera('environment')}
-                            >
-                                <Camera size={20} />
-                                <span>Take Photo</span>
-                            </button>
-                            <button
-                                type="button"
-                                className={styles.captureBtn}
-                                onClick={() => galleryInputRef.current?.click()}
-                            >
-                                <Upload size={20} />
-                                <span>Upload from Gallery</span>
-                            </button>
-                        </div>
-                    )}
-                </div>
+                        )}
+                    </div>
 
-                {/* Notes / Description */}
-                <div className={styles.formGroup}>
-                    <label>
-                        <FileText size={16} />
-                        <span>Note / Description</span>
-                    </label>
-                    <textarea
-                        className={styles.textarea}
-                        placeholder="e.g. Rough estimate for 10 bags cement from vendor..."
-                        value={note}
-                        onChange={(e) => setNote(e.target.value)}
-                        rows={2}
-                    />
-                </div>
-
-                {/* Amount & Date in 2 columns */}
-                <div className={styles.rowInputs}>
+                    {/* Notes / Description */}
                     <div className={styles.formGroup}>
                         <label>
-                            <DollarSign size={16} />
-                            <span>Amount (₹ Optional)</span>
+                            <FileText size={15} />
+                            <span>Note / Description</span>
                         </label>
-                        <input
-                            type="number"
-                            step="any"
-                            className={styles.input}
-                            placeholder="e.g. 4500"
-                            value={amount}
-                            onChange={(e) => setAmount(e.target.value)}
+                        <textarea
+                            className={styles.textarea}
+                            placeholder="e.g. Rough estimate for 10 bags cement from vendor..."
+                            value={note}
+                            onChange={(e) => setNote(e.target.value)}
+                            rows={2}
                         />
                     </div>
 
+                    {/* Amount & Date in Responsive Columns */}
+                    <div className={styles.rowInputs}>
+                        <div className={styles.formGroup}>
+                            <label>
+                                <DollarSign size={15} />
+                                <span>Amount (₹ Optional)</span>
+                            </label>
+                            <div className={styles.inputWithPrefix}>
+                                <span className={styles.currencyPrefix}>₹</span>
+                                <input
+                                    type="number"
+                                    step="any"
+                                    className={`${styles.input} ${styles.inputPrefixed}`}
+                                    placeholder="e.g. 4500"
+                                    value={amount}
+                                    onChange={(e) => setAmount(e.target.value)}
+                                />
+                            </div>
+                        </div>
+
+                        <div className={styles.formGroup}>
+                            <label>
+                                <Calendar size={15} />
+                                <span>Bill Date</span>
+                            </label>
+                            <input
+                                type="date"
+                                className={styles.input}
+                                value={billDate}
+                                onChange={(e) => setBillDate(e.target.value)}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Customer / Supplier Tag */}
                     <div className={styles.formGroup}>
                         <label>
-                            <Calendar size={16} />
-                            <span>Bill Date</span>
+                            <User size={15} />
+                            <span>Link to Party (Optional)</span>
                         </label>
-                        <input
-                            type="date"
-                            className={styles.input}
-                            value={billDate}
-                            onChange={(e) => setBillDate(e.target.value)}
-                        />
+                        <div className={styles.selectWrapper}>
+                            <select
+                                className={styles.select}
+                                value={customerId}
+                                onChange={(e) => setCustomerId(e.target.value)}
+                            >
+                                <option value="">-- No party assigned --</option>
+                                {filteredCustomers.map((c: Customer) => (
+                                    <option key={c.id} value={c.id}>
+                                        {c.name} ({c.type === 'SUPPLIER' ? 'Supplier' : 'Customer'})
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
+
+                    {/* Status Toggle */}
+                    <div className={styles.formGroup}>
+                        <label>
+                            <span>Payment Status</span>
+                        </label>
+                        <div className={styles.statusSelector}>
+                            <button
+                                type="button"
+                                className={`${styles.statusPill} ${status === 'PENDING' ? styles.statusPillPendingActive : ''}`}
+                                onClick={() => setStatus('PENDING')}
+                            >
+                                <Clock size={15} />
+                                <span>Pending</span>
+                            </button>
+                            <button
+                                type="button"
+                                className={`${styles.statusPill} ${status === 'SETTLED' ? styles.statusPillSettledActive : ''}`}
+                                onClick={() => setStatus('SETTLED')}
+                            >
+                                <CheckCircle2 size={15} />
+                                <span>Settled</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
-                {/* Customer / Supplier Tag */}
-                <div className={styles.formGroup}>
-                    <label>
-                        <User size={16} />
-                        <span>Link to Party (Optional)</span>
-                    </label>
-                    <select
-                        className={styles.select}
-                        value={customerId}
-                        onChange={(e) => setCustomerId(e.target.value)}
-                    >
-                        <option value="">-- No party assigned --</option>
-                        {filteredCustomers.map((c: Customer) => (
-                            <option key={c.id} value={c.id}>
-                                {c.name} ({c.type === 'SUPPLIER' ? 'Supplier' : 'Customer'})
-                            </option>
-                        ))}
-                    </select>
-                </div>
-
-                {/* Status Toggle */}
-                <div className={styles.formGroup}>
-                    <label>Status</label>
-                    <div className={styles.statusSelector}>
-                        <button
-                            type="button"
-                            className={`${styles.statusPill} ${status === 'PENDING' ? styles.statusPillPendingActive : ''}`}
-                            onClick={() => setStatus('PENDING')}
-                        >
-                            Pending
-                        </button>
-                        <button
-                            type="button"
-                            className={`${styles.statusPill} ${status === 'SETTLED' ? styles.statusPillSettledActive : ''}`}
-                            onClick={() => setStatus('SETTLED')}
-                        >
-                            Settled
-                        </button>
-                    </div>
-                </div>
-
-                {/* Actions */}
-                <div className={styles.actions}>
+                {/* Sticky Action Footer */}
+                <div className={styles.modalFooterActions}>
                     <button
                         type="button"
                         className={styles.cancelBtn}
@@ -489,7 +520,11 @@ export const CaptureBillModal: React.FC<CaptureBillModalProps> = ({
                     >
                         Cancel
                     </button>
-                    <button type="submit" className={styles.submitBtn} disabled={isSaving || isCameraActive}>
+                    <button
+                        type="submit"
+                        className={styles.submitBtn}
+                        disabled={isSaving || isCameraActive}
+                    >
                         {isSaving ? (
                             <>
                                 <Loader2 size={18} className="spin" />

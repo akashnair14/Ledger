@@ -1,7 +1,3 @@
-import { jsPDF } from 'jspdf';
-import autoTable from 'jspdf-autotable';
-import * as XLSX from 'xlsx';
-import Papa from 'papaparse';
 import { Customer, Transaction, db } from '../db';
 
 export type ReportType = 'DETAILED' | 'SUMMARY_DAY' | 'SUMMARY_MONTH' | 'SUMMARY_QUARTER' | 'SUMMARY_FY';
@@ -16,6 +12,7 @@ function formatDate(date: number | string | Date): string {
 }
 
 export async function exportToCSV(customers: Customer[], transactions: Transaction[], variant: 'STANDARD' | 'TALLY' = 'STANDARD') {
+    const Papa = (await import('papaparse')).default;
     const data = transactions.map(t => {
         const customer = customers.find(c => c.id === t.customerId);
         if (variant === 'TALLY') {
@@ -76,6 +73,7 @@ export async function exportToJSON(customers: Customer[], transactions: Transact
 }
 
 export async function exportToExcel(customers: Customer[], transactions: Transaction[], variant: BackupVariant = 'FULL') {
+    const XLSX = await import('xlsx');
     let filteredCustomers = customers;
     let filteredTransactions = transactions;
 
@@ -127,6 +125,8 @@ export async function exportToExcel(customers: Customer[], transactions: Transac
 
 
 export async function generateVoucher(customer: Customer, t: Transaction, balance: number) {
+    const { jsPDF } = await import('jspdf');
+    const autoTable = (await import('jspdf-autotable')).default;
     const doc = new jsPDF();
     await attachBranding(doc);
 
@@ -172,7 +172,7 @@ export async function generateVoucher(customer: Customer, t: Transaction, balanc
     doc.save(`Voucher_${t.id.slice(0, 8)}.pdf`);
 }
 
-async function attachBranding(doc: jsPDF) {
+async function attachBranding(doc: any) {
     const bizName = (await db.settings.get('business_name'))?.value as string || 'Ledger Manager';
     const bizAddr = (await db.settings.get('business_address'))?.value as string || '';
     const bizLogo = (await db.settings.get('business_logo'))?.value as string || '';
@@ -200,6 +200,8 @@ async function attachBranding(doc: jsPDF) {
 
 export async function exportToPDF(customerName: string, transactions: Transaction[], startDate?: Date, endDate?: Date, reportType: ReportType = 'DETAILED') {
     try {
+        const { jsPDF } = await import('jspdf');
+        const autoTable = (await import('jspdf-autotable')).default;
         const doc = new jsPDF();
         await attachBranding(doc);
 

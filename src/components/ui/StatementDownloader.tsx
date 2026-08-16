@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Download, Calendar, FileText, RefreshCw, ChevronRight } from 'lucide-react';
-import { exportToPDF, ReportType } from '@/lib/export/generate';
+import type { ReportType } from '@/lib/export/generate';
 import { Transaction } from '@/lib/db';
 import { Modal } from '@/components/ui/Modal';
 import { useToast } from '@/context/ToastContext';
@@ -63,6 +63,7 @@ export const StatementDownloader = ({ customerName, transactions }: StatementDow
             }
             // For ALL, start and end remain undefined, which is correct.
 
+            const { exportToPDF } = await import('@/lib/export/generate');
             await exportToPDF(customerName, transactions, start, end, reportType);
             resetState();
         } catch (error) {
@@ -73,8 +74,9 @@ export const StatementDownloader = ({ customerName, transactions }: StatementDow
         }
     };
 
-    const ReportOption = ({ type, title, desc }: { type: ReportType, title: string, desc: string }) => (
+    const renderReportOption = (type: ReportType, title: string, desc: string) => (
         <div
+            key={type}
             className={`${styles.reportOption} ${reportType === type ? styles.activeOption : ''}`}
             onClick={() => setReportType(type)}
         >
@@ -156,31 +158,31 @@ export const StatementDownloader = ({ customerName, transactions }: StatementDow
                             <p className={styles.stepDesc}>Detailed view shows every entry, while summaries group by period.</p>
 
                             <div className={styles.optionList}>
-                                <ReportOption
-                                    type="DETAILED"
-                                    title="Standard Ledger (Detailed)"
-                                    desc="Full chronological list of all individual entries."
-                                />
-                                <ReportOption
-                                    type="SUMMARY_DAY"
-                                    title="Day-wise Totals"
-                                    desc="Daily summation of given and received amounts."
-                                />
-                                <ReportOption
-                                    type="SUMMARY_MONTH"
-                                    title="Monthly Analysis"
-                                    desc="Aggregation of transactions grouped by month."
-                                />
-                                <ReportOption
-                                    type="SUMMARY_QUARTER"
-                                    title="Quarterly Review"
-                                    desc="Financial overview for 3-month cycles (Q1-Q4)."
-                                />
-                                <ReportOption
-                                    type="SUMMARY_FY"
-                                    title="Annual Fiscal Report"
-                                    desc="High-level performance for the entire financial year."
-                                />
+                                {renderReportOption(
+                                    "DETAILED",
+                                    "Standard Ledger (Detailed)",
+                                    "Full chronological list of all individual entries."
+                                )}
+                                {renderReportOption(
+                                    "SUMMARY_DAY",
+                                    "Day-wise Totals",
+                                    "Daily summation of given and received amounts."
+                                )}
+                                {renderReportOption(
+                                    "SUMMARY_MONTH",
+                                    "Monthly Analysis",
+                                    "Aggregation of transactions grouped by month."
+                                )}
+                                {renderReportOption(
+                                    "SUMMARY_QUARTER",
+                                    "Quarterly Review",
+                                    "Financial overview for 3-month cycles (Q1-Q4)."
+                                )}
+                                {renderReportOption(
+                                    "SUMMARY_FY",
+                                    "Annual Fiscal Report",
+                                    "High-level performance for the entire financial year."
+                                )}
                             </div>
 
                             <div className={styles.footer}>

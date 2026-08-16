@@ -1,8 +1,24 @@
+.modalForm {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    max-height: calc(88vh - 4rem);
+}
+
+.formScrollBody {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-right: 2px;
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+}
+
 .formGroup {
     display: flex;
     flex-direction: column;
     gap: 0.45rem;
-    margin-bottom: 1.15rem;
 }
 
 .formGroup label {
@@ -12,42 +28,79 @@
     display: flex;
     align-items: center;
     gap: 0.4rem;
+    letter-spacing: 0.01em;
 }
 
 .input, .select, .textarea {
     width: 100%;
-    padding: 0.75rem 1rem;
+    padding: 0.75rem 0.95rem;
     background: var(--surface, #ffffff);
     border: 1px solid var(--border-thick, #d5d7df);
     border-radius: var(--radius-sm, 10px);
-    font-size: 0.95rem;
+    font-size: 1rem; /* 16px to prevent iOS safari auto zoom */
     color: var(--text-main, #14161c);
     transition: all 0.2s ease;
     font-family: inherit;
+    box-sizing: border-box;
 }
 
 .input::placeholder, .textarea::placeholder {
     color: var(--text-dim, #9fa3b2);
+    font-size: 0.925rem;
 }
 
 .input:focus, .select:focus, .textarea:focus {
     outline: none;
     border-color: var(--primary, #f05c38);
-    box-shadow: 0 0 0 3px rgba(var(--primary-rgb, 240, 92, 56), 0.15);
+    box-shadow: 0 0 0 3px rgba(var(--primary-rgb, 240, 92, 56), 0.16);
     background: var(--surface-header, #f4f5f7);
 }
 
 .textarea {
-    min-height: 80px;
+    min-height: 72px;
     resize: vertical;
+    line-height: 1.45;
+}
+
+.inputWithPrefix {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.currencyPrefix {
+    position: absolute;
+    left: 0.95rem;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-muted, #717688);
+    pointer-events: none;
+}
+
+.inputPrefixed {
+    padding-left: 2rem !important;
+}
+
+.selectWrapper {
+    position: relative;
+    width: 100%;
+}
+
+.select {
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23717688%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 0.65rem auto;
+    padding-right: 2.25rem;
 }
 
 /* Upload & Camera Area */
 .captureSection {
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
-    margin-bottom: 1.25rem;
+    gap: 0.5rem;
 }
 
 .buttonGrid {
@@ -57,40 +110,86 @@
 }
 
 .captureBtn {
-    display: inline-flex;
+    display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 0.5rem;
-    padding: 0.85rem 1rem;
-    border-radius: var(--radius-sm, 10px);
+    gap: 0.35rem;
+    padding: 1rem 0.75rem;
+    border-radius: var(--radius-md, 12px);
     border: 1.5px dashed var(--border-thick, #d5d7df);
     background: var(--surface-header, #f4f5f7);
     color: var(--text-main, #14161c);
-    font-size: 0.9rem;
-    font-weight: 700;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    text-align: center;
 }
 
 .captureBtn:hover {
     border-color: var(--primary, #f05c38);
-    color: var(--primary, #f05c38);
+    border-style: solid;
     background: rgba(var(--primary-rgb, 240, 92, 56), 0.08);
+    transform: translateY(-1px);
+}
+
+.captureBtn:active {
+    transform: scale(0.98);
+}
+
+.captureIconWrapper {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--surface, #ffffff);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary, #f05c38);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+    margin-bottom: 0.2rem;
+}
+
+.btnLabel {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--text-main, #14161c);
+}
+
+.btnSubtext {
+    font-size: 0.725rem;
+    color: var(--text-muted, #717688);
+    font-weight: 500;
+}
+
+/* Optimizing Indicator */
+.optimizingState {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.75rem 1rem;
+    gap: 0.65rem;
+    color: var(--text-muted, #717688);
+    font-size: 0.9rem;
+    font-weight: 600;
+    background: var(--surface-header, #f4f5f7);
+    border-radius: var(--radius-md, 12px);
+    border: 1px dashed var(--border-thick, #d5d7df);
 }
 
 /* Live Camera Viewfinder */
 .cameraViewfinder {
     position: relative;
     width: 100%;
-    height: 300px;
-    background: #000;
-    border-radius: var(--radius-sm, 10px);
+    height: 260px;
+    background: #090a0d;
+    border-radius: var(--radius-md, 14px);
     overflow: hidden;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    border: 1px solid var(--border-thick, #333);
+    border: 1px solid var(--border-thick, #2e3340);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
 }
 
 .videoElement {
@@ -101,46 +200,46 @@
 
 .cameraOverlayControls {
     position: absolute;
-    bottom: 16px;
+    bottom: 12px;
     left: 0;
     right: 0;
     display: flex;
     align-items: center;
     justify-content: space-around;
-    padding: 0 1rem;
+    padding: 0 1.25rem;
     z-index: 10;
 }
 
 .shutterButton {
-    width: 64px;
-    height: 64px;
+    width: 58px;
+    height: 58px;
     border-radius: 50%;
     background: #ffffff;
-    border: 4px solid rgba(255, 255, 255, 0.4);
+    border: 3px solid rgba(255, 255, 255, 0.5);
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
     transition: transform 0.15s ease;
 }
 
 .shutterButton:active {
-    transform: scale(0.92);
+    transform: scale(0.9);
 }
 
 .shutterInner {
-    width: 48px;
-    height: 48px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
     background: var(--primary, #f05c38);
 }
 
 .cameraUtilityBtn {
-    width: 44px;
-    height: 44px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
-    background: rgba(0, 0, 0, 0.6);
+    background: rgba(18, 20, 26, 0.75);
     color: #ffffff;
     border: 1px solid rgba(255, 255, 255, 0.2);
     display: flex;
@@ -148,114 +247,150 @@
     justify-content: center;
     cursor: pointer;
     backdrop-filter: blur(8px);
-    transition: background 0.2s ease;
+    transition: all 0.2s ease;
 }
 
 .cameraUtilityBtn:hover {
-    background: rgba(0, 0, 0, 0.85);
+    background: rgba(18, 20, 26, 0.95);
+    transform: scale(1.05);
 }
 
+/* Image Preview Container */
 .previewContainer {
     position: relative;
     width: 100%;
-    max-height: 240px;
-    border-radius: var(--radius-sm, 10px);
+    max-height: 210px;
+    border-radius: var(--radius-md, 12px);
     overflow: hidden;
     border: 1px solid var(--border-thick, #d5d7df);
-    background: #000;
+    background: #0f1117;
     display: flex;
     align-items: center;
     justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .previewImage {
     max-width: 100%;
-    max-height: 240px;
+    max-height: 210px;
     object-fit: contain;
+    display: block;
 }
 
-.removeImageBtn {
+.previewActionsOverlay {
     position: absolute;
     top: 8px;
     right: 8px;
-    background: rgba(0, 0, 0, 0.75);
-    color: #fff;
-    border: none;
-    border-radius: 50%;
-    width: 32px;
-    height: 32px;
+    display: flex;
+    gap: 6px;
+    z-index: 5;
+}
+
+.previewActionBtn {
+    background: rgba(15, 17, 23, 0.82);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 20px;
+    padding: 5px 10px;
+    font-size: 0.75rem;
+    font-weight: 600;
     display: flex;
     align-items: center;
-    justify-content: center;
+    gap: 5px;
     cursor: pointer;
-    transition: background 0.2s;
+    backdrop-filter: blur(6px);
+    transition: all 0.2s ease;
 }
 
-.removeImageBtn:hover {
+.previewActionBtn:hover {
+    background: rgba(15, 17, 23, 0.98);
+    border-color: rgba(255, 255, 255, 0.35);
+}
+
+.deleteActionBtn:hover {
     background: #ef4444;
+    border-color: #ef4444;
 }
 
+/* Responsive Amount & Date Inputs */
 .rowInputs {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.75rem;
 }
 
+@media (max-width: 360px) {
+    .rowInputs {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Status Selector */
 .statusSelector {
-    display: flex;
-    gap: 0.5rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.6rem;
 }
 
 .statusPill {
-    flex: 1;
-    padding: 0.75rem;
+    padding: 0.75rem 0.5rem;
     text-align: center;
     border-radius: var(--radius-sm, 10px);
     font-size: 0.875rem;
     font-weight: 700;
-    border: 1px solid var(--border-thick, #d5d7df);
+    border: 1.5px solid var(--border-thick, #d5d7df);
     background: var(--surface-header, #f4f5f7);
     color: var(--text-muted, #595d6b);
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    gap: 0.45rem;
+    min-height: 44px; /* Accessible touch target */
 }
 
 .statusPill:hover {
     color: var(--text-main, #14161c);
-    border-color: var(--primary, #f05c38);
+    border-color: var(--border, #bbb);
 }
 
 .statusPillPendingActive {
-    background: rgba(245, 166, 35, 0.18) !important;
+    background: rgba(245, 166, 35, 0.16) !important;
     border-color: #f5a623 !important;
-    color: #d97706 !important;
+    color: #b45309 !important;
     box-shadow: 0 0 0 1px #f5a623 inset;
 }
 
 .statusPillSettledActive {
-    background: rgba(23, 184, 119, 0.18) !important;
+    background: rgba(23, 184, 119, 0.16) !important;
     border-color: #17b877 !important;
-    color: #059669 !important;
+    color: #047857 !important;
     box-shadow: 0 0 0 1px #17b877 inset;
 }
 
-.actions {
+/* Pinned Modal Footer Actions */
+.modalFooterActions {
+    position: sticky;
+    bottom: 0;
+    background: var(--surface, #ffffff);
+    border-top: 1px solid var(--border, #e8e9ec);
+    padding: 0.9rem 0 calc(0.2rem + env(safe-area-inset-bottom, 0px)) 0;
+    margin-top: 0.75rem;
     display: flex;
     gap: 0.75rem;
-    margin-top: 1.5rem;
+    z-index: 20;
 }
 
 .cancelBtn {
     flex: 1;
-    padding: 0.85rem;
+    min-height: 46px;
+    padding: 0.75rem 1rem;
     border-radius: var(--radius-sm, 10px);
-    border: 1px solid var(--border, #e8e9ec);
+    border: 1px solid var(--border-thick, #d5d7df);
     background: var(--surface-header, #f4f5f7);
     color: var(--text-muted, #595d6b);
-    font-size: 0.9rem;
+    font-size: 0.925rem;
     font-weight: 700;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -264,19 +399,21 @@
     justify-content: center;
 }
 
-.cancelBtn:hover {
+.cancelBtn:hover:not(:disabled) {
     background: var(--surface, #ffffff);
     color: var(--text-main, #14161c);
+    border-color: var(--text-muted, #999);
 }
 
 .submitBtn {
-    flex: 2;
-    padding: 0.85rem;
+    flex: 1.7;
+    min-height: 46px;
+    padding: 0.75rem 1rem;
     border-radius: var(--radius-sm, 10px);
     border: none;
     background: var(--primary, #f05c38);
     color: #ffffff !important;
-    font-size: 0.9rem;
+    font-size: 0.925rem;
     font-weight: 700;
     cursor: pointer;
     display: inline-flex;
@@ -284,7 +421,7 @@
     justify-content: center;
     gap: 0.5rem;
     box-shadow: 0 4px 14px rgba(var(--primary-rgb, 240, 92, 56), 0.3);
-    transition: all 0.2s ease;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .submitBtn:hover:not(:disabled) {
@@ -293,54 +430,85 @@
     background: var(--primary-hover, #d64522);
 }
 
+.submitBtn:active:not(:disabled) {
+    transform: scale(0.98);
+}
+
 .submitBtn:disabled {
-    opacity: 0.6;
+    opacity: 0.55;
     cursor: not-allowed;
 }
 
-/* Explicit Dark Mode Direct Overrides */
+/* Dark Theme Explicit Styling */
 :global([data-theme='dark']) .input,
 :global([data-theme='dark']) .select,
 :global([data-theme='dark']) .textarea {
-    background-color: #15181E !important;
-    border-color: #2e3340 !important;
-    color: #F4F5F7 !important;
+    background-color: #14171d !important;
+    border-color: #2b303c !important;
+    color: #f1f3f7 !important;
 }
 
 :global([data-theme='dark']) .input::placeholder,
 :global([data-theme='dark']) .textarea::placeholder {
-    color: #555969 !important;
+    color: #5d6374 !important;
 }
 
 :global([data-theme='dark']) .input:focus,
 :global([data-theme='dark']) .select:focus,
 :global([data-theme='dark']) .textarea:focus {
-    background-color: #12141A !important;
-    border-color: #FF704F !important;
-    box-shadow: 0 0 0 3px rgba(255, 112, 79, 0.2) !important;
+    background-color: #111319 !important;
+    border-color: #ff6e4a !important;
+    box-shadow: 0 0 0 3px rgba(255, 110, 74, 0.22) !important;
+}
+
+:global([data-theme='dark']) .currencyPrefix {
+    color: #798096 !important;
 }
 
 :global([data-theme='dark']) .captureBtn {
-    background-color: #15181E !important;
-    border-color: #2e3340 !important;
-    color: #F4F5F7 !important;
+    background-color: #161921 !important;
+    border-color: #2b303c !important;
+    color: #f1f3f7 !important;
 }
 
 :global([data-theme='dark']) .captureBtn:hover {
-    background-color: #1c202a !important;
-    border-color: #FF704F !important;
-    color: #FF704F !important;
+    background-color: #1e222d !important;
+    border-color: #ff6e4a !important;
+}
+
+:global([data-theme='dark']) .captureIconWrapper {
+    background-color: #212530 !important;
+    color: #ff6e4a !important;
+}
+
+:global([data-theme='dark']) .btnLabel {
+    color: #f1f3f7 !important;
+}
+
+:global([data-theme='dark']) .btnSubtext {
+    color: #8c92a4 !important;
+}
+
+:global([data-theme='dark']) .optimizingState {
+    background-color: #161921 !important;
+    border-color: #2b303c !important;
+    color: #8c92a4 !important;
+}
+
+:global([data-theme='dark']) .previewContainer {
+    border-color: #2b303c !important;
+    background-color: #0b0c10 !important;
 }
 
 :global([data-theme='dark']) .statusPill {
-    background-color: #15181E !important;
-    border-color: #2e3340 !important;
-    color: #8E92A3 !important;
+    background-color: #161921 !important;
+    border-color: #2b303c !important;
+    color: #8c92a4 !important;
 }
 
 :global([data-theme='dark']) .statusPill:hover {
-    background-color: #1c202a !important;
-    color: #F4F5F7 !important;
+    background-color: #1e222d !important;
+    color: #f1f3f7 !important;
 }
 
 :global([data-theme='dark']) .statusPillPendingActive {
@@ -353,26 +521,31 @@
 :global([data-theme='dark']) .statusPillSettledActive {
     background-color: rgba(23, 184, 119, 0.22) !important;
     border-color: #17b877 !important;
-    color: #2ee69c !important;
+    color: #34d399 !important;
     box-shadow: 0 0 0 1px #17b877 inset !important;
 }
 
-:global([data-theme='dark']) .cancelBtn {
-    background-color: #15181E !important;
-    border-color: #2e3340 !important;
-    color: #8E92A3 !important;
+:global([data-theme='dark']) .modalFooterActions {
+    background: var(--surface, #181b22) !important;
+    border-color: #2b303c !important;
 }
 
-:global([data-theme='dark']) .cancelBtn:hover {
-    background-color: #1c202a !important;
-    color: #F4F5F7 !important;
+:global([data-theme='dark']) .cancelBtn {
+    background-color: #161921 !important;
+    border-color: #2b303c !important;
+    color: #8c92a4 !important;
+}
+
+:global([data-theme='dark']) .cancelBtn:hover:not(:disabled) {
+    background-color: #1e222d !important;
+    color: #f1f3f7 !important;
 }
 
 :global([data-theme='dark']) .submitBtn {
-    background-color: #FF704F !important;
-    color: #FFFFFF !important;
+    background-color: #ff6e4a !important;
+    color: #ffffff !important;
 }
 
 :global([data-theme='dark']) .submitBtn:hover:not(:disabled) {
-    background-color: #E35230 !important;
+    background-color: #e65532 !important;
 }

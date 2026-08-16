@@ -37,15 +37,15 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
                 <div className="overlay" onClick={onClose}>
                     <motion.div
                         className="modal"
-                        initial={{ y: '100%', opacity: 0 }}
+                        initial={{ y: '20px', opacity: 0 }}
                         animate={{ y: 0, opacity: 1 }}
-                        exit={{ y: '100%', opacity: 0 }}
-                        transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+                        exit={{ y: '20px', opacity: 0 }}
+                        transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
                         onClick={(e) => e.stopPropagation()}
                     >
                         <div className="modal-header">
                             <h2>{title}</h2>
-                            <button className="close-btn" onClick={onClose}>
+                            <button className="close-btn" onClick={onClose} aria-label="Close modal">
                                 <X size={24} />
                             </button>
                         </div>

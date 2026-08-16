@@ -1,5 +1,3 @@
-import Papa from 'papaparse';
-import * as XLSX from 'xlsx';
 import { db, generateId, now, Customer, Transaction } from '../db';
 
 // Helper to validate and clean keys to prevent prototype pollution
@@ -101,6 +99,7 @@ export async function importFromJSON(file: File, bookId: string) {
 }
 
 export async function importFromExcel(file: File, bookId: string) {
+    const XLSX = await import('xlsx');
     const data = await file.arrayBuffer();
     const workbook = XLSX.read(data);
 
@@ -190,6 +189,7 @@ export async function importFromExcel(file: File, bookId: string) {
 }
 
 export async function importFromCSV(file: File, bookId: string) {
+    const Papa = (await import('papaparse')).default;
     return new Promise((resolve, reject) => {
         Papa.parse(file, {
             header: true,

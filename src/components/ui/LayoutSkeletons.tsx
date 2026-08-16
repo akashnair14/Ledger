@@ -8,33 +8,76 @@ import insightsStyles from '@/components/dashboard/InsightsView.module.css';
 
 export const DashboardSkeleton = () => {
     return (
-        <>
-            <div className={dashboardStyles.totalSummary}>
-                <div className={dashboardStyles.summaryInfo}>
-                    <Skeleton width="100px" height="14px" style={{ marginBottom: '8px' }} />
-                    <Skeleton width="150px" height="32px" />
+        <div className={dashboardStyles.container}>
+            {/* Header Skeleton */}
+            <header className={dashboardStyles.header}>
+                <div className={dashboardStyles.topBar}>
+                    <div className={dashboardStyles.titleArea}>
+                        <Skeleton width="180px" height="32px" style={{ marginBottom: '6px' }} />
+                        <Skeleton width="280px" height="14px" />
+                    </div>
+                    <div className={dashboardStyles.headerActions}>
+                        <Skeleton width="36px" height="36px" type="rect" style={{ borderRadius: 'var(--radius-sm)' }} />
+                        <Skeleton width="36px" height="36px" type="rect" style={{ borderRadius: 'var(--radius-sm)' }} />
+                        <Skeleton width="130px" height="36px" type="rect" style={{ borderRadius: 'var(--radius-sm)' }} />
+                    </div>
                 </div>
-            </div>
-            <div className={dashboardStyles.searchBar}>
-                <Skeleton width="100%" height="48px" type="rect" />
-            </div>
+                <div className={dashboardStyles.tabs} style={{ display: 'flex', gap: '8px' }}>
+                    <Skeleton width="120px" height="36px" type="rect" style={{ borderRadius: '20px' }} />
+                    <Skeleton width="120px" height="36px" type="rect" style={{ borderRadius: '20px' }} />
+                    <Skeleton width="90px" height="36px" type="rect" style={{ borderRadius: '20px' }} />
+                </div>
+            </header>
+
+            {/* 6 KPI Cards Grid Skeleton */}
+            <section className={dashboardStyles.statsGrid}>
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                    <div key={i} className={dashboardStyles.statCard}>
+                        <div className={dashboardStyles.cardHeader}>
+                            <Skeleton width="90px" height="12px" />
+                            <Skeleton width="28px" height="28px" type="rect" style={{ borderRadius: '6px' }} />
+                        </div>
+                        <Skeleton width="110px" height="28px" style={{ margin: '4px 0' }} />
+                        <Skeleton width="80px" height="10px" />
+                    </div>
+                ))}
+            </section>
+
+            {/* Toolbar Skeleton */}
+            <section className={dashboardStyles.toolbar} style={{ display: 'flex', gap: '12px' }}>
+                <Skeleton width="100%" height="42px" type="rect" style={{ borderRadius: 'var(--radius-sm)', flex: 1 }} />
+                <Skeleton width="140px" height="42px" type="rect" style={{ borderRadius: 'var(--radius-sm)' }} />
+                <Skeleton width="90px" height="42px" type="rect" style={{ borderRadius: 'var(--radius-sm)' }} />
+            </section>
+
+            {/* Quick Chips Skeleton */}
+            <section className={dashboardStyles.chipsContainer} style={{ display: 'flex', gap: '8px' }}>
+                {[60, 70, 50, 75, 110].map((w, i) => (
+                    <Skeleton key={i} width={`${w}px`} height="28px" type="rect" style={{ borderRadius: '20px' }} />
+                ))}
+            </section>
+
+            {/* Customer List Cards Skeleton */}
             <div className={dashboardStyles.list}>
-                {[1, 2, 3, 4, 5].map((i) => (
-                    <div key={i} className={dashboardStyles.cardContainer} style={{ padding: '4px 0' }}>
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                    <div key={i} className={dashboardStyles.cardContainer}>
                         <div className={dashboardStyles.customerCard} style={{ pointerEvents: 'none' }}>
-                            <div className={dashboardStyles.info}>
-                                <Skeleton width="140px" height="18px" style={{ marginBottom: '8px' }} />
-                                <Skeleton width="100px" height="14px" />
+                            <div className={dashboardStyles.cardTop} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                <Skeleton width="40px" height="40px" type="circle" />
+                                <div style={{ flex: 1 }}>
+                                    <Skeleton width="140px" height="16px" style={{ marginBottom: '6px' }} />
+                                    <Skeleton width="100px" height="12px" />
+                                </div>
                             </div>
-                            <div className={dashboardStyles.balanceContainer}>
-                                <Skeleton width="80px" height="24px" type="rect" />
-                                <Skeleton width="18px" height="18px" type="circle" style={{ marginLeft: '8px' }} />
+                            <div className={dashboardStyles.cardMid} style={{ display: 'flex', justifyContent: 'space-between', marginTop: '12px' }}>
+                                <Skeleton width="100px" height="22px" />
+                                <Skeleton width="60px" height="20px" type="rect" style={{ borderRadius: '12px' }} />
                             </div>
                         </div>
                     </div>
                 ))}
             </div>
-        </>
+        </div>
     );
 };
 

@@ -6,21 +6,26 @@ import { Users, ReceiptText, Settings, BarChart3, Camera } from 'lucide-react';
 import styles from './BottomNav.module.css';
 import { VoiceCommandButton } from '../features/VoiceCommandButton';
 
-export const BottomNav = () => {
-    const pathname = usePathname();
+import React, { memo } from 'react';
 
-    const navItems = [
-        { label: 'Customers', href: '/dashboard', icon: Users },
-        { label: 'Transactions', href: '/transactions', icon: ReceiptText },
-        { label: 'Kacha Bills', href: '/kacha-bills', icon: Camera },
-        { label: 'Settings', href: '/settings', icon: Settings },
-    ];
+const NAV_ITEMS_LEFT = [
+    { label: 'Customers', href: '/dashboard', icon: Users },
+    { label: 'Transactions', href: '/transactions', icon: ReceiptText },
+];
+
+const NAV_ITEMS_RIGHT = [
+    { label: 'Kacha Bills', href: '/kacha-bills', icon: Camera },
+    { label: 'Settings', href: '/settings', icon: Settings },
+];
+
+export const BottomNav = memo(function BottomNav() {
+    const pathname = usePathname();
 
     if (pathname === '/' || pathname === '/login' || pathname?.startsWith('/docs')) return null;
 
     return (
         <nav className={styles.bottomNav}>
-            {navItems.slice(0, 2).map((item) => {
+            {NAV_ITEMS_LEFT.map((item) => {
                 const Icon = item.icon;
                 const isActive = pathname === item.href;
                 return (
@@ -41,7 +46,7 @@ export const BottomNav = () => {
                 <VoiceCommandButton />
             </div>
 
-            {navItems.slice(2).map((item) => {
+            {NAV_ITEMS_RIGHT.map((item) => {
                 const Icon = item.icon;
                 const isActive = pathname === item.href;
                 return (
@@ -59,4 +64,4 @@ export const BottomNav = () => {
             })}
         </nav>
     );
-};
+});

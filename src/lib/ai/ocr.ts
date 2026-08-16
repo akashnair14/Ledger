@@ -1,5 +1,3 @@
-import Tesseract from 'tesseract.js';
-
 export type ReceiptData = {
     amount?: number;
     date?: string; // ISO String
@@ -9,6 +7,7 @@ export type ReceiptData = {
 
 export async function scanReceipt(file: File): Promise<ReceiptData> {
     try {
+        const Tesseract = (await import('tesseract.js')).default;
         const { data: { text } } = await Tesseract.recognize(
             file,
             'eng',

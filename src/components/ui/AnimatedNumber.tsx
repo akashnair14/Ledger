@@ -8,14 +8,17 @@ interface AnimatedNumberProps {
 }
 
 export function AnimatedNumber({ value }: AnimatedNumberProps) {
-    const count = useMotionValue(0);
+    const prevValueRef = useRef(value);
+    const count = useMotionValue(value);
     const rounded = useTransform(count, (latest) => Math.round(latest).toLocaleString('en-IN'));
-    const ref = useRef<HTMLSpanElement>(null);
 
     useEffect(() => {
-        const controls = animate(count, value, { duration: 0.8, ease: 'easeOut' });
-        return controls.stop;
+        if (prevValueRef.current !== value) {
+            const controls = animate(count, value, { duration: 0.4, ease: 'easeOut' });
+            prevValueRef.current = value;
+            return controls.stop;
+        }
     }, [value, count]);
 
-    return <motion.span ref={ref}>{rounded}</motion.span>;
+    return <motion.span>{rounded}</motion.span>;
 }

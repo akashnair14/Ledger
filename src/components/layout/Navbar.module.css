@@ -349,3 +349,25 @@
         padding-left: 0.75rem;
     }
 }
+
+@media (max-width: 480px) {
+    .container {
+        padding: 0 0.85rem;
+    }
+
+    .leftSection {
+        gap: 0.75rem;
+    }
+
+    .switcherBtn {
+        padding: 5px 8px;
+        font-size: 0.75rem;
+        max-width: 130px;
+    }
+
+    .switcherBtn span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}

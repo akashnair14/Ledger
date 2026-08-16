@@ -263,7 +263,9 @@
 
 .chartContainer {
     width: 100%;
+    height: 260px;
     min-height: 260px;
+    position: relative;
 }
 
 /* Stats metrics underneath Balance Trend */
@@ -535,15 +537,51 @@
         align-items: flex-start;
         gap: 0.75rem;
     }
+
+    .headerActions {
+        width: 100%;
+        justify-content: space-between;
+    }
     
     .filterBar {
         flex-direction: column;
         align-items: stretch;
         gap: 0.75rem;
     }
+
+    .pillContainer {
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 2px;
+        scrollbar-width: none;
+    }
+
+    .pillContainer::-webkit-scrollbar {
+        display: none;
+    }
+
+    .pill {
+        flex-shrink: 0;
+    }
     
     .statsGrid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.65rem;
+    }
+
+    .statCard {
+        padding: 0.85rem;
+        gap: 4px;
+    }
+
+    .statVal {
+        font-size: 1.15rem;
+    }
+
+    .chartStatsRow {
+        gap: 0.75rem;
+        justify-content: space-between;
     }
     
     .insightsGrid {
@@ -552,5 +590,15 @@
     
     .actionsGrid {
         grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .titleArea h1 {
+        font-size: 1.5rem;
+    }
+
+    .headerMeta {
+        font-size: 0.7rem;
     }
 }

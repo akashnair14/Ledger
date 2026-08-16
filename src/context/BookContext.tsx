@@ -17,6 +17,29 @@ export function BookProvider({ children }: { children: React.ReactNode }) {
     const { books, isLoading } = useBooks();
     const [activeBook, setActiveBookState] = useState<Book | null>(null);
 
+    // Eagerly resolve active book from local Dexie / localStorage on first frame
+    useEffect(() => {
+        const loadInitialBook = async () => {
+            try {
+                const savedBookId = typeof window !== 'undefined' ? localStorage.getItem('activeBookId') : null;
+                if (savedBookId) {
+                    const local = await db.books.get(savedBookId);
+                    if (local && local.isDeleted === 0) {
+                        setActiveBookState(prev => prev || local);
+                        return;
+                    }
+                }
+                const firstLocal = await db.books.where('isDeleted').equals(0).first();
+                if (firstLocal) {
+                    setActiveBookState(prev => prev || firstLocal);
+                }
+            } catch {
+                // Ignore initial read error
+            }
+        };
+        loadInitialBook();
+    }, []);
+
     useEffect(() => {
         const syncLocalBooks = async () => {
             if (isLoading) return;
@@ -49,16 +72,12 @@ export function BookProvider({ children }: { children: React.ReactNode }) {
         syncLocalBooks();
     }, [isLoading, books]);
 
-    const initialized = React.useRef(false);
-
     useEffect(() => {
-        if (!isLoading && books.length > 0 && !initialized.current) {
+        if (!isLoading && books.length > 0) {
             const savedBookId = localStorage.getItem('activeBookId');
             const book = books.find((b: Book) => b.id === savedBookId) || books[0];
-
             // eslint-disable-next-line react-hooks/set-state-in-effect
             setActiveBookState(book);
-            initialized.current = true;
         }
     }, [isLoading, books]);
 
