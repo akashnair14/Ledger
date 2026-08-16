@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
-import { Camera, Upload, X, Loader2, Calendar, DollarSign, User, FileText, CheckCircle2 } from 'lucide-react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { Camera, Upload, X, Loader2, Calendar, DollarSign, User, FileText, CheckCircle2, RotateCw } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import { Customer, KachaBill, KachaBillStatus } from '@/lib/db';
 import { addKachaBill, updateKachaBill, useCustomers } from '@/hooks/useSupabase';
@@ -44,7 +44,126 @@ export const CaptureBillModal: React.FC<CaptureBillModalProps> = ({
     const [isSaving, setIsSaving] = useState(false);
     const [isCompressing, setIsCompressing] = useState(false);
 
-    const fileInputRef = useRef<HTMLInputElement>(null);
+    // Live In-App Camera Viewfinder State
+    const [isCameraActive, setIsCameraActive] = useState(false);
+    const [cameraFacingMode, setCameraFacingMode] = useState<'environment' | 'user'>('environment');
+    const videoRef = useRef<HTMLVideoElement | null>(null);
+    const streamRef = useRef<MediaStream | null>(null);
+
+    const galleryInputRef = useRef<HTMLInputElement>(null);
+    const nativeCameraInputRef = useRef<HTMLInputElement>(null);
+
+    // Stop active camera stream
+    const stopCameraStream = useCallback(() => {
+        if (streamRef.current) {
+            streamRef.current.getTracks().forEach((track) => track.stop());
+            streamRef.current = null;
+        }
+        setIsCameraActive(false);
+    }, []);
+
+    // Stop stream on modal close or unmount
+    useEffect(() => {
+        if (!isOpen) {
+            stopCameraStream();
+        }
+        return () => {
+            stopCameraStream();
+        };
+    }, [isOpen, stopCameraStream]);
+
+    // Start Live Camera
+    const startCamera = async (facing: 'environment' | 'user' = 'environment') => {
+        try {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                // Fallback to native system camera input if getUserMedia not supported
+                nativeCameraInputRef.current?.click();
+                return;
+            }
+
+            stopCameraStream();
+            setIsCameraActive(true);
+
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: {
+                    facingMode: facing,
+                    width: { ideal: 1920 },
+                    height: { ideal: 1080 }
+                },
+                audio: false
+            });
+
+            streamRef.current = stream;
+            if (videoRef.current) {
+                videoRef.current.srcObject = stream;
+                videoRef.current.play();
+            }
+        } catch (err: any) {
+            console.warn('In-app camera failed, falling back to native file input:', err);
+            stopCameraStream();
+            nativeCameraInputRef.current?.click();
+        }
+    };
+
+    // Attach stream when video element renders
+    useEffect(() => {
+        if (isCameraActive && videoRef.current && streamRef.current) {
+            videoRef.current.srcObject = streamRef.current;
+            videoRef.current.play().catch(() => {});
+        }
+    }, [isCameraActive]);
+
+    // Snap photo from live video feed
+    const handleSnapPhoto = async () => {
+        if (!videoRef.current) return;
+        const video = videoRef.current;
+
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth || 1280;
+        canvas.height = video.videoHeight || 720;
+
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        stopCameraStream();
+
+        canvas.toBlob(
+            async (blob) => {
+                if (!blob) return;
+                const rawFile = new File([blob], `kacha_bill_${Date.now()}.jpg`, {
+                    type: 'image/jpeg',
+                    lastModified: Date.now()
+                });
+
+                try {
+                    setIsCompressing(true);
+                    const optimized = await compressImage(rawFile, 1600, 1600, 0.82);
+                    setImageFile(optimized);
+
+                    if (previewUrl && previewUrl.startsWith('blob:')) {
+                        URL.revokeObjectURL(previewUrl);
+                    }
+                    const url = URL.createObjectURL(optimized);
+                    setPreviewUrl(url);
+                } catch {
+                    setImageFile(rawFile);
+                    const url = URL.createObjectURL(rawFile);
+                    setPreviewUrl(url);
+                } finally {
+                    setIsCompressing(false);
+                }
+            },
+            'image/jpeg',
+            0.9
+        );
+    };
+
+    const handleFlipCamera = () => {
+        const nextFacing = cameraFacingMode === 'environment' ? 'user' : 'environment';
+        setCameraFacingMode(nextFacing);
+        startCamera(nextFacing);
+    };
 
     // Filter customers by current book
     const filteredCustomers = customers?.filter(
@@ -86,7 +205,8 @@ export const CaptureBillModal: React.FC<CaptureBillModalProps> = ({
         }
         setImageFile(null);
         setPreviewUrl(null);
-        if (fileInputRef.current) fileInputRef.current.value = '';
+        if (galleryInputRef.current) galleryInputRef.current.value = '';
+        if (nativeCameraInputRef.current) nativeCameraInputRef.current.value = '';
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -145,21 +265,71 @@ export const CaptureBillModal: React.FC<CaptureBillModalProps> = ({
     return (
         <Modal
             isOpen={isOpen}
-            onClose={onClose}
+            onClose={() => {
+                stopCameraStream();
+                onClose();
+            }}
             title={editingBill ? 'Edit Kacha Bill' : 'Capture Kacha Bill'}
         >
             <form onSubmit={handleSubmit}>
-                {/* Image Capture Section */}
-                <div className={styles.captureSection}>
-                    <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept="image/*"
-                        style={{ display: 'none' }}
-                        onChange={handleFileSelect}
-                    />
+                {/* Hidden Input Fallbacks */}
+                <input
+                    ref={nativeCameraInputRef}
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    style={{ display: 'none' }}
+                    onChange={handleFileSelect}
+                />
+                <input
+                    ref={galleryInputRef}
+                    type="file"
+                    accept="image/*"
+                    style={{ display: 'none' }}
+                    onChange={handleFileSelect}
+                />
 
-                    {isCompressing ? (
+                {/* Live Camera Viewfinder or Preview or Action Buttons */}
+                <div className={styles.captureSection}>
+                    {isCameraActive ? (
+                        <div className={styles.cameraViewfinder}>
+                            <video
+                                ref={videoRef}
+                                autoPlay
+                                playsInline
+                                muted
+                                className={styles.videoElement}
+                            />
+                            <div className={styles.cameraOverlayControls}>
+                                <button
+                                    type="button"
+                                    className={styles.cameraUtilityBtn}
+                                    onClick={stopCameraStream}
+                                    title="Close Camera"
+                                >
+                                    <X size={20} />
+                                </button>
+
+                                <button
+                                    type="button"
+                                    className={styles.shutterButton}
+                                    onClick={handleSnapPhoto}
+                                    title="Snap Photo"
+                                >
+                                    <div className={styles.shutterInner} />
+                                </button>
+
+                                <button
+                                    type="button"
+                                    className={styles.cameraUtilityBtn}
+                                    onClick={handleFlipCamera}
+                                    title="Flip Camera"
+                                >
+                                    <RotateCw size={20} />
+                                </button>
+                            </div>
+                        </div>
+                    ) : isCompressing ? (
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem', gap: '0.5rem', color: 'var(--text-muted)' }}>
                             <Loader2 size={20} className="spin" />
                             <span style={{ fontSize: '0.9rem' }}>Optimizing bill photo...</span>
@@ -181,18 +351,18 @@ export const CaptureBillModal: React.FC<CaptureBillModalProps> = ({
                             <button
                                 type="button"
                                 className={styles.captureBtn}
-                                onClick={() => fileInputRef.current?.click()}
+                                onClick={() => startCamera('environment')}
                             >
                                 <Camera size={20} />
-                                <span>Take / Select Photo</span>
+                                <span>Take Photo</span>
                             </button>
                             <button
                                 type="button"
                                 className={styles.captureBtn}
-                                onClick={() => fileInputRef.current?.click()}
+                                onClick={() => galleryInputRef.current?.click()}
                             >
                                 <Upload size={20} />
-                                <span>Upload File</span>
+                                <span>Upload from Gallery</span>
                             </button>
                         </div>
                     )}
@@ -287,10 +457,18 @@ export const CaptureBillModal: React.FC<CaptureBillModalProps> = ({
 
                 {/* Actions */}
                 <div className={styles.actions}>
-                    <button type="button" className={styles.cancelBtn} onClick={onClose} disabled={isSaving}>
+                    <button
+                        type="button"
+                        className={styles.cancelBtn}
+                        onClick={() => {
+                            stopCameraStream();
+                            onClose();
+                        }}
+                        disabled={isSaving}
+                    >
                         Cancel
                     </button>
-                    <button type="submit" className={styles.submitBtn} disabled={isSaving}>
+                    <button type="submit" className={styles.submitBtn} disabled={isSaving || isCameraActive}>
                         {isSaving ? (
                             <>
                                 <Loader2 size={18} className="spin" />
