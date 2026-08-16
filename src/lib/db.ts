@@ -63,9 +63,27 @@ export interface SyncMetadata {
     value: unknown;
 }
 
+export type KachaBillStatus = 'PENDING' | 'SETTLED' | 'CONVERTED';
+
+export interface KachaBill {
+    id: string;
+    bookId: string;
+    customerId?: string;
+    title?: string;
+    note?: string;
+    amount?: number;
+    billDate: number;
+    imageUrl: string;
+    status: KachaBillStatus;
+    convertedTxnId?: string;
+    createdAt: number;
+    updatedAt: number;
+    isDeleted: number;
+}
+
 export interface SyncItem {
     id: string;
-    action: 'ADD_CUSTOMER' | 'UPDATE_CUSTOMER' | 'DELETE_CUSTOMER' | 'ADD_TRANSACTION' | 'UPDATE_TRANSACTION' | 'DELETE_TRANSACTION' | 'ADD_BOOK' | 'UPDATE_BOOK' | 'DELETE_BOOK';
+    action: 'ADD_CUSTOMER' | 'UPDATE_CUSTOMER' | 'DELETE_CUSTOMER' | 'ADD_TRANSACTION' | 'UPDATE_TRANSACTION' | 'DELETE_TRANSACTION' | 'ADD_BOOK' | 'UPDATE_BOOK' | 'DELETE_BOOK' | 'ADD_KACHA_BILL' | 'UPDATE_KACHA_BILL' | 'DELETE_KACHA_BILL';
     payload: any;
     createdAt: number;
 }
@@ -75,6 +93,7 @@ export class LedgerDatabase extends Dexie {
     transactions!: Table<Transaction>;
     books!: Table<Book>;
     attachments!: Table<Attachment>;
+    kachaBills!: Table<KachaBill>;
     syncMetadata!: Table<SyncMetadata>;
     settings!: Table<{ key: string, value: unknown }>;
     syncQueue!: Table<SyncItem>;
@@ -157,6 +176,17 @@ export class LedgerDatabase extends Dexie {
             attachments: 'id, txnId, updatedAt',
             customers: 'id, name, phone, bookId, type, updatedAt, isDeleted',
             transactions: 'id, customerId, bookId, type, date, paymentMode, invoiceNumber, customPaymentMode, updatedAt, isDeleted, *tags',
+            syncMetadata: 'key',
+            settings: 'key',
+            syncQueue: 'id, action, createdAt'
+        });
+
+        this.version(8).stores({
+            books: 'id, name, updatedAt, isDeleted',
+            attachments: 'id, txnId, updatedAt',
+            customers: 'id, name, phone, bookId, type, updatedAt, isDeleted',
+            transactions: 'id, customerId, bookId, type, date, paymentMode, invoiceNumber, customPaymentMode, updatedAt, isDeleted, *tags',
+            kachaBills: 'id, bookId, customerId, status, billDate, updatedAt, isDeleted',
             syncMetadata: 'key',
             settings: 'key',
             syncQueue: 'id, action, createdAt'

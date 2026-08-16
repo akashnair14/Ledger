@@ -1,0 +1,381 @@
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1.5rem;
+    padding-bottom: 5rem;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.titleSection h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 0.25rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.subtitle {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.captureBtn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    border-radius: 12px;
+    background: var(--primary, #f05c38);
+    color: #ffffff;
+    border: none;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(240, 92, 56, 0.3);
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.captureBtn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(240, 92, 56, 0.4);
+}
+
+/* Stats Overview */
+.statsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.statCard {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color, #e5e7eb);
+    border-radius: 16px;
+    padding: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+}
+
+.statIcon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.statIconAll {
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+}
+
+.statIconPending {
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+}
+
+.statIconConverted {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+}
+
+.statInfo {
+    display: flex;
+    flex-direction: column;
+}
+
+.statLabel {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.statValue {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+/* Controls & Filters Bar */
+.controlsBar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.searchBox {
+    position: relative;
+    flex: 1;
+    min-width: 260px;
+}
+
+.searchIcon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-secondary);
+}
+
+.searchInput {
+    width: 100%;
+    padding: 0.65rem 1rem 0.65rem 2.5rem;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color, #e5e7eb);
+    border-radius: 12px;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.searchInput:focus {
+    border-color: var(--primary, #f05c38);
+}
+
+.filterTabs {
+    display: flex;
+    background: var(--bg-surface-2, #f3f4f6);
+    padding: 4px;
+    border-radius: 12px;
+    gap: 4px;
+}
+
+.tabBtn {
+    padding: 0.45rem 0.85rem;
+    border-radius: 8px;
+    border: none;
+    background: transparent;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.tabBtnActive {
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Bills Grid */
+.billsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.25rem;
+}
+
+.billCard {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color, #e5e7eb);
+    border-radius: 16px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.billCard:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+    border-color: var(--border-color-hover, #d1d5db);
+}
+
+.thumbnailContainer {
+    position: relative;
+    width: 100%;
+    height: 180px;
+    background: #111;
+    overflow: hidden;
+}
+
+.thumbnail {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.billCard:hover .thumbnail {
+    transform: scale(1.03);
+}
+
+.statusBadge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    padding: 0.3rem 0.6rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    backdrop-filter: blur(8px);
+}
+
+.badgePending {
+    background: rgba(245, 158, 11, 0.9);
+    color: #fff;
+}
+
+.badgeSettled {
+    background: rgba(16, 185, 129, 0.9);
+    color: #fff;
+}
+
+.badgeConverted {
+    background: rgba(59, 130, 246, 0.9);
+    color: #fff;
+}
+
+.cardBody {
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    gap: 0.5rem;
+}
+
+.amountRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.amount {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.billDate {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.partyTag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--primary, #f05c38);
+    background: rgba(240, 92, 56, 0.08);
+    padding: 0.2rem 0.5rem;
+    border-radius: 6px;
+    align-self: flex-start;
+}
+
+.cardNote {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.cardFooter {
+    padding: 0.75rem 1rem;
+    border-top: 1px solid var(--border-color, #e5e7eb);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--bg-surface-2, #f9fafb);
+}
+
+.cardActionLink {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--primary, #f05c38);
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+/* Empty State */
+.emptyState {
+    text-align: center;
+    padding: 4rem 1.5rem;
+    background: var(--bg-surface);
+    border: 1.5px dashed var(--border-color, #e5e7eb);
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.emptyIcon {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: rgba(240, 92, 56, 0.1);
+    color: var(--primary, #f05c38);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.emptyState h3 {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.emptyState p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    max-width: 400px;
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 1rem;
+    }
+    
+    .header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .captureBtn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .controlsBar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .filterTabs {
+        overflow-x: auto;
+    }
+}

@@ -1,0 +1,150 @@
+.viewerContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.imageWrapper {
+    position: relative;
+    width: 100%;
+    max-height: 420px;
+    background: #000;
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border-color, #333);
+}
+
+.billImage {
+    max-width: 100%;
+    max-height: 420px;
+    object-fit: contain;
+}
+
+.imageToolbar {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    display: flex;
+    gap: 0.5rem;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 0.35rem 0.6rem;
+    border-radius: 20px;
+    backdrop-filter: blur(8px);
+}
+
+.toolBtn {
+    background: transparent;
+    border: none;
+    color: #fff;
+    padding: 0.3rem;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+
+.toolBtn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.detailsCard {
+    background: var(--bg-surface-2, #f9fafb);
+    border: 1px solid var(--border-color, #e5e7eb);
+    border-radius: 12px;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.detailRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+}
+
+.detailLabel {
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.detailValue {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.noteBlock {
+    background: var(--bg-surface);
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    border: 1px dashed var(--border-color, #d1d5db);
+    font-size: 0.95rem;
+    color: var(--text-primary);
+    line-height: 1.4;
+    white-space: pre-wrap;
+}
+
+.actionsGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+}
+
+.actionBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.convertBtn {
+    grid-column: span 2;
+    background: var(--primary, #f05c38);
+    color: #ffffff;
+    border: none;
+    padding: 0.85rem;
+    font-size: 0.95rem;
+    box-shadow: 0 4px 12px rgba(240, 92, 56, 0.25);
+}
+
+.convertBtn:hover {
+    box-shadow: 0 6px 16px rgba(240, 92, 56, 0.35);
+    transform: translateY(-1px);
+}
+
+.editBtn {
+    background: var(--bg-surface-2, #f3f4f6);
+    border: 1px solid var(--border-color, #e5e7eb);
+    color: var(--text-primary);
+}
+
+.deleteBtn {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+}
+
+.deleteBtn:hover {
+    background: rgba(239, 68, 68, 0.2);
+}
+
+/* Convert Sub-form */
+.convertForm {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding-top: 0.5rem;
+}

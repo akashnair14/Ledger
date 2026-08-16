@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Users, ReceiptText, Settings, BarChart3 } from 'lucide-react';
+import { Users, ReceiptText, Settings, BarChart3, Camera } from 'lucide-react';
 import styles from './BottomNav.module.css';
 import { VoiceCommandButton } from '../features/VoiceCommandButton';
 
@@ -12,7 +12,7 @@ export const BottomNav = () => {
     const navItems = [
         { label: 'Customers', href: '/dashboard', icon: Users },
         { label: 'Transactions', href: '/transactions', icon: ReceiptText },
-        { label: 'Analytics', href: '/analytics', icon: BarChart3 },
+        { label: 'Kacha Bills', href: '/kacha-bills', icon: Camera },
         { label: 'Settings', href: '/settings', icon: Settings },
     ];
 

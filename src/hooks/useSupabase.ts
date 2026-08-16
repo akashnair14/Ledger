@@ -2,7 +2,7 @@
 
 import useSWR, { mutate } from 'swr'
 import { createClient } from '@/lib/supabase/client'
-import { Customer, Transaction, PaymentMode, Book, db, generateId } from '@/lib/db'
+import { Customer, Transaction, PaymentMode, Book, KachaBill, KachaBillStatus, db, generateId } from '@/lib/db'
 
 const supabase = createClient()
 
@@ -52,6 +52,23 @@ const mapTransaction = (row: Record<string, unknown>): Transaction => ({
     isDeleted: row.is_deleted ? 1 : 0,
     deviceId: 'web',
     imported: false
+})
+
+// Map Supabase 'kacha_bills' row to App 'KachaBill'
+const mapKachaBill = (row: Record<string, unknown>): KachaBill => ({
+    id: row.id as string,
+    bookId: (row.book_id as string) || 'default-book',
+    customerId: (row.customer_id as string) || undefined,
+    title: (row.title as string) || '',
+    note: (row.note as string) || '',
+    amount: row.amount !== undefined && row.amount !== null ? Number(row.amount) : undefined,
+    billDate: row.bill_date ? new Date(row.bill_date as string).getTime() : (row.created_at ? new Date(row.created_at as string).getTime() : Date.now()),
+    imageUrl: (row.image_url as string) || '',
+    status: (row.status as KachaBillStatus) || 'PENDING',
+    convertedTxnId: (row.converted_txn_id as string) || undefined,
+    createdAt: new Date((row.created_at as string) || new Date().toISOString()).getTime(),
+    updatedAt: new Date((row.updated_at as string) || (row.created_at as string) || new Date().toISOString()).getTime(),
+    isDeleted: row.is_deleted ? 1 : 0
 })
 
 
@@ -122,6 +139,28 @@ const fetchAllTransactions = async () => {
     return fetchTransactions()
 }
 
+const fetchKachaBills = async () => {
+    try {
+        const { data, error } = await supabase
+            .from('kacha_bills')
+            .select('*')
+            .eq('is_deleted', 0)
+            .order('bill_date', { ascending: false })
+
+        if (error) throw error
+        const bills = data.map(mapKachaBill)
+        await db.kachaBills.clear()
+        await db.kachaBills.bulkPut(bills)
+        return bills
+    } catch (err: any) {
+        if (!navigator.onLine || err.message === 'Failed to fetch' || err.message?.includes('fetch failed')) {
+            const localBills = await db.kachaBills.toArray()
+            return localBills.filter(b => b.isDeleted === 0).sort((a, b) => b.billDate - a.billDate)
+        }
+        throw err
+    }
+}
+
 const fetchSettings = async () => {
     const { data, error } = await supabase
         .from('settings')
@@ -171,6 +210,24 @@ export function useCustomers() {
     })
     return {
         customers: data,
+        isLoading,
+        error
+    }
+}
+
+export function useKachaBills(bookId?: string) {
+    const key = bookId ? `kacha-bills-${bookId}` : 'all-kacha-bills'
+    const { data, error, isLoading } = useSWR(key, fetchKachaBills, {
+        revalidateOnFocus: true,
+        revalidateOnReconnect: true,
+        revalidateIfStale: true,
+    })
+
+    const filteredBills = bookId && data ? data.filter((b: KachaBill) => b.bookId === bookId) : data
+
+    return {
+        kachaBills: filteredBills,
+        allKachaBills: data,
         isLoading,
         error
     }
@@ -695,6 +752,186 @@ export const getBookDataStats = async (bookId: string) => {
 }
 
 
+export const addKachaBill = async (bill: Partial<KachaBill>, file?: File) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Authentication required');
+
+    let imageUrl = bill.imageUrl || '';
+    const attachmentId = generateId();
+
+    if (file) {
+        if (!navigator.onLine) {
+            await db.attachments.put({
+                id: attachmentId,
+                txnId: '',
+                blob: file,
+                mimeType: file.type,
+                fileName: file.name,
+                createdAt: Date.now(),
+                updatedAt: Date.now()
+            });
+            imageUrl = `local-attachment:${attachmentId}`;
+        } else {
+            imageUrl = await uploadAttachment(file);
+        }
+    }
+
+    const newId = generateId();
+    const row: Record<string, unknown> = {
+        id: newId,
+        user_id: user.id,
+        book_id: bill.bookId || 'default-book',
+        customer_id: bill.customerId || null,
+        title: bill.title || '',
+        note: bill.note || '',
+        amount: bill.amount !== undefined && bill.amount !== null && !isNaN(Number(bill.amount)) ? Number(bill.amount) : null,
+        bill_date: bill.billDate ? new Date(bill.billDate).toISOString() : new Date().toISOString(),
+        image_url: imageUrl,
+        status: bill.status || 'PENDING',
+        is_deleted: 0,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+    };
+
+    const tempBill = mapKachaBill(row);
+    await db.kachaBills.put(tempBill);
+    await mutate('all-kacha-bills');
+    if (bill.bookId) await mutate(`kacha-bills-${bill.bookId}`);
+
+    try {
+        const { error } = await supabase.from('kacha_bills').insert(row);
+        if (error) throw error;
+        await mutate('all-kacha-bills');
+        if (bill.bookId) await mutate(`kacha-bills-${bill.bookId}`);
+    } catch (err: any) {
+        if (!navigator.onLine || err.message === 'Failed to fetch' || err.message?.includes('fetch failed')) {
+            await db.syncQueue.put({ id: generateId(), action: 'ADD_KACHA_BILL', payload: row, createdAt: Date.now() });
+            return tempBill;
+        }
+        await db.kachaBills.delete(newId);
+        await mutate('all-kacha-bills');
+        if (bill.bookId) await mutate(`kacha-bills-${bill.bookId}`);
+        throw err;
+    }
+    return tempBill;
+};
+
+export const updateKachaBill = async (id: string, updates: Partial<KachaBill>, file?: File) => {
+    let imageUrl = updates.imageUrl;
+    if (file) {
+        if (!navigator.onLine) throw new Error('Cannot upload image while offline.');
+        imageUrl = await uploadAttachment(file);
+    }
+
+    const row: Record<string, unknown> = {
+        updated_at: new Date().toISOString()
+    };
+    if (updates.title !== undefined) row.title = updates.title;
+    if (updates.note !== undefined) row.note = updates.note;
+    if (updates.amount !== undefined) row.amount = updates.amount;
+    if (updates.customerId !== undefined) row.customer_id = updates.customerId || null;
+    if (updates.status !== undefined) row.status = updates.status;
+    if (updates.billDate !== undefined) row.bill_date = new Date(updates.billDate).toISOString();
+    if (updates.convertedTxnId !== undefined) row.converted_txn_id = updates.convertedTxnId;
+    if (imageUrl !== undefined) row.image_url = imageUrl;
+
+    const localBill = await db.kachaBills.get(id);
+    let originalBill: KachaBill | undefined;
+    if (localBill) {
+        originalBill = { ...localBill };
+        const updatedBill: KachaBill = {
+            ...localBill,
+            ...updates,
+            imageUrl: imageUrl ?? localBill.imageUrl,
+            updatedAt: Date.now()
+        };
+        await db.kachaBills.put(updatedBill);
+    }
+
+    await mutate('all-kacha-bills');
+    if (localBill?.bookId) await mutate(`kacha-bills-${localBill.bookId}`);
+
+    try {
+        const { error } = await supabase.from('kacha_bills').update(row).eq('id', id);
+        if (error) throw error;
+    } catch (err: any) {
+        if (!navigator.onLine || err.message === 'Failed to fetch' || err.message?.includes('fetch failed')) {
+            await db.syncQueue.put({ id: generateId(), action: 'UPDATE_KACHA_BILL', payload: { id, updates: row }, createdAt: Date.now() });
+            return;
+        }
+        if (originalBill) {
+            await db.kachaBills.put(originalBill);
+            await mutate('all-kacha-bills');
+            if (originalBill.bookId) await mutate(`kacha-bills-${originalBill.bookId}`);
+        }
+        throw err;
+    }
+};
+
+export const deleteKachaBill = async (id: string) => {
+    const localBill = await db.kachaBills.get(id);
+    if (localBill) {
+        await db.kachaBills.update(id, { isDeleted: 1 });
+    }
+
+    await mutate('all-kacha-bills');
+    if (localBill?.bookId) await mutate(`kacha-bills-${localBill.bookId}`);
+
+    try {
+        const { error } = await supabase.from('kacha_bills').update({ is_deleted: 1, updated_at: new Date().toISOString() }).eq('id', id);
+        if (error) throw error;
+    } catch (err: any) {
+        if (!navigator.onLine || err.message === 'Failed to fetch' || err.message?.includes('fetch failed')) {
+            await db.syncQueue.put({ id: generateId(), action: 'DELETE_KACHA_BILL', payload: { id }, createdAt: Date.now() });
+            return;
+        }
+        if (localBill) {
+            await db.kachaBills.update(id, { isDeleted: 0 });
+            await mutate('all-kacha-bills');
+            if (localBill.bookId) await mutate(`kacha-bills-${localBill.bookId}`);
+        }
+        throw err;
+    }
+};
+
+export const convertKachaBillToTransaction = async (
+    kachaBillId: string,
+    txnData: {
+        customerId: string;
+        bookId?: string;
+        amount: number;
+        type: 'CREDIT' | 'PAYMENT';
+        paymentMode: PaymentMode;
+        note?: string;
+        date?: number;
+    }
+) => {
+    const localBill = await db.kachaBills.get(kachaBillId);
+    if (!localBill) throw new Error('Kacha bill not found');
+
+    // Create formal transaction with attachment
+    const txn = await addTransaction({
+        customerId: txnData.customerId,
+        bookId: txnData.bookId || localBill.bookId,
+        amount: txnData.amount,
+        type: txnData.type,
+        paymentMode: txnData.paymentMode,
+        note: txnData.note || localBill.note || 'Converted from Kacha Bill',
+        date: txnData.date || localBill.billDate,
+        attachmentUrl: localBill.imageUrl,
+        tags: ['KachaBill']
+    });
+
+    // Mark Kacha Bill as Converted and link convertedTxnId
+    await updateKachaBill(kachaBillId, {
+        status: 'CONVERTED',
+        convertedTxnId: txn.id,
+        customerId: txnData.customerId
+    });
+
+    return txn;
+};
+
 export const processSyncQueue = async () => {
     if (!navigator.onLine) return;
     
@@ -730,6 +967,25 @@ export const processSyncQueue = async () => {
                 }
                 const { error } = await supabase.from('transactions').insert(payload);
                 if (error && !error.message.includes('duplicate')) throw error;
+            } else if (item.action === 'ADD_KACHA_BILL') {
+                const payload = item.payload;
+                if (payload && typeof payload.image_url === 'string' && payload.image_url.startsWith('local-attachment:')) {
+                    try {
+                        const attachmentId = payload.image_url.split(':')[1];
+                        const attachRecord = await db.attachments.get(attachmentId);
+                        if (attachRecord) {
+                            const file = new File([attachRecord.blob], attachRecord.fileName, { type: attachRecord.mimeType });
+                            const publicUrl = await uploadAttachment(file);
+                            payload.image_url = publicUrl;
+                            await db.kachaBills.update(payload.id, { imageUrl: publicUrl });
+                            await db.attachments.delete(attachmentId);
+                        }
+                    } catch (uploadErr) {
+                        console.error('Failed to sync offline kacha bill image:', uploadErr);
+                    }
+                }
+                const { error } = await supabase.from('kacha_bills').insert(payload);
+                if (error && !error.message.includes('duplicate')) throw error;
             } else if (item.action === 'DELETE_BOOK') {
                 const { error } = await supabase.from('books').update({ is_deleted: true, updated_at: new Date().toISOString() }).eq('id', item.payload.id);
                 if (error) throw error;
@@ -750,6 +1006,14 @@ export const processSyncQueue = async () => {
                 const { id } = item.payload;
                 const { error } = await supabase.from('transactions').delete().eq('id', id);
                 if (error) throw error;
+            } else if (item.action === 'UPDATE_KACHA_BILL') {
+                const { id, updates } = item.payload;
+                const { error } = await supabase.from('kacha_bills').update(updates).eq('id', id);
+                if (error) throw error;
+            } else if (item.action === 'DELETE_KACHA_BILL') {
+                const { id } = item.payload;
+                const { error } = await supabase.from('kacha_bills').update({ is_deleted: 1, updated_at: new Date().toISOString() }).eq('id', id);
+                if (error) throw error;
             }
             await db.syncQueue.delete(item.id);
         } catch (err: any) {
@@ -758,4 +1022,5 @@ export const processSyncQueue = async () => {
             await db.syncQueue.delete(item.id);
         }
     }
-}
+};
+

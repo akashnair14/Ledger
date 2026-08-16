@@ -15,7 +15,8 @@ import {
     Trash2,
     Moon,
     Sun,
-    Search
+    Search,
+    Camera
 } from 'lucide-react';
 import { useBook } from '@/context/BookContext';
 import { type Book as BookType } from '@/lib/db';
@@ -76,6 +77,7 @@ export const Sidebar = () => {
     const navItems = [
         { label: 'Customers', href: '/dashboard', icon: Users },
         { label: 'Transactions', href: '/transactions', icon: ReceiptText },
+        { label: 'Kacha Bills', href: '/kacha-bills', icon: Camera },
         { label: 'Analytics', href: '/analytics', icon: BarChart3 },
         { label: 'Settings', href: '/settings', icon: Settings },
     ];

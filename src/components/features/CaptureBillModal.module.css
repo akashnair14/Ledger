@@ -1,0 +1,204 @@
+.formGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1.25rem;
+}
+
+.formGroup label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.input, .select, .textarea {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: var(--bg-surface-2, #f3f4f6);
+    border: 1px solid var(--border-color, #e5e7eb);
+    border-radius: 12px;
+    font-size: 0.95rem;
+    color: var(--text-primary);
+    transition: all 0.2s ease;
+    font-family: inherit;
+}
+
+.input:focus, .select:focus, .textarea:focus {
+    outline: none;
+    border-color: var(--primary, #f05c38);
+    box-shadow: 0 0 0 3px rgba(240, 92, 56, 0.15);
+    background: var(--bg-surface);
+}
+
+.textarea {
+    min-height: 80px;
+    resize: vertical;
+}
+
+/* Upload & Camera Area */
+.captureSection {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+}
+
+.buttonGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+}
+
+.captureBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.85rem 1rem;
+    border-radius: 12px;
+    border: 1.5px dashed var(--border-color, #d1d5db);
+    background: var(--bg-surface-2, #f9fafb);
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.captureBtn:hover {
+    border-color: var(--primary, #f05c38);
+    color: var(--primary, #f05c38);
+    background: rgba(240, 92, 56, 0.05);
+}
+
+.cameraActive {
+    border-color: var(--primary, #f05c38);
+    background: rgba(240, 92, 56, 0.08);
+    color: var(--primary, #f05c38);
+}
+
+.previewContainer {
+    position: relative;
+    width: 100%;
+    max-height: 240px;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--border-color, #e5e7eb);
+    background: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.previewImage {
+    max-width: 100%;
+    max-height: 240px;
+    object-fit: contain;
+}
+
+.removeImageBtn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: rgba(0, 0, 0, 0.65);
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.removeImageBtn:hover {
+    background: #ef4444;
+}
+
+.rowInputs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+}
+
+.statusSelector {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.statusPill {
+    flex: 1;
+    padding: 0.6rem;
+    text-align: center;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border: 1px solid var(--border-color, #e5e7eb);
+    background: var(--bg-surface-2, #f9fafb);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.statusPillActivePending {
+    background: #fef3c7;
+    border-color: #f59e0b;
+    color: #b45309;
+}
+
+.statusPillActiveSettled {
+    background: #dcfce7;
+    border-color: #10b981;
+    color: #047857;
+}
+
+.actions {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+}
+
+.cancelBtn {
+    flex: 1;
+    padding: 0.85rem;
+    border-radius: 12px;
+    border: 1px solid var(--border-color, #e5e7eb);
+    background: var(--bg-surface-2, #f3f4f6);
+    color: var(--text-primary);
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.submitBtn {
+    flex: 2;
+    padding: 0.85rem;
+    border-radius: 12px;
+    border: none;
+    background: var(--primary, #f05c38);
+    color: #ffffff;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    box-shadow: 0 4px 12px rgba(240, 92, 56, 0.25);
+    transition: all 0.2s ease;
+}
+
+.submitBtn:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(240, 92, 56, 0.35);
+}
+
+.submitBtn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
