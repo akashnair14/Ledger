@@ -5,6 +5,7 @@ import { Camera, Upload, X, Loader2, Calendar, DollarSign, User, FileText, Check
 import { Modal } from '@/components/ui/Modal';
 import { Customer, KachaBill, KachaBillStatus } from '@/lib/db';
 import { addKachaBill, updateKachaBill, useCustomers } from '@/hooks/useSupabase';
+import { compressImage } from '@/lib/imageUtils';
 import styles from './CaptureBillModal.module.css';
 
 interface CaptureBillModalProps {
@@ -41,8 +42,8 @@ export const CaptureBillModal: React.FC<CaptureBillModalProps> = ({
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(editingBill?.imageUrl || null);
     const [isSaving, setIsSaving] = useState(false);
+    const [isCompressing, setIsCompressing] = useState(false);
 
-    const cameraInputRef = useRef<HTMLInputElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Filter customers by current book
@@ -50,7 +51,7 @@ export const CaptureBillModal: React.FC<CaptureBillModalProps> = ({
         (c: Customer) => c.isDeleted === 0 && (c.bookId === bookId || !c.bookId)
     ) || [];
 
-    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
 
@@ -59,15 +60,32 @@ export const CaptureBillModal: React.FC<CaptureBillModalProps> = ({
             return;
         }
 
-        setImageFile(file);
-        const url = URL.createObjectURL(file);
-        setPreviewUrl(url);
+        try {
+            setIsCompressing(true);
+            const optimizedFile = await compressImage(file, 1600, 1600, 0.8);
+            setImageFile(optimizedFile);
+
+            if (previewUrl && previewUrl.startsWith('blob:')) {
+                URL.revokeObjectURL(previewUrl);
+            }
+            const url = URL.createObjectURL(optimizedFile);
+            setPreviewUrl(url);
+        } catch (compressErr) {
+            console.warn('Image compression fallback:', compressErr);
+            setImageFile(file);
+            const url = URL.createObjectURL(file);
+            setPreviewUrl(url);
+        } finally {
+            setIsCompressing(false);
+        }
     };
 
     const handleRemoveImage = () => {
+        if (previewUrl && previewUrl.startsWith('blob:')) {
+            URL.revokeObjectURL(previewUrl);
+        }
         setImageFile(null);
         setPreviewUrl(null);
-        if (cameraInputRef.current) cameraInputRef.current.value = '';
         if (fileInputRef.current) fileInputRef.current.value = '';
     };
 
@@ -134,14 +152,6 @@ export const CaptureBillModal: React.FC<CaptureBillModalProps> = ({
                 {/* Image Capture Section */}
                 <div className={styles.captureSection}>
                     <input
-                        ref={cameraInputRef}
-                        type="file"
-                        accept="image/*"
-                        capture="environment"
-                        style={{ display: 'none' }}
-                        onChange={handleFileSelect}
-                    />
-                    <input
                         ref={fileInputRef}
                         type="file"
                         accept="image/*"
@@ -149,7 +159,12 @@ export const CaptureBillModal: React.FC<CaptureBillModalProps> = ({
                         onChange={handleFileSelect}
                     />
 
-                    {previewUrl ? (
+                    {isCompressing ? (
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem', gap: '0.5rem', color: 'var(--text-muted)' }}>
+                            <Loader2 size={20} className="spin" />
+                            <span style={{ fontSize: '0.9rem' }}>Optimizing bill photo...</span>
+                        </div>
+                    ) : previewUrl ? (
                         <div className={styles.previewContainer}>
                             <img src={previewUrl} alt="Bill Preview" className={styles.previewImage} />
                             <button
@@ -166,10 +181,10 @@ export const CaptureBillModal: React.FC<CaptureBillModalProps> = ({
                             <button
                                 type="button"
                                 className={styles.captureBtn}
-                                onClick={() => cameraInputRef.current?.click()}
+                                onClick={() => fileInputRef.current?.click()}
                             >
                                 <Camera size={20} />
-                                <span>Take Photo</span>
+                                <span>Take / Select Photo</span>
                             </button>
                             <button
                                 type="button"
@@ -177,7 +192,7 @@ export const CaptureBillModal: React.FC<CaptureBillModalProps> = ({
                                 onClick={() => fileInputRef.current?.click()}
                             >
                                 <Upload size={20} />
-                                <span>Upload Slip</span>
+                                <span>Upload File</span>
                             </button>
                         </div>
                     )}
