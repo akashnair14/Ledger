@@ -590,17 +590,19 @@ export default function CustomersPage() {
                     {/* Card Mid (Outstanding / Dues) */}
                     <div className={styles.cardMid}>
                       <div className={styles.balanceBox}>
-                        <span className={styles.balanceLabel}>Dues Balance</span>
+                        <span className={styles.balanceLabel}>
+                          {isSettled ? 'Settled' : hasCredit ? 'Dues Outstanding' : 'Advance Paid'}
+                        </span>
                         <span className={`${styles.balanceAmount} ${
                           isSettled ? styles.amountSettled : hasCredit ? styles.amountGiven : styles.amountPayable
                         }`}>
-                          {isSettled ? '' : hasCredit ? '+' : '-'} ₹{Math.abs(balance).toLocaleString()}
+                          ₹{Math.abs(balance).toLocaleString()}
                         </span>
                       </div>
                       <span className={`${styles.statusBadge} ${
-                        isSettled ? styles.statusPaid : hasCredit ? styles.statusPending : styles.statusOverdue
+                        isSettled ? styles.statusPaid : hasCredit ? styles.statusOverdue : styles.statusPaid
                       }`}>
-                        {isSettled ? 'Paid' : hasCredit ? 'Pending' : 'Overdue'}
+                        {isSettled ? 'Settled' : hasCredit ? 'Overdue' : 'Advance'}
                       </span>
                     </div>
 

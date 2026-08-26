@@ -515,8 +515,8 @@
   letter-spacing: -0.03em;
 }
 
-.amountGiven { color: #10b981; }
-.amountPayable { color: #ef4444; }
+.amountGiven { color: #ef4444; }
+.amountPayable { color: #10b981; }
 .amountSettled { color: var(--text-dim); }
 
 .statusBadge {
