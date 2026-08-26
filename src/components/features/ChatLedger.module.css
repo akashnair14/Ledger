@@ -1,0 +1,410 @@
+.chatContainer {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 520px;
+    max-height: 720px;
+    background-color: var(--bg-surface, #ffffff);
+    border: 1px solid var(--border-color, #e5e7eb);
+    border-radius: 16px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+/* WhatsApp Pattern Background */
+.chatFeed {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.25rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    background-color: #efeae2;
+    background-image: radial-gradient(#d1d7db 0.75px, transparent 0.75px);
+    background-size: 16px 16px;
+    scroll-behavior: smooth;
+}
+
+[data-theme='dark'] .chatFeed {
+    background-color: #0b141a;
+    background-image: radial-gradient(#1f2c34 0.75px, transparent 0.75px);
+    background-size: 16px 16px;
+}
+
+/* Sticky / Center Date Divider */
+.dateDivider {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0.5rem 0;
+    position: sticky;
+    top: 4px;
+    z-index: 10;
+}
+
+.datePill {
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(8px);
+    color: #54656f;
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+[data-theme='dark'] .datePill {
+    background: rgba(24, 34, 41, 0.92);
+    color: #8696a0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* Chat Message Row */
+.messageRow {
+    display: flex;
+    width: 100%;
+    margin-bottom: 2px;
+}
+
+.messageRow.outgoing {
+    justify-content: flex-end;
+}
+
+.messageRow.incoming {
+    justify-content: flex-start;
+}
+
+/* Bubble Styling */
+.bubble {
+    max-width: 82%;
+    min-width: 180px;
+    border-radius: 12px;
+    padding: 8px 12px;
+    position: relative;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+    cursor: pointer;
+}
+
+.bubble:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Received / Outgoing Bubble (Payment Received or Business action) -> WhatsApp Soft Green */
+.bubbleOutgoing {
+    background: #d9fdd3;
+    color: #111b21;
+    border-top-right-radius: 2px;
+}
+
+[data-theme='dark'] .bubbleOutgoing {
+    background: #005c4b;
+    color: #e9edef;
+}
+
+/* Given / Incoming Bubble (Credit Given / Debit) -> Clean White/Dark Slate */
+.bubbleIncoming {
+    background: #ffffff;
+    color: #111b21;
+    border-top-left-radius: 2px;
+}
+
+[data-theme='dark'] .bubbleIncoming {
+    background: #202c33;
+    color: #e9edef;
+}
+
+/* Header inside Bubble */
+.bubbleHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+}
+
+.badgeType {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.badgeTypeGiven {
+    background: rgba(239, 68, 68, 0.12);
+    color: #dc2626;
+}
+
+[data-theme='dark'] .badgeTypeGiven {
+    background: rgba(239, 68, 68, 0.25);
+    color: #f87171;
+}
+
+.badgeTypeReceived {
+    background: rgba(16, 185, 129, 0.15);
+    color: #059669;
+}
+
+[data-theme='dark'] .badgeTypeReceived {
+    background: rgba(16, 185, 129, 0.25);
+    color: #34d399;
+}
+
+.modeBadge {
+    font-size: 0.65rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.05);
+    color: inherit;
+    font-weight: 500;
+}
+
+[data-theme='dark'] .modeBadge {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Amount & Note in Bubble */
+.amountRow {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 2px;
+}
+
+.amount {
+    font-size: 1.25rem;
+    font-weight: 800;
+    font-family: inherit;
+    letter-spacing: -0.5px;
+}
+
+.amountGiven {
+    color: #b91c1c;
+}
+
+[data-theme='dark'] .amountGiven {
+    color: #fca5a5;
+}
+
+.amountReceived {
+    color: #047857;
+}
+
+[data-theme='dark'] .amountReceived {
+    color: #6ee7b7;
+}
+
+.runningBalancePill {
+    font-size: 0.68rem;
+    opacity: 0.85;
+    background: rgba(0, 0, 0, 0.04);
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+[data-theme='dark'] .runningBalancePill {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.noteText {
+    font-size: 0.85rem;
+    line-height: 1.35;
+    margin: 4px 0 2px 0;
+    word-break: break-word;
+}
+
+/* Invoice reference tag */
+.invoiceTag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.72rem;
+    color: #0284c7;
+    font-weight: 600;
+    background: rgba(2, 132, 199, 0.1);
+    padding: 2px 6px;
+    border-radius: 4px;
+    width: fit-content;
+}
+
+[data-theme='dark'] .invoiceTag {
+    color: #38bdf8;
+    background: rgba(56, 189, 248, 0.15);
+}
+
+/* Bottom status info in bubble */
+.bubbleFooter {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 4px;
+    margin-top: 2px;
+}
+
+.timeText {
+    font-size: 0.65rem;
+    opacity: 0.7;
+}
+
+.ticksIcon {
+    color: #53bdeb;
+    display: inline-flex;
+    align-items: center;
+}
+
+/* Hover Quick Actions in Bubble */
+.bubbleActions {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    opacity: 0;
+    display: flex;
+    gap: 2px;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 6px;
+    padding: 2px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    transition: opacity 0.15s ease;
+}
+
+.bubble:hover .bubbleActions {
+    opacity: 1;
+}
+
+.bubbleBtn {
+    background: transparent;
+    border: none;
+    padding: 4px;
+    border-radius: 4px;
+    cursor: pointer;
+    color: inherit;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.bubbleBtn:hover {
+    background: rgba(0, 0, 0, 0.08);
+}
+
+/* Bottom Chat Action Bar */
+.chatActionBar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    background-color: #f0f2f5;
+    border-top: 1px solid var(--border-color, #e5e7eb);
+}
+
+[data-theme='dark'] .chatActionBar {
+    background-color: #202c33;
+}
+
+.giveButton {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 16px;
+    border-radius: 10px;
+    background: #ef4444;
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 0.9rem;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 6px rgba(239, 68, 68, 0.3);
+}
+
+.giveButton:hover {
+    background: #dc2626;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(239, 68, 68, 0.4);
+}
+
+.receiveButton {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 16px;
+    border-radius: 10px;
+    background: #10b981;
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 0.9rem;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3);
+}
+
+.receiveButton:hover {
+    background: #059669;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(16, 185, 129, 0.4);
+}
+
+.iconToolBtn {
+    background: transparent;
+    border: none;
+    padding: 8px;
+    border-radius: 50%;
+    cursor: pointer;
+    color: #54656f;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s;
+}
+
+[data-theme='dark'] .iconToolBtn {
+    color: #aebac1;
+}
+
+.iconToolBtn:hover {
+    background: rgba(0, 0, 0, 0.06);
+}
+
+/* View Mode Switcher Toggle */
+.viewModeToggle {
+    display: inline-flex;
+    background: var(--bg-surface-hover, #f3f4f6);
+    border: 1px solid var(--border-color, #e5e7eb);
+    padding: 3px;
+    border-radius: 10px;
+    gap: 2px;
+}
+
+.viewModeBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border: none;
+    background: transparent;
+    color: var(--text-muted, #64748b);
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.viewModeBtnActive {
+    background: var(--bg-surface, #ffffff);
+    color: var(--text-main, #0f172a);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}

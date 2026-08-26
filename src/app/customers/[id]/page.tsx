@@ -27,7 +27,8 @@ import {
     Loader2,
     FileText,
     Copy,
-    MoreHorizontal
+    MoreHorizontal,
+    LayoutList
 } from 'lucide-react';
 import { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
@@ -47,6 +48,8 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { CustomerDetailSkeleton } from '@/components/ui/LayoutSkeletons';
 import { normalizePhoneNumber, isValidPhone } from '@/lib/phoneUtils';
 import { TransactionFormModal } from '@/components/features/TransactionFormModal';
+import { ChatLedgerView } from '@/components/features/ChatLedgerView';
+import chatStyles from '@/components/features/ChatLedger.module.css';
 import {
     AreaChart,
     Area,
@@ -83,6 +86,7 @@ export default function CustomerDetailPage() {
     const [txnType, setTxnType] = useState<'CREDIT' | 'PAYMENT'>('CREDIT');
 
     // UI States
+    const [viewMode, setViewMode] = useState<'chat' | 'table'>('chat');
     const [isSelectMode, setIsSelectMode] = useState(false);
     const [selectedTxns, setSelectedTxns] = useState<string[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
@@ -509,6 +513,25 @@ export default function CustomerDetailPage() {
                         />
                     </div>
 
+                    <div className={chatStyles.viewModeToggle}>
+                        <button
+                            className={`${chatStyles.viewModeBtn} ${viewMode === 'chat' ? chatStyles.viewModeBtnActive : ''}`}
+                            onClick={() => setViewMode('chat')}
+                            title="WhatsApp Chat View"
+                        >
+                            <MessageSquare size={14} />
+                            <span>Chat View</span>
+                        </button>
+                        <button
+                            className={`${chatStyles.viewModeBtn} ${viewMode === 'table' ? chatStyles.viewModeBtnActive : ''}`}
+                            onClick={() => setViewMode('table')}
+                            title="Classic Ledger Table"
+                        >
+                            <LayoutList size={14} />
+                            <span>List View</span>
+                        </button>
+                    </div>
+
                     <button 
                         className={`${styles.filterToggleBtn} ${isSelectMode ? styles.active : ''}`}
                         onClick={() => { setIsSelectMode(!isSelectMode); setSelectedTxns([]); }}
@@ -526,82 +549,96 @@ export default function CustomerDetailPage() {
                     <button className={`${styles.chip} ${quickFilter === 'UPI' ? styles.chipActive : ''}`} onClick={() => setQuickFilter('UPI')}>UPI</button>
                 </section>
 
-                {/* Date Grouped Timeline Items */}
-                <div className={styles.txnList} style={{ minHeight: '350px' }}>
-                    {processedTransactions.length === 0 ? (
-                        <EmptyState
-                            icon={Receipt}
-                            title="No entries found"
-                            description="No transactions match your current filters."
-                        />
-                    ) : (
-                        Object.keys(groupedTransactions).map((groupName) => {
-                            const txns = groupedTransactions[groupName];
-                            if (txns.length === 0) return null;
+                {/* Conditional View Rendering: WhatsApp Chat View vs Classic Timeline */}
+                {viewMode === 'chat' ? (
+                    <ChatLedgerView
+                        transactions={processedTransactions}
+                        isSupplier={isSupplier}
+                        onEdit={handleEdit}
+                        onDelete={handleDelete}
+                        onOpenAddModal={(type) => {
+                            setTxnType(type);
+                            setTxnModalOpen(true);
+                        }}
+                    />
+                ) : (
+                    /* Date Grouped Timeline Items */
+                    <div className={styles.txnList} style={{ minHeight: '350px' }}>
+                        {processedTransactions.length === 0 ? (
+                            <EmptyState
+                                icon={Receipt}
+                                title="No entries found"
+                                description="No transactions match your current filters."
+                            />
+                        ) : (
+                            Object.keys(groupedTransactions).map((groupName) => {
+                                const txns = groupedTransactions[groupName];
+                                if (txns.length === 0) return null;
 
-                            return (
-                                <div key={groupName} className={styles.timelineGroup}>
-                                    <div className={styles.timelineHeader} style={{ position: 'sticky', top: '0', zIndex: 10, background: 'var(--bg-main)', padding: '4px 8px' }}>
-                                        {groupName}
-                                    </div>
-                                    <div className={styles.list} style={{ gap: '4px', marginBottom: '1rem' }}>
-                                        {txns.map((t: any) => (
-                                            <div 
-                                                key={t.id} 
-                                                className={`${styles.txnCard} ${isSelectMode ? styles.clickableCard : ''}`}
-                                                onClick={() => isSelectMode && toggleTxnSelection(t.id)}
-                                            >
-                                                {isSelectMode && (
-                                                    <div className={styles.checkboxContainer}>
-                                                        <div className={`${styles.checkbox} ${selectedTxns.includes(t.id) ? styles.checked : ''}`}>
-                                                            {selectedTxns.includes(t.id) && <Check size={12} />}
+                                return (
+                                    <div key={groupName} className={styles.timelineGroup}>
+                                        <div className={styles.timelineHeader} style={{ position: 'sticky', top: '0', zIndex: 10, background: 'var(--bg-main)', padding: '4px 8px' }}>
+                                            {groupName}
+                                        </div>
+                                        <div className={styles.list} style={{ gap: '4px', marginBottom: '1rem' }}>
+                                            {txns.map((t: any) => (
+                                                <div 
+                                                    key={t.id} 
+                                                    className={`${styles.txnCard} ${isSelectMode ? styles.clickableCard : ''}`}
+                                                    onClick={() => isSelectMode && toggleTxnSelection(t.id)}
+                                                >
+                                                    {isSelectMode && (
+                                                        <div className={styles.checkboxContainer}>
+                                                            <div className={`${styles.checkbox} ${selectedTxns.includes(t.id) ? styles.checked : ''}`}>
+                                                                {selectedTxns.includes(t.id) && <Check size={12} />}
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                )}
+                                                    )}
 
-                                                <div className={styles.txnDate}>
-                                                    <span className={styles.dateDisplay} style={{ fontSize: '0.75rem' }}>{new Date(t.date).toLocaleDateString([], { day: '2-digit', month: 'short' })}</span>
-                                                    <span className={styles.timeDisplay} style={{ fontSize: '0.65rem' }}>
-                                                        {new Date(t.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                                    </span>
-                                                </div>
-
-                                                <div className={styles.txnMain}>
-                                                    <div className={styles.topRow} style={{ gap: '4px' }}>
-                                                        <span className={`${styles.typeBadge} ${t.type === 'CREDIT' ? styles.badgeGiven : styles.badgeReceived}`} style={{ fontSize: '0.65rem' }}>
-                                                            {t.type === 'CREDIT' ? 'Given' : 'Received'}
+                                                    <div className={styles.txnDate}>
+                                                        <span className={styles.dateDisplay} style={{ fontSize: '0.75rem' }}>{new Date(t.date).toLocaleDateString([], { day: '2-digit', month: 'short' })}</span>
+                                                        <span className={styles.timeDisplay} style={{ fontSize: '0.65rem' }}>
+                                                            {new Date(t.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                                         </span>
-                                                        <span className={styles.modeBadge} style={{ fontSize: '0.65rem' }}>{t.paymentMode}</span>
-                                                        {t.invoiceNumber && (
-                                                            <span className={styles.invoiceBadge} style={{ fontSize: '0.65rem' }}>#{t.invoiceNumber}</span>
-                                                        )}
                                                     </div>
-                                                    {t.note && <p className={styles.noteText} style={{ marginTop: '2px', fontSize: '0.8rem', color: 'var(--text-muted)' }}>{t.note}</p>}
-                                                </div>
 
-                                                <div className={styles.amountCol}>
-                                                    <span className={`${styles.amount} ${t.type === 'CREDIT' ? styles.amountCredit : styles.amountPayment}`}>
-                                                        {t.type === 'CREDIT' ? '-' : '+'} ₹{t.amount.toLocaleString()}
-                                                    </span>
-                                                    <span className={styles.runningBalance}>
-                                                        Bal: ₹{t.runningBalance.toLocaleString()}
-                                                    </span>
-                                                </div>
-
-                                                {!isSelectMode && (
-                                                    <div className={styles.quickActions}>
-                                                        <button onClick={(e) => { e.stopPropagation(); handleEdit(t); }} className={styles.actionBtn} title="Edit entry"><Edit2 size={12} /></button>
-                                                        <button onClick={(e) => { e.stopPropagation(); handleDelete(t); }} className={styles.actionBtnDanger || styles.actionBtn} title="Delete entry"><Trash2 size={12} /></button>
+                                                    <div className={styles.txnMain}>
+                                                        <div className={styles.topRow} style={{ gap: '4px' }}>
+                                                            <span className={`${styles.typeBadge} ${t.type === 'CREDIT' ? styles.badgeGiven : styles.badgeReceived}`} style={{ fontSize: '0.65rem' }}>
+                                                                {t.type === 'CREDIT' ? 'Given' : 'Received'}
+                                                            </span>
+                                                            <span className={styles.modeBadge} style={{ fontSize: '0.65rem' }}>{t.paymentMode}</span>
+                                                            {t.invoiceNumber && (
+                                                                <span className={styles.invoiceBadge} style={{ fontSize: '0.65rem' }}>#{t.invoiceNumber}</span>
+                                                            )}
+                                                        </div>
+                                                        {t.note && <p className={styles.noteText} style={{ marginTop: '2px', fontSize: '0.8rem', color: 'var(--text-muted)' }}>{t.note}</p>}
                                                     </div>
-                                                )}
-                                            </div>
-                                        ))}
+
+                                                    <div className={styles.amountCol}>
+                                                        <span className={`${styles.amount} ${t.type === 'CREDIT' ? styles.amountCredit : styles.amountPayment}`}>
+                                                            {t.type === 'CREDIT' ? '-' : '+'} ₹{t.amount.toLocaleString()}
+                                                        </span>
+                                                        <span className={styles.runningBalance}>
+                                                            Bal: ₹{t.runningBalance.toLocaleString()}
+                                                        </span>
+                                                    </div>
+
+                                                    {!isSelectMode && (
+                                                        <div className={styles.quickActions}>
+                                                            <button onClick={(e) => { e.stopPropagation(); handleEdit(t); }} className={styles.actionBtn} title="Edit entry"><Edit2 size={12} /></button>
+                                                            <button onClick={(e) => { e.stopPropagation(); handleDelete(t); }} className={styles.actionBtnDanger || styles.actionBtn} title="Delete entry"><Trash2 size={12} /></button>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
                                     </div>
-                                </div>
-                            );
-                        })
-                    )}
-                </div>
+                                );
+                            })
+                        )}
+                    </div>
+                )}
             </section>
 
             {/* Collapsible Sections Below Timeline (Secondary Information) */}
