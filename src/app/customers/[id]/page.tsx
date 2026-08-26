@@ -527,119 +527,186 @@ export default function CustomerDetailPage() {
             </section>
 
             {/* 8. Stepper Timeline Feed / List View */}
-            <section className={styles.timelineFeed}>
-                {processedTransactions.length === 0 ? (
-                    <EmptyState
-                        icon={Clock}
-                        title="No transactions found"
-                        description="Record a credit or payment above to see entries here."
-                    />
-                ) : (
-                    processedTransactions.map((t: any, index) => {
-                        const isCredit = t.type === 'CREDIT';
-                        const isLast = index === processedTransactions.length - 1;
-                        const dateFormatted = new Date(t.date).toLocaleDateString('en-US', {
-                            month: 'short',
-                            day: 'numeric',
-                            year: 'numeric'
-                        }).toUpperCase();
-                        const timeFormatted = new Date(t.date).toLocaleTimeString('en-US', {
-                            hour: '2-digit',
-                            minute: '2-digit',
-                            hour12: true
-                        });
+            {viewMode === 'timeline' ? (
+                <section className={styles.timelineFeed}>
+                    {processedTransactions.length === 0 ? (
+                        <EmptyState
+                            icon={Clock}
+                            title="No transactions found"
+                            description="Record a credit or payment above to see entries here."
+                        />
+                    ) : (
+                        processedTransactions.map((t: any, index) => {
+                            const isCredit = t.type === 'CREDIT';
+                            const isLast = index === processedTransactions.length - 1;
+                            const dateFormatted = new Date(t.date).toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                                year: 'numeric'
+                            }).toUpperCase();
+                            const timeFormatted = new Date(t.date).toLocaleTimeString('en-US', {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                hour12: true
+                            });
 
-                        return (
-                            <div key={t.id} className={styles.timelineItemWrapper}>
-                                {/* Stepper Node & Line */}
-                                <div className={styles.stepperTrack}>
-                                    <div className={`${styles.stepperNode} ${isCredit ? styles.stepperNodeRed : styles.stepperNodeGreen}`}>
-                                        {isCredit ? (
-                                            <ArrowUp size={15} strokeWidth={2.5} />
-                                        ) : (
-                                            <ArrowDown size={15} strokeWidth={2.5} />
-                                        )}
+                            return (
+                                <div key={t.id} className={styles.timelineItemWrapper}>
+                                    {/* Stepper Node & Line */}
+                                    <div className={styles.stepperTrack}>
+                                        <div className={`${styles.stepperNode} ${isCredit ? styles.stepperNodeRed : styles.stepperNodeGreen}`}>
+                                            {isCredit ? (
+                                                <ArrowUp size={15} strokeWidth={2.5} />
+                                            ) : (
+                                                <ArrowDown size={15} strokeWidth={2.5} />
+                                            )}
+                                        </div>
+                                        {!isLast && <div className={styles.stepperLine}></div>}
                                     </div>
-                                    {!isLast && <div className={styles.stepperLine}></div>}
-                                </div>
 
-                                {/* Right Content Column */}
-                                <div className={styles.itemContentCol}>
-                                    <span className={styles.itemDateLabel}>{dateFormatted}</span>
+                                    {/* Right Content Column */}
+                                    <div className={styles.itemContentCol}>
+                                        <span className={styles.itemDateLabel}>{dateFormatted}</span>
 
-                                    {/* Card Container */}
-                                    <div className={`${styles.cardBox} ${isCredit ? styles.cardBoxRed : styles.cardBoxGreen}`}>
-                                        {/* Top Row: Title, Mode badge & Amount */}
-                                        <div className={styles.cardTopRow}>
-                                            <div className={styles.cardTitleCol}>
-                                                <span className={`${styles.cardTitle} ${isCredit ? styles.cardTitleRed : styles.cardTitleGreen}`}>
-                                                    {isCredit ? (isSupplier ? 'Purchase' : 'Credit Given') : (isSupplier ? 'Payment Made' : 'Payment Received')}
-                                                </span>
-                                                <div className={styles.modeBadge}>
-                                                    {t.paymentMode === 'BANK_TRANSFER' ? (
-                                                        <Building size={12} />
-                                                    ) : (
-                                                        <CreditCard size={12} />
-                                                    )}
-                                                    <span>{t.paymentMode || 'Cash'}</span>
-                                                    {t.invoiceNumber && <span>• #{t.invoiceNumber}</span>}
+                                        {/* Card Container */}
+                                        <div className={`${styles.cardBox} ${isCredit ? styles.cardBoxRed : styles.cardBoxGreen}`}>
+                                            {/* Top Row: Title, Mode badge & Amount */}
+                                            <div className={styles.cardTopRow}>
+                                                <div className={styles.cardTitleCol}>
+                                                    <span className={`${styles.cardTitle} ${isCredit ? styles.cardTitleRed : styles.cardTitleGreen}`}>
+                                                        {isCredit ? (isSupplier ? 'Purchase' : 'Credit Given') : (isSupplier ? 'Payment Made' : 'Payment Received')}
+                                                    </span>
+                                                    <div className={styles.modeBadge}>
+                                                        {t.paymentMode === 'BANK_TRANSFER' ? (
+                                                            <Building size={12} />
+                                                        ) : (
+                                                            <CreditCard size={12} />
+                                                        )}
+                                                        <span>{t.paymentMode || 'Cash'}</span>
+                                                        {t.invoiceNumber && <span>• #{t.invoiceNumber}</span>}
+                                                    </div>
+                                                </div>
+
+                                                <div className={styles.cardAmountCol}>
+                                                    <span className={`${styles.cardAmount} ${isCredit ? styles.cardAmountRed : styles.cardAmountGreen}`}>
+                                                        ₹{t.amount.toLocaleString()}
+                                                    </span>
+                                                    <div style={{ position: 'relative' }}>
+                                                        <button
+                                                            className={styles.cardMenuBtn}
+                                                            onClick={() => setActiveTxnMenuId(activeTxnMenuId === t.id ? null : t.id)}
+                                                        >
+                                                            <MoreVertical size={16} />
+                                                        </button>
+                                                        {activeTxnMenuId === t.id && (
+                                                            <div className={styles.actionDropdown} style={{ top: '24px', right: '0' }}>
+                                                                <button className={styles.actionItem} onClick={() => handleEdit(t)}>
+                                                                    <Edit2 size={12} /> Edit
+                                                                </button>
+                                                                <button className={styles.actionItem} onClick={() => handleDelete(t)} style={{ color: '#ef4444' }}>
+                                                                    <Trash2 size={12} /> Delete
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </div>
 
-                                            <div className={styles.cardAmountCol}>
-                                                <span className={`${styles.cardAmount} ${isCredit ? styles.cardAmountRed : styles.cardAmountGreen}`}>
-                                                    ₹{t.amount.toLocaleString()}
-                                                </span>
-                                                <div style={{ position: 'relative' }}>
-                                                    <button
-                                                        className={styles.cardMenuBtn}
-                                                        onClick={() => setActiveTxnMenuId(activeTxnMenuId === t.id ? null : t.id)}
-                                                    >
-                                                        <MoreVertical size={16} />
-                                                    </button>
-                                                    {activeTxnMenuId === t.id && (
-                                                        <div className={styles.actionDropdown} style={{ top: '24px', right: '0' }}>
-                                                            <button className={styles.actionItem} onClick={() => handleEdit(t)}>
-                                                                <Edit2 size={12} /> Edit
-                                                            </button>
-                                                            <button className={styles.actionItem} onClick={() => handleDelete(t)} style={{ color: '#ef4444' }}>
-                                                                <Trash2 size={12} /> Delete
-                                                            </button>
-                                                        </div>
-                                                    )}
+                                            {/* Note text if any */}
+                                            {t.note && (
+                                                <p style={{ margin: 0, fontSize: '0.78rem', color: '#94a3b8' }}>
+                                                    {t.note}
+                                                </p>
+                                            )}
+
+                                            {/* Dotted Divider */}
+                                            <div className={styles.cardDottedDivider}></div>
+
+                                            {/* Bottom Row: Balance after transaction & Time */}
+                                            <div className={styles.cardBottomRow}>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                    <span className={styles.balText}>Balance after transaction</span>
                                                 </div>
+                                                <span className={styles.balAmount}>₹{t.runningBalance?.toLocaleString() || 0}</span>
                                             </div>
-                                        </div>
 
-                                        {/* Note text if any */}
-                                        {t.note && (
-                                            <p style={{ margin: 0, fontSize: '0.78rem', color: '#94a3b8' }}>
-                                                {t.note}
-                                            </p>
-                                        )}
-
-                                        {/* Dotted Divider */}
-                                        <div className={styles.cardDottedDivider}></div>
-
-                                        {/* Bottom Row: Balance after transaction & Time */}
-                                        <div className={styles.cardBottomRow}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                                <span className={styles.balText}>Balance after transaction</span>
+                                            <div className={styles.cardTimeRow}>
+                                                <Clock size={12} />
+                                                <span>{timeFormatted}</span>
                                             </div>
-                                            <span className={styles.balAmount}>₹{t.runningBalance?.toLocaleString() || 0}</span>
-                                        </div>
-
-                                        <div className={styles.cardTimeRow}>
-                                            <Clock size={12} />
-                                            <span>{timeFormatted}</span>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        );
-                    })
-                )}
-            </section>
+                            );
+                        })
+                    )}
+                </section>
+            ) : (
+                /* Compact List View */
+                <section className={styles.listViewContainer}>
+                    {processedTransactions.length === 0 ? (
+                        <EmptyState
+                            icon={Clock}
+                            title="No transactions found"
+                            description="Record a credit or payment above to see entries here."
+                        />
+                    ) : (
+                        processedTransactions.map((t: any) => {
+                            const isCredit = t.type === 'CREDIT';
+                            const dateShort = new Date(t.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                            const timeFormatted = new Date(t.date).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+                            return (
+                                <div key={t.id} className={styles.listViewCard}>
+                                    <div className={styles.listDateCol}>
+                                        <span className={styles.listDateText}>{dateShort}</span>
+                                        <span className={styles.listTimeText}>{timeFormatted}</span>
+                                    </div>
+
+                                    <div className={styles.listMainCol}>
+                                        <div className={styles.listTypeRow}>
+                                            <span className={`${styles.listTypeBadge} ${isCredit ? styles.listBadgeRed : styles.listBadgeGreen}`}>
+                                                {isCredit ? 'Given' : 'Received'}
+                                            </span>
+                                            <span className={styles.listModeText}>{t.paymentMode || 'Cash'}</span>
+                                            {t.invoiceNumber && <span className={styles.listModeText}>• #{t.invoiceNumber}</span>}
+                                        </div>
+                                        {t.note && <p className={styles.listNoteText}>{t.note}</p>}
+                                    </div>
+
+                                    <div className={styles.listAmountCol}>
+                                        <span className={`${styles.listAmount} ${isCredit ? styles.listAmountRed : styles.listAmountGreen}`}>
+                                            {isCredit ? '-' : '+'} ₹{t.amount.toLocaleString()}
+                                        </span>
+                                        <span className={styles.listBalText}>
+                                            Bal: ₹{t.runningBalance?.toLocaleString() || 0}
+                                        </span>
+                                    </div>
+
+                                    <div style={{ position: 'relative' }}>
+                                        <button
+                                            className={styles.cardMenuBtn}
+                                            onClick={() => setActiveTxnMenuId(activeTxnMenuId === t.id ? null : t.id)}
+                                        >
+                                            <MoreVertical size={15} />
+                                        </button>
+                                        {activeTxnMenuId === t.id && (
+                                            <div className={styles.actionDropdown} style={{ top: '24px', right: '0' }}>
+                                                <button className={styles.actionItem} onClick={() => handleEdit(t)}>
+                                                    <Edit2 size={12} /> Edit
+                                                </button>
+                                                <button className={styles.actionItem} onClick={() => handleDelete(t)} style={{ color: '#ef4444' }}>
+                                                    <Trash2 size={12} /> Delete
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            );
+                        })
+                    )}
+                </section>
+            )}
 
             {/* Customer Detail Edit Modal */}
             <Modal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} title="Edit Customer Details">

@@ -731,7 +731,14 @@
     color: #64748b;
 }
 
-/* List View Fallback Mode */
+/* List View Mode (Compact statement / table style) */
+.listViewContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
+}
+
 .listViewCard {
     background: #121820;
     border: 1px solid #1b2430;
@@ -740,7 +747,103 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 0.5rem;
+    transition: all 0.15s ease;
+    gap: 0.75rem;
+}
+
+.listViewCard:hover {
+    background: #151d24;
+    border-color: #242f3e;
+}
+
+.listDateCol {
+    display: flex;
+    flex-direction: column;
+    min-width: 60px;
+    flex-shrink: 0;
+}
+
+.listDateText {
+    font-size: 0.75rem;
+    font-weight: 750;
+    color: #f1f5f9;
+}
+
+.listTimeText {
+    font-size: 0.65rem;
+    color: #64748b;
+}
+
+.listMainCol {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.listTypeRow {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.listTypeBadge {
+    font-size: 0.68rem;
+    font-weight: 750;
+    padding: 2px 6px;
+    border-radius: 4px;
+    text-transform: uppercase;
+}
+
+.listBadgeRed {
+    background: rgba(239, 68, 68, 0.12);
+    color: #ef4444;
+}
+
+.listBadgeGreen {
+    background: rgba(16, 185, 129, 0.12);
+    color: #10b981;
+}
+
+.listModeText {
+    font-size: 0.68rem;
+    color: #8392a5;
+}
+
+.listNoteText {
+    font-size: 0.75rem;
+    color: #64748b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin: 0;
+}
+
+.listAmountCol {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    flex-shrink: 0;
+    gap: 2px;
+}
+
+.listAmount {
+    font-size: 0.95rem;
+    font-weight: 800;
+}
+
+.listAmountRed {
+    color: #ef4444;
+}
+
+.listAmountGreen {
+    color: #10b981;
+}
+
+.listBalText {
+    font-size: 0.68rem;
+    color: #64748b;
 }
 
 /* Form Styles */
